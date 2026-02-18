@@ -1,0 +1,9 @@
+✅ MongoDB Connected: localhost
+
+🚀 Safro Server running on port 5005
+📡 Socket.io ready
+🔗 API: http://localhost:5005/api
+🏥 Health: http://localhost:5005/api/health
+🌍 Environment: development
+
+[0mGET /api/health [32m200[0m 8.053 ms - 105[0m

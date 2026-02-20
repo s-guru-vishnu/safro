@@ -6,7 +6,7 @@ import api from '../../services/api';
 
 const Requests = () => {
     const [requests, setRequests] = useState([]);
-    const socket = useSocket();
+    const { socket } = useSocket();
 
     useEffect(() => {
         if (socket) {

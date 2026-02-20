@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiMapPin, FiNavigation, FiDollarSign } from 'react-icons/fi';
+import { FiMapPin, FiNavigation } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import api from '../services/api';
 import toast from 'react-hot-toast';
@@ -15,10 +15,31 @@ const RideRequest = ({ onRideCreated }) => {
         setLoading(true);
 
         try {
-            const mockCoords = { lat: 0, lng: 0 };
+            // Check for active ride first
+            const activeRes = await api.get('/rides/active');
+            if (activeRes.data.ride) {
+                toast.error('You already have an active ride.');
+                setLoading(false);
+                return;
+            }
+
+            // Get browser geolocation
+            let coords = { lat: 0, lng: 0 };
+            try {
+                const pos = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: true,
+                        timeout: 5000
+                    });
+                });
+                coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            } catch (geoErr) {
+                console.warn('Geolocation unavailable, using defaults:', geoErr.message);
+            }
+
             const res = await api.post('/rides/request', {
-                pickupLocation: { address: pickup, coordinates: mockCoords },
-                dropLocation: { address: drop, coordinates: mockCoords },
+                pickupLocation: { address: pickup, coordinates: coords },
+                dropLocation: { address: drop, coordinates: coords },
                 proposedFare: fare,
                 distance: '5 km',
                 duration: '15 mins'

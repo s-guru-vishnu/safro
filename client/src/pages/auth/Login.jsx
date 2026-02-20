@@ -37,9 +37,7 @@ const Login = () => {
                 transition={{ duration: 0.4 }}
             >
                 <div className="text-center mb-8">
-                    <div className="w-12 h-12 bg-teal-600 rounded-xl flex items-center justify-center mx-auto mb-4 text-white text-lg font-bold shadow-sm">
-                        S
-                    </div>
+                    <img src="/Logo.png" alt="Safro" className="w-12 h-12 object-contain mx-auto mb-4" />
                     <h2 className="text-2xl font-bold text-gray-900 mb-1">Welcome back</h2>
                     <p className="text-sm text-gray-500">Sign in to your Safro account</p>
                 </div>
@@ -60,7 +58,7 @@ const Login = () => {
                                 placeholder="name@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white text-gray-900 placeholder-gray-400 text-sm transition-all outline-none"
+                                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900 placeholder-gray-400 text-sm transition-all outline-none"
                                 required
                             />
                         </div>
@@ -75,7 +73,7 @@ const Login = () => {
                                 placeholder="Enter your password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white text-gray-900 placeholder-gray-400 text-sm transition-all outline-none"
+                                className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900 placeholder-gray-400 text-sm transition-all outline-none"
                                 required
                             />
                             <button
@@ -108,7 +106,7 @@ const Login = () => {
                     href="http://localhost:5001/api/auth/google"
                     className="flex items-center justify-center gap-3 w-full py-3 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl transition-all hover:shadow-sm text-sm font-medium"
                 >
-                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-4.5 h-4.5" alt="Google" />
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
                     <span>Sign in with Google</span>
                 </a>
 

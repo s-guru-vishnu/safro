@@ -6,7 +6,7 @@ import './Admin.css';
 
 const Alerts = () => {
     const [alerts, setAlerts] = useState([]);
-    const socket = useSocket();
+    const { socket } = useSocket();
 
     useEffect(() => {
         if (socket) {

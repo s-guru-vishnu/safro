@@ -1,36 +1,126 @@
 /**
  * Socket.io Handler
- * Manages real-time events: ride requests, location updates, status changes, emergency alerts
+ * Manages real-time events: ride requests, negotiations, location updates, status changes, emergency alerts
  */
+const Ride = require('../models/Ride');
+const Negotiation = require('../models/Negotiation');
+
 const socketHandler = (io) => {
+    // Track userId → socketId for targeted emissions
+    const userSocketMap = new Map();
+
     io.on('connection', (socket) => {
         console.log(`🔌 Socket connected: ${socket.id}`);
+
+        // ── Resync ride state (tab switch / refresh / reconnect) ──
+        socket.on('resyncRide', async ({ rideId }) => {
+            try {
+                if (!rideId) return;
+                const ride = await Ride.findById(rideId)
+                    .populate('riderId', 'name email')
+                    .populate('driverId', 'name email');
+                if (!ride) return;
+
+                const messages = await Negotiation.find({ rideId })
+                    .populate('sender', 'name')
+                    .sort({ timestamp: 1 });
+
+                // Auto-join the ride room
+                socket.join(`ride_${rideId}`);
+
+                socket.emit('rideResync', { ride, messages });
+                console.log(`🔄 Resynced ride ${rideId} for ${socket.userId || socket.id} (${messages.length} messages)`);
+            } catch (err) {
+                console.error('resyncRide error:', err.message);
+            }
+        });
 
         // Join room based on user role and id
         socket.on('joinRoom', ({ userId, role }) => {
             socket.join(userId);
             socket.join(role);
+            userSocketMap.set(userId, socket.id);
+            socket.userId = userId;
+            socket.userRole = role;
             console.log(`👤 User ${userId} joined room: ${role}`);
         });
 
-        // Join specific ride room
+        // Join specific ride room (for negotiation)
         socket.on('joinRide', ({ rideId }) => {
             socket.join(`ride_${rideId}`);
-            console.log(`🚗 Socket joined ride: ${rideId}`);
+            console.log(`🚗 Socket ${socket.userId || socket.id} joined ride: ${rideId}`);
         });
 
         // Leave ride room
         socket.on('leaveRide', ({ rideId }) => {
             socket.leave(`ride_${rideId}`);
-            console.log(`🚗 Socket left ride: ${rideId}`);
+            console.log(`🚗 Socket ${socket.userId || socket.id} left ride: ${rideId}`);
         });
 
-        // Driver location update (live tracking)
+        // Join negotiation — join ride room + signal entry
+        socket.on('joinNegotiation', ({ rideId, userId, role }) => {
+            socket.join(`ride_${rideId}`);
+            socket.to(`ride_${rideId}`).emit('negotiationJoined', {
+                userId,
+                role,
+                timestamp: new Date().toISOString()
+            });
+            console.log(`💬 ${role} ${userId} joined negotiation for ride ${rideId}`);
+        });
+
+        // Leave negotiation
+        socket.on('leaveNegotiation', ({ rideId, userId, role }) => {
+            socket.to(`ride_${rideId}`).emit('negotiationLeft', {
+                userId,
+                role,
+                timestamp: new Date().toISOString()
+            });
+            socket.leave(`ride_${rideId}`);
+            console.log(`💬 ${role} ${userId} left negotiation for ride ${rideId}`);
+        });
+
+        // Negotiation: fare offer (relay to other party in ride room)
+        socket.on('sendOffer', (data) => {
+            const { rideId } = data;
+            if (rideId) {
+                socket.to(`ride_${rideId}`).emit('receiveOffer', {
+                    ...data,
+                    timestamp: data.timestamp || new Date().toISOString()
+                });
+                console.log(`💰 Offer in ride ${rideId}: ₹${data.amount} from ${data.role}`);
+            }
+        });
+
+        // Negotiation: text message (relay to other party in ride room)
+        socket.on('sendMessage', (data) => {
+            const { rideId } = data;
+            if (rideId) {
+                socket.to(`ride_${rideId}`).emit('receiveMessage', {
+                    ...data,
+                    timestamp: data.timestamp || new Date().toISOString()
+                });
+                console.log(`💬 Message in ride ${rideId} from ${data.role}: ${data.text}`);
+            }
+        });
+
+        // Driver location update (live tracking — only relayed in confirmed/ongoing rides)
         socket.on('updateDriverLocation', (data) => {
             const { rideId, driverId, location } = data;
             if (rideId) {
                 io.to(`ride_${rideId}`).emit('driverLocationUpdate', {
                     driverId,
+                    location,
+                    timestamp: new Date()
+                });
+            }
+        });
+
+        // Rider location update (live tracking — only relayed in confirmed/ongoing rides)
+        socket.on('updateRiderLocation', (data) => {
+            const { rideId, riderId, location } = data;
+            if (rideId) {
+                io.to(`ride_${rideId}`).emit('riderLocationUpdate', {
+                    riderId,
                     location,
                     timestamp: new Date()
                 });
@@ -72,7 +162,11 @@ const socketHandler = (io) => {
         });
 
         socket.on('disconnect', () => {
-            console.log(`🔌 Socket disconnected: ${socket.id}`);
+            // Clean up user-socket mapping
+            if (socket.userId) {
+                userSocketMap.delete(socket.userId);
+            }
+            console.log(`🔌 Socket disconnected: ${socket.id} (${socket.userId || 'unknown'})`);
         });
     });
 };

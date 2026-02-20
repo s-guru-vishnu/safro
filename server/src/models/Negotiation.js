@@ -18,7 +18,16 @@ const negotiationSchema = new mongoose.Schema({
     },
     amount: {
         type: Number,
-        required: true
+        default: 0
+    },
+    type: {
+        type: String,
+        enum: ['offer', 'message'],
+        default: 'offer'
+    },
+    text: {
+        type: String,
+        default: ''
     },
     status: {
         type: String,

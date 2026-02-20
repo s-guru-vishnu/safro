@@ -39,7 +39,7 @@ const AIFareCard = ({ prediction, loading }) => {
             {/* Header */}
             <div className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 bg-indigo-500/20 rounded-xl flex items-center justify-center">
-                    <span className="text-lg">🧠</span>
+                    <span className="text-lg"></span>
                 </div>
                 <div>
                     <h4 className="text-white font-semibold text-sm">AI Fare Insights</h4>

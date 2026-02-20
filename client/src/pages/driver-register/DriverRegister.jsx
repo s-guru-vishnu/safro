@@ -4,7 +4,6 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import OnboardingNavbar from '../../components/OnboardingNavbar';
 import Step1Personal from './Step1Personal';
 import Step2License from './Step2License';
 import Step3Aadhaar from './Step3Aadhaar';
@@ -109,40 +108,40 @@ const DriverRegister = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <OnboardingNavbar />
 
             {/* Progress Bar */}
-            <div className="max-w-3xl mx-auto px-4 pt-8 pb-4">
-                <div className="flex items-center justify-between mb-2">
+            <div className="max-w-xl mx-auto px-4 pt-8 pb-4">
+                <div className="flex items-start justify-between mb-2">
                     {steps.map((step, i) => {
                         const Icon = step.icon;
                         const isComplete = i < currentStep;
                         const isCurrent = i === currentStep;
                         return (
-                            <div key={i} className="flex flex-col items-center flex-1">
-                                <div className="flex items-center w-full">
-                                    {i > 0 && (
-                                        <div className="flex-1 h-0.5 mx-1">
-                                            <motion.div
-                                                className="h-full rounded-full"
-                                                initial={{ backgroundColor: '#e5e7eb' }}
-                                                animate={{ backgroundColor: isComplete || isCurrent ? '#14b8a6' : '#e5e7eb' }}
-                                                transition={{ duration: 0.4 }}
-                                                style={{ width: '100%' }}
-                                            />
-                                        </div>
-                                    )}
-                                    <motion.div
-                                        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${isComplete ? 'bg-teal-500 text-white shadow-md' :
-                                                isCurrent ? 'bg-gray-900 text-white shadow-lg ring-4 ring-teal-100' :
-                                                    'bg-gray-200 text-gray-400'
-                                            }`}
-                                        whileHover={{ scale: 1.1 }}
-                                    >
-                                        {isComplete ? <FiCheckCircle size={16} /> : <Icon size={16} />}
-                                    </motion.div>
-                                </div>
-                                <span className={`text-xs mt-2 font-medium hidden sm:block ${isCurrent ? 'text-gray-900' : isComplete ? 'text-teal-600' : 'text-gray-400'
+                            <div key={i} className="flex flex-col items-center relative" style={{ flex: '1' }}>
+                                {/* Connector line */}
+                                {i > 0 && (
+                                    <div className="absolute top-4 right-1/2 w-full h-0.5 -translate-y-1/2">
+                                        <motion.div
+                                            className="h-full rounded-full"
+                                            initial={{ backgroundColor: '#e5e7eb' }}
+                                            animate={{ backgroundColor: isComplete || isCurrent ? '#14b8a6' : '#e5e7eb' }}
+                                            transition={{ duration: 0.4 }}
+                                            style={{ width: '100%' }}
+                                        />
+                                    </div>
+                                )}
+                                {/* Icon circle */}
+                                <motion.div
+                                    className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 z-10 transition-all duration-300 ${isComplete ? 'bg-teal-500 text-white shadow-md' :
+                                        isCurrent ? 'bg-gray-900 text-white shadow-lg ring-4 ring-teal-100' :
+                                            'bg-gray-200 text-gray-400'
+                                        }`}
+                                    whileHover={{ scale: 1.1 }}
+                                >
+                                    {isComplete ? <FiCheckCircle size={16} /> : <Icon size={16} />}
+                                </motion.div>
+                                {/* Label */}
+                                <span className={`text-xs mt-2 font-medium hidden sm:block text-center ${isCurrent ? 'text-gray-900' : isComplete ? 'text-teal-600' : 'text-gray-400'
                                     }`}>
                                     {step.label}
                                 </span>

@@ -141,6 +141,24 @@ const Profile = () => {
                                     <InfoRow icon={FiPhone} label="Phone" value={data?.phone || 'Not set'} />
                                     {data?.guardianPhone && <InfoRow icon={FiShield} label="Guardian Phone" value={data.guardianPhone} />}
                                     {data?.guardianEmail && <InfoRow icon={FiShield} label="Guardian Email" value={data.guardianEmail} />}
+                                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                                        <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center border border-gray-100">
+                                            <FiShield size={15} className={data?.negotiationScore < 60 ? 'text-amber-500' : 'text-teal-500'} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium block">Negotiation Score</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`text-sm font-bold ${data?.negotiationScore < 40 ? 'text-red-600' : data?.negotiationScore < 60 ? 'text-amber-600' : 'text-teal-600'}`}>
+                                                    {data?.negotiationScore !== undefined ? data.negotiationScore : 100}/100
+                                                </span>
+                                                {data?.negotiationScore < 60 && (
+                                                    <span className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded font-semibold">
+                                                        {data?.negotiationScore < 40 ? '⚠ Blocked' : '⚠ Low'}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
                                     <InfoRow
                                         icon={FiCalendar}
                                         label="Member Since"

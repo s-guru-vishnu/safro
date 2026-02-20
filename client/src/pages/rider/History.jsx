@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { FiClock, FiMapPin, FiNavigation, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiClock, FiMapPin, FiNavigation, FiChevronLeft, FiChevronRight, FiMessageCircle } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import StatusBadge from '../../components/StatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import NegotiationChat from '../../components/NegotiationChat';
 import api from '../../services/api';
 
 const History = () => {
@@ -10,6 +11,7 @@ const History = () => {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({});
+    const [chatOpenRideId, setChatOpenRideId] = useState(null);
 
     useEffect(() => {
         fetchHistory();
@@ -26,6 +28,14 @@ const History = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleRideUpdate = (updatedRide) => {
+        setRides(prev => prev.map(r => r._id === updatedRide._id ? updatedRide : r));
+    };
+
+    const isPendingStatus = (status) => {
+        return ['pending', 'requested', 'negotiating'].includes(status);
     };
 
     if (loading) return <LoadingSpinner size="lg" text="Loading rides..." />;
@@ -61,7 +71,7 @@ const History = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -12 }}
                                     transition={{ delay: i * 0.05 }}
-                                    className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-teal-200 transition-all group"
+                                    className={`bg-white rounded-xl border p-5 hover:shadow-md transition-all group ${chatOpenRideId === ride._id ? 'border-teal-400 shadow-md' : 'border-gray-200 hover:border-teal-200'}`}
                                 >
                                     {/* Top row */}
                                     <div className="flex items-center justify-between mb-3">
@@ -100,10 +110,31 @@ const History = () => {
                                         <span className="text-lg font-bold text-gray-900">
                                             ₹{ride.fare?.final || ride.fare?.proposed || ride.fare || '—'}
                                         </span>
-                                        <span className="text-xs text-gray-400">
-                                            {ride.distance || '—'} km • {ride.vehicleType || 'Standard'}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-gray-400">
+                                                {ride.distance || '—'} • {ride.vehicleType || 'Standard'}
+                                            </span>
+                                            {isPendingStatus(ride.status) && (
+                                                <button
+                                                    onClick={() => setChatOpenRideId(chatOpenRideId === ride._id ? null : ride._id)}
+                                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${chatOpenRideId === ride._id
+                                                        ? 'bg-teal-600 text-white'
+                                                        : 'bg-gray-900 text-white hover:bg-gray-800'
+                                                        }`}
+                                                >
+                                                    <FiMessageCircle size={12} />
+                                                    {chatOpenRideId === ride._id ? 'Close Chat' : 'Negotiate'}
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
+
+                                    {/* Inline Negotiation Chat */}
+                                    {chatOpenRideId === ride._id && isPendingStatus(ride.status) && (
+                                        <div className="mt-4 pt-4 border-t border-gray-100">
+                                            <NegotiationChat ride={ride} onRideUpdate={handleRideUpdate} />
+                                        </div>
+                                    )}
                                 </motion.div>
                             ))}
                         </AnimatePresence>
@@ -123,8 +154,8 @@ const History = () => {
                                         key={i + 1}
                                         onClick={() => setPage(i + 1)}
                                         className={`w-9 h-9 rounded-lg text-sm font-semibold transition-all ${page === i + 1
-                                                ? 'bg-gray-900 text-white shadow-sm'
-                                                : 'text-gray-500 hover:bg-gray-100'
+                                            ? 'bg-gray-900 text-white shadow-sm'
+                                            : 'text-gray-500 hover:bg-gray-100'
                                             }`}
                                     >
                                         {i + 1}

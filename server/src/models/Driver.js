@@ -60,6 +60,12 @@ const driverSchema = new mongoose.Schema({
     totalEarnings: {
         type: Number,
         default: 0
+    },
+    negotiationScore: {
+        type: Number,
+        default: 100,
+        min: 0,
+        max: 100
     }
 }, {
     timestamps: true

@@ -10,12 +10,22 @@ const rideSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
+    negotiatingDriverId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
     pickupLocation: {
         address: { type: String, required: true },
         coordinates: {
             lat: { type: Number, required: true },
             lng: { type: Number, required: true }
         }
+    },
+    // GeoJSON for $near queries (10km filter)
+    pickupGeo: {
+        type: { type: String, enum: ['Point'], default: 'Point' },
+        coordinates: { type: [Number], default: [0, 0] } // [lng, lat]
     },
     dropLocation: {
         address: { type: String, required: true },
@@ -28,6 +38,7 @@ const rideSchema = new mongoose.Schema({
         proposed: { type: Number, required: true },
         final: { type: Number }
     },
+    negotiatedFare: { type: Number, default: 0 },
     status: {
         type: String,
         enum: ['pending', 'negotiating', 'confirmed', 'ongoing', 'completed', 'cancelled'],
@@ -38,6 +49,12 @@ const rideSchema = new mongoose.Schema({
     distanceKm: { type: Number, default: 0 }, // Parsed numeric distance
     estimatedDuration: { type: Number, default: 0 }, // Duration in minutes
     otp: { type: String }, // For starting the ride
+    failureCount: { type: Number, default: 0 },
+    cancelledBy: {
+        type: String,
+        enum: ['rider', 'driver', 'system', null],
+        default: null
+    },
     // AI Fare Prediction
     aiPrediction: {
         minFare: { type: Number },
@@ -57,5 +74,11 @@ const rideSchema = new mongoose.Schema({
         default: Date.now
     }
 });
+
+// Indexes
+rideSchema.index({ pickupGeo: '2dsphere' });
+rideSchema.index({ riderId: 1, status: 1 });
+rideSchema.index({ driverId: 1, status: 1 });
+rideSchema.index({ negotiatingDriverId: 1, status: 1 });
 
 module.exports = mongoose.model('Ride', rideSchema);

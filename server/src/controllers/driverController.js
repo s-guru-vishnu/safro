@@ -117,7 +117,8 @@ const getDriverStats = async (req, res, next) => {
             reviewCount,
             isAvailable: driver.isAvailable,
             vehicleType: driver.vehicleType,
-            vehicleNumber: driver.vehicleNumber
+            vehicleNumber: driver.vehicleNumber,
+            negotiationScore: driver.negotiationScore !== undefined ? driver.negotiationScore : 100
         });
     } catch (error) {
         next(error);

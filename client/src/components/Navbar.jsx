@@ -48,21 +48,18 @@ const Navbar = () => {
                     { path: '/rider/history', label: 'My Rides', icon: <FiList /> },
                     { path: '/rider/tracking', label: 'Tracking', icon: <FiGrid /> },
                     { path: '/driver/register', label: 'Drive', icon: <FiTruck /> },
-                    { path: '/rider/profile', label: 'Profile', icon: <FiUser /> },
                 ];
             case 'driver':
                 return [
                     { path: '/driver/dashboard', label: 'Dashboard', icon: <FiGrid /> },
                     { path: '/driver/requests', label: 'Requests', icon: <FiList /> },
                     { path: '/driver/earnings', label: 'Earnings', icon: <FiDollarSign /> },
-                    { path: '/driver/profile', label: 'Profile', icon: <FiUser /> },
                 ];
             case 'admin':
                 return [
                     { path: '/admin/dashboard', label: 'Dashboard', icon: <FiBarChart2 /> },
                     { path: '/admin/users', label: 'Drivers', icon: <FiUsers /> },
                     { path: '/admin/rides', label: 'Rides', icon: <FiTruck /> },
-                    { path: '/admin/profile', label: 'Profile', icon: <FiUser /> },
                 ];
             default:
                 return [];
@@ -79,9 +76,7 @@ const Navbar = () => {
                     <div className="flex justify-between items-center h-16">
                         {/* Logo */}
                         <Link to="/" className="flex items-center gap-2.5 group">
-                            <div className="w-9 h-9 bg-teal-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-sm">
-                                S
-                            </div>
+                            <img src="/Logo.png" alt="Safro" className="w-9 h-9 object-contain" />
                             <div className="flex flex-col">
                                 <span className="text-lg font-bold text-gray-900 leading-tight">Safro</span>
                                 <span className="text-[9px] text-gray-400 font-medium tracking-wider uppercase leading-none hidden sm:block">

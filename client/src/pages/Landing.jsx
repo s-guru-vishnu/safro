@@ -112,7 +112,7 @@ const Landing = () => {
                                         <div className="w-3 h-3 rounded-full bg-red-400" />
                                         <div className="w-3 h-3 rounded-full bg-yellow-400" />
                                         <div className="w-3 h-3 rounded-full bg-green-400" />
-                                        <span className="ml-auto text-xs text-gray-400 font-medium">Live Negotiation</span>
+
                                     </div>
 
                                     <div className="flex justify-end">
@@ -269,7 +269,7 @@ const Landing = () => {
                                     <span className="text-sm font-medium text-green-700">Insurance Verified</span>
                                 </div>
                             </div>
-                            <p className="text-xs text-gray-400 mt-4 text-center">Driver verification panel — admin only</p>
+                            <p className="text-xs text-gray-400 mt-4 text-center">Driver verification panel</p>
                         </motion.div>
                     </div>
                 </div>
@@ -353,7 +353,7 @@ const Landing = () => {
                     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
                         <div>
                             <div className="flex items-center gap-2 mb-4">
-                                <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">S</div>
+                                <img src="/Logo.png" alt="Safro" className="w-8 h-8 object-contain" />
                                 <span className="font-bold text-gray-900">Safro</span>
                             </div>
                             <p className="text-sm text-gray-500 leading-relaxed">Where the Price is Yours to Decide.</p>

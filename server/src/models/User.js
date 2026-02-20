@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
     },
     phone: {
         type: String,
-        required: [true, 'Phone number is required'],
+        required: false,
         trim: true
     },
     role: {
@@ -56,6 +56,17 @@ const userSchema = new mongoose.Schema({
     isSuspended: {
         type: Boolean,
         default: false
+    },
+    negotiationScore: {
+        type: Number,
+        default: 100,
+        min: 0,
+        max: 100
+    },
+    activeRideId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Ride',
+        default: null
     },
     // Admin region for geo-based driver verification assignment
     adminRegion: {

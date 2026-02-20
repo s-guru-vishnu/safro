@@ -79,7 +79,7 @@ const suspendUser = async (req, res) => {
 const getAnalytics = async (req, res) => {
     try {
         const [totalUsers, totalRiders, totalDrivers, totalRides, completedRides, cancelledRides, activeRides, payments] = await Promise.all([
-            User.countDocuments(),
+            User.countDocuments({ role: 'driver' }),
             User.countDocuments({ role: 'rider' }),
             User.countDocuments({ role: 'driver' }),
             Ride.countDocuments(),

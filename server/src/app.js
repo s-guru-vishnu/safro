@@ -49,6 +49,18 @@ require('./config/passport');
 const passport = require('passport');
 app.use(passport.initialize());
 
+// ─── OAuth Diagnostics ─────────────────────────────────────────
+console.log('\n══════════════════════════════════════════');
+console.log('🔑 GOOGLE OAUTH CONFIG:');
+console.log('   Client ID:', process.env.GOOGLE_CLIENT_ID ? '✅ Set' : '❌ MISSING');
+console.log('   Client Secret:', process.env.GOOGLE_CLIENT_SECRET ? '✅ Set' : '❌ MISSING');
+console.log('   Callback URL:', process.env.GOOGLE_CALLBACK_URL || '❌ NOT SET (using fallback)');
+console.log('   Frontend URL:', process.env.FRONTEND_URL || '❌ NOT SET (using fallback)');
+console.log('══════════════════════════════════════════');
+console.log('📋 GOOGLE CONSOLE MUST HAVE THIS REDIRECT URI:');
+console.log('   →', process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5001/api/auth/google/callback');
+console.log('══════════════════════════════════════════\n');
+
 // ─── Rate Limiting ──────────────────────────────────────────────
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes

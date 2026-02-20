@@ -6,7 +6,7 @@ import api from '../services/api';
 
 const WELCOME_MESSAGE = {
     role: 'assistant',
-    content: "Hey! I'm Safron 🚗 — your AI assistant for Safro. Ask me anything about rides, fares, or how the platform works!"
+    content: "Hey! I'm Safron — your AI assistant for Safro. Ask me anything about rides, fares, or how the platform works!"
 };
 
 const SafronChatbot = () => {
@@ -42,7 +42,7 @@ const SafronChatbot = () => {
         } catch (err) {
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: "Oops — I couldn't process that. Try again in a moment! 🔄"
+                content: "Oops — I couldn't process that. Try again in a moment!"
             }]);
         } finally {
             setLoading(false);
@@ -112,8 +112,8 @@ const SafronChatbot = () => {
                                     className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                 >
                                     <div className={`max-w-[80%] px-3.5 py-2.5 text-sm leading-relaxed ${msg.role === 'user'
-                                            ? 'bg-teal-600 text-white rounded-2xl rounded-br-md'
-                                            : 'bg-white text-gray-800 rounded-2xl rounded-bl-md border border-gray-100 shadow-sm'
+                                        ? 'bg-teal-600 text-white rounded-2xl rounded-br-md'
+                                        : 'bg-white text-gray-800 rounded-2xl rounded-bl-md border border-gray-100 shadow-sm'
                                         }`}>
                                         {msg.content}
                                     </div>

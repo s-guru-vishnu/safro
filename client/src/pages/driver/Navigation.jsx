@@ -19,7 +19,7 @@ const Navigation = () => {
     const [ride, setRide] = useState(null);
     const [otp, setOtp] = useState('');
     const [otpError, setOtpError] = useState('');
-    const socket = useSocket();
+    const { socket } = useSocket();
 
     useEffect(() => {
         api.get('/rides/active').then(res => {

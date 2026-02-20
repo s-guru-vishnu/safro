@@ -43,7 +43,7 @@ import AdminProfile from './pages/admin/Profile';
 
 
 
-const HIDE_NAVBAR_PATHS = ['/driver/register', '/driver/submitted'];
+const HIDE_NAVBAR_PATHS = [];
 
 function AppContent() {
   const location = useLocation();

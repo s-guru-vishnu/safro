@@ -37,7 +37,7 @@ const AdminAIInsights = () => {
             label: 'Avg Negotiated Fare',
             value: `₹${insights.avgNegotiatedFare || 0}`,
             sub: `${insights.totalCompletedRides || 0} rides`,
-            icon: '💰',
+            icon: '',
             color: 'from-emerald-50 to-emerald-100/50',
             border: 'border-emerald-200',
             textColor: 'text-emerald-700'
@@ -46,7 +46,7 @@ const AdminAIInsights = () => {
             label: 'AI Flagged Rides',
             value: insights.flaggedRides || 0,
             sub: 'Last 30 days',
-            icon: '⚠️',
+            icon: '',
             color: insights.flaggedRides > 0 ? 'from-red-50 to-red-100/50' : 'from-gray-50 to-gray-100/50',
             border: insights.flaggedRides > 0 ? 'border-red-200' : 'border-gray-200',
             textColor: insights.flaggedRides > 0 ? 'text-red-700' : 'text-gray-700'
@@ -55,7 +55,7 @@ const AdminAIInsights = () => {
             label: 'Lowball Offers',
             value: insights.lowballOffers || 0,
             sub: '<50% of AI suggested',
-            icon: '📉',
+            icon: '',
             color: 'from-amber-50 to-amber-100/50',
             border: 'border-amber-200',
             textColor: 'text-amber-700'
@@ -66,7 +66,7 @@ const AdminAIInsights = () => {
             sub: insights.topDrivers?.[0]
                 ? `${insights.topDrivers[0].completedRides} rides • ₹${insights.topDrivers[0].avgFare} avg`
                 : 'No data',
-            icon: '🏆',
+            icon: '',
             color: 'from-indigo-50 to-indigo-100/50',
             border: 'border-indigo-200',
             textColor: 'text-indigo-700'
@@ -76,7 +76,7 @@ const AdminAIInsights = () => {
     return (
         <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">
-                <span className="text-xl">🧠</span>
+                <span className="text-xl"></span>
                 <h3 className="text-gray-900 font-bold text-lg">AI Insights</h3>
                 <span className="text-[10px] font-semibold text-gray-500 bg-gray-200/50 px-2 py-0.5 rounded-full uppercase tracking-wider">30 days</span>
             </div>

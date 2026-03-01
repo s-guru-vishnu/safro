@@ -22,13 +22,17 @@ const paymentSchema = new mongoose.Schema({
     },
     method: {
         type: String,
-        enum: ['cash', 'online'],
+        enum: ['cash', 'wallet', 'razorpay'],
         default: 'cash'
     },
     status: {
         type: String,
         enum: ['pending', 'completed', 'refunded'],
         default: 'pending'
+    },
+    cashback: {
+        type: Number,
+        default: 0
     },
     transactionId: {
         type: String,

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiUser, FiMail, FiLock, FiPhone, FiTruck, FiFileText, FiShield, FiArrowLeft, FiCheckCircle } from 'react-icons/fi';
+import { FiUser, FiMail, FiLock, FiPhone, FiTruck, FiFileText, FiShield, FiArrowLeft, FiCheckCircle, FiMapPin } from 'react-icons/fi';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -10,7 +10,7 @@ const CreateDriver = () => {
     const [form, setForm] = useState({
         name: '', email: '', password: '', phone: '',
         vehicleType: 'sedan', vehicleNumber: '', licenseNumber: '',
-        aadhaar: '', rc: '', insurance: ''
+        aadhaar: '', rc: '', insurance: '', taluk: ''
     });
     const [loading, setLoading] = useState(false);
 
@@ -100,6 +100,7 @@ const CreateDriver = () => {
                                 </div>
                                 <InputField icon={FiTruck} label="Vehicle Number" type="text" name="vehicleNumber" placeholder="e.g. KA-01-AB-1234" value={form.vehicleNumber} required />
                                 <InputField icon={FiFileText} label="License Number" type="text" name="licenseNumber" placeholder="License number" value={form.licenseNumber} required />
+                                <InputField icon={FiMapPin} label="Taluk" type="text" name="taluk" placeholder="Enter taluk" value={form.taluk} required />
                             </div>
                         </div>
 

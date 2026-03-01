@@ -15,6 +15,7 @@ const negotiationRoutes = require('./routes/negotiationRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const mapRoutes = require('./routes/mapRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -41,6 +42,9 @@ app.use(cors({
 }));
 
 // ─── Body Parsing ───────────────────────────────────────────────
+// Webhook raw body parser MUST come before express.json()
+app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -62,26 +66,36 @@ console.log('   →', process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5001/
 console.log('══════════════════════════════════════════\n');
 
 // ─── Rate Limiting ──────────────────────────────────────────────
-const limiter = rateLimit({
+const rootLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100,
+    max: 1000, // Increased for development
     message: { message: 'Too many requests, please try again later' },
     standardHeaders: true,
     legacyHeaders: false
 });
-app.use('/api/', limiter);
+app.use('/api/', rootLimiter);
+
+const paymentLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: { message: 'Too many payment requests, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+app.use('/api/payment', paymentLimiter);
 
 // ─── API Routes ─────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
-app.use('/api/auth', otpRoutes); // Mount OTP routes under /api/auth
+app.use('/api/auth', otpRoutes);
 app.use('/api/rides', rideRoutes);
 app.use('/api/negotiation', negotiationRoutes);
 app.use('/api/drivers', driverRoutes);
-app.use('/api/payments', paymentRoutes);
+app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/map', mapRoutes);
 
 // ─── Health Check ───────────────────────────────────────────────
 app.get('/api/health', (req, res) => {

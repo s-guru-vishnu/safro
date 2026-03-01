@@ -66,6 +66,25 @@ const driverSchema = new mongoose.Schema({
         default: 100,
         min: 0,
         max: 100
+    },
+    // Payment & Payouts
+    upiId: {
+        type: String,
+        trim: true
+    },
+    bankAccount: {
+        accountNo: String,
+        ifsc: String,
+        name: String
+    },
+    payoutBalance: {
+        type: Number,
+        default: 0
+    },
+    taluk: {
+        type: String,
+        trim: true,
+        default: ''
     }
 }, {
     timestamps: true

@@ -1,0 +1,143 @@
+﻿
+> client@0.0.0 build
+> vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 2313 modules transformed.
+node.exe : 
+[31mΓ£ù[39m Build 
+failed in 4.64s
+At line:1 char:1
++ & "C:\Program Files
+\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: ([31mΓ£   
+ ù[39m Build fai    
+led in 4.64s:Str    
+ing) [], RemoteE    
+xception
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+[31merror during 
+build:
+[31msrc/components/N
+avbar.jsx (7:94): 
+"FiWallet" is not 
+exported by "node_mod
+ules/react-icons/fi/i
+ndex.mjs", imported 
+by "src/components/Na
+vbar.jsx".[31m
+file: [36mC:/Users/g
+uruv/OneDrive/Desktop
+/Safro/client/src/com
+ponents/Navbar.jsx:7:
+94[31m
+[33m
+5: import {
+6:     FiMenu, FiX, 
+FiUser, FiLogOut, 
+FiChevronDown, 
+FiHome, FiMapPin, 
+FiInfo, FiShield, 
+FiHelpCircle,
+7:     FiGrid, 
+FiList, 
+FiDollarSign, 
+FiToggleLeft, 
+FiToggleRight, 
+FiUsers, FiTruck, 
+FiBarChart2, FiWallet
+                     
+                     
+                     
+                     
+             ^
+8: } from 
+'react-icons/fi';
+[31m
+    at 
+getRollupError (file:
+///C:/Users/guruv/One
+Drive/Desktop/Safro/c
+lient/node_modules/ro
+llup/dist/es/shared/p
+arseAst.js:402:41)
+    at error (file://
+/C:/Users/guruv/OneDr
+ive/Desktop/Safro/cli
+ent/node_modules/roll
+up/dist/es/shared/par
+seAst.js:398:42)
+    at Module.error (
+file:///C:/Users/guru
+v/OneDrive/Desktop/Sa
+fro/client/node_modul
+es/rollup/dist/es/sha
+red/node-entry.js:170
+40:16)
+    at 
+Module.traceVariable 
+(file:///C:/Users/gur
+uv/OneDrive/Desktop/S
+afro/client/node_modu
+les/rollup/dist/es/sh
+ared/node-entry.js:17
+452:29)
+    at ModuleScope.fi
+ndVariable (file:///C
+:/Users/guruv/OneDriv
+e/Desktop/Safro/clien
+t/node_modules/rollup
+/dist/es/shared/node-
+entry.js:15070:39)
+    at ReturnValueSco
+pe.findVariable (file
+:///C:/Users/guruv/On
+eDrive/Desktop/Safro/
+client/node_modules/r
+ollup/dist/es/shared/
+node-entry.js:5673:38
+)
+    at FunctionBodySc
+ope.findVariable (fil
+e:///C:/Users/guruv/O
+neDrive/Desktop/Safro
+/client/node_modules/
+rollup/dist/es/shared
+/node-entry.js:5673:3
+8)
+    at ReturnValueSco
+pe.findVariable (file
+:///C:/Users/guruv/On
+eDrive/Desktop/Safro/
+client/node_modules/r
+ollup/dist/es/shared/
+node-entry.js:5673:38
+)
+    at FunctionBodySc
+ope.findVariable (fil
+e:///C:/Users/guruv/O
+neDrive/Desktop/Safro
+/client/node_modules/
+rollup/dist/es/shared
+/node-entry.js:5673:3
+8)
+    at BlockScope.fin
+dVariable (file:///C:
+/Users/guruv/OneDrive
+/Desktop/Safro/client
+/node_modules/rollup/
+dist/es/shared/node-e
+ntry.js:5673:38)[39m

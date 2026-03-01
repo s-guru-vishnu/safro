@@ -83,15 +83,10 @@ const driverApplicationSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
-    rcNumber: {
-        type: String,
-        trim: true,
-        default: ''
-    },
-    rcDocument: {
-        type: String,
-        default: ''
-    },
+    rcNumber: { type: String, trim: true },
+    rcDocument: { type: String },
+    // Payment details
+    upiId: { type: String, trim: true },
 
     // ── Application Info ─────────────────────────────────────
     city: {
@@ -100,6 +95,11 @@ const driverApplicationSchema = new mongoose.Schema({
         default: ''
     },
     address: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    taluk: {
         type: String,
         trim: true,
         default: ''

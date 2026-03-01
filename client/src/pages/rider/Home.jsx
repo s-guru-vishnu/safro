@@ -4,11 +4,13 @@ import { useSocket } from '../../context/SocketContext';
 import RideRequest from '../../components/RideRequest';
 import NegotiationChat from '../../components/NegotiationChat';
 import RatingModal from '../../components/RatingModal';
+import PaymentScreen from '../../components/PaymentScreen';
 import AIFareCard from '../../components/AIFareCard';
 import { FiCheckCircle, FiMapPin, FiNavigation, FiClock } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
+import MapView from '../../components/map/MapView';
 
 const RiderHome = () => {
     const { user } = useAuth();
@@ -17,6 +19,21 @@ const RiderHome = () => {
     const [showRatingModal, setShowRatingModal] = useState(false);
     const [driverLocation, setDriverLocation] = useState(null);
     const [riderLocation, setRiderLocation] = useState(null);
+    const [showPaymentScreen, setShowPaymentScreen] = useState(false);
+    const [completedRide, setCompletedRide] = useState(null);
+
+    // Get rider's current location for the initial map view
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    setRiderLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                },
+                (err) => console.warn('Geolocation unavailable:', err.message),
+                { enableHighAccuracy: true, timeout: 5000 }
+            );
+        }
+    }, []);
 
     // Fetch active ride on mount (restore state after refresh)
     useEffect(() => {
@@ -26,6 +43,10 @@ const RiderHome = () => {
                 if (res.data.ride) {
                     setActiveRide(res.data.ride);
                     localStorage.setItem('activeRideId', res.data.ride._id);
+                    if (res.data.ride.status === 'completed' && res.data.ride.paymentStatus !== 'Paid') {
+                        setCompletedRide(res.data.ride);
+                        setShowPaymentScreen(true);
+                    }
                 }
             } catch (err) {
                 console.error('Error fetching active ride:', err);
@@ -71,13 +92,28 @@ const RiderHome = () => {
                 if (data.status === 'completed') {
                     localStorage.removeItem('activeRideId');
                     toast.success('You have reached your destination!');
-                    setShowRatingModal(true);
+                    // Instead of immediate rating, show payment if pending
+                    const rideToPay = prev ? ({ ...prev, status: 'completed' }) : null;
+                    if (rideToPay && rideToPay.paymentStatus !== 'Paid') {
+                        setCompletedRide(rideToPay);
+                        setShowPaymentScreen(true);
+                    } else {
+                        setShowRatingModal(true);
+                    }
                 }
             });
 
             socket.on('negotiationFailed', (data) => {
                 setActiveRide(prev => prev ? ({ ...prev, status: 'pending', negotiatingDriverId: null }) : prev);
                 toast('Negotiation failed. Waiting for another driver...', { icon: '🔄' });
+            });
+
+            socket.on('paymentSuccess', (data) => {
+                toast.success('Payment confirmed!');
+                setShowPaymentScreen(false);
+                setShowRatingModal(true);
+                // Refresh active ride state or clear it
+                setActiveRide(null);
             });
 
             socket.on('rideCancelled', () => {
@@ -145,6 +181,12 @@ const RiderHome = () => {
         };
     }, [socket, activeRide?._id, activeRide?.status, user._id]);
 
+    const handlePaymentComplete = (updatedRide) => {
+        setCompletedRide(updatedRide);
+        setShowPaymentScreen(false);
+        setShowRatingModal(true);
+    };
+
     return (
         <div className="min-h-[calc(100vh-64px)] bg-gray-50 py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -203,7 +245,7 @@ const RiderHome = () => {
                                     </div>
                                 </motion.div>
                                 {/* AI Fare Prediction */}
-                                {activeRide.aiPrediction && (
+                                {activeRide?.aiPrediction && (
                                     <AIFareCard prediction={activeRide.aiPrediction} />
                                 )}
                             </>
@@ -213,55 +255,33 @@ const RiderHome = () => {
                     {/* Right: Map + Negotiation */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Map / Location Panel */}
-                        <div className="bg-white h-80 rounded-xl border border-gray-200 relative overflow-hidden">
-                            {activeRide && (activeRide.status === 'confirmed' || activeRide.status === 'ongoing') && driverLocation ? (
-                                <div className="absolute inset-0 flex flex-col">
-                                    <div className="bg-gradient-to-br from-gray-900 to-gray-800 px-5 py-3 flex items-center justify-between">
-                                        <h3 className="text-white text-sm font-bold flex items-center gap-2">
-                                            <FiNavigation size={14} className="text-teal-400" />
-                                            Live Tracking
-                                        </h3>
-                                        <span className="flex items-center gap-1.5 text-xs text-teal-300">
-                                            <span className="w-2 h-2 bg-teal-400 rounded-full animate-pulse" />
-                                            Live
+                        <div className="bg-white h-96 rounded-2xl border border-gray-200 relative overflow-hidden shadow-sm">
+                            <MapView
+                                pickupCoordinates={activeRide?.pickupLocation?.coordinates?.coordinates ? {
+                                    lat: activeRide.pickupLocation.coordinates.coordinates[1],
+                                    lng: activeRide.pickupLocation.coordinates.coordinates[0]
+                                } : null}
+                                dropCoordinates={activeRide?.dropLocation?.coordinates?.coordinates ? {
+                                    lat: activeRide.dropLocation.coordinates.coordinates[1],
+                                    lng: activeRide.dropLocation.coordinates.coordinates[0]
+                                } : null}
+                                driverCoordinates={driverLocation ? {
+                                    lat: driverLocation.lat,
+                                    lng: driverLocation.lng
+                                } : null}
+                                riderCoordinates={riderLocation}
+                            />
+
+                            {/* Live Status Overlay */}
+                            {activeRide && (activeRide.status === 'confirmed' || activeRide.status === 'ongoing') && (
+                                <div className="absolute top-4 left-4 z-[1000]">
+                                    <div className="bg-gray-900/90 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2 shadow-lg border border-white/10">
+                                        <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse" />
+                                        <span className="text-[10px] font-bold text-white uppercase tracking-widest">
+                                            {activeRide.status === 'confirmed' ? 'Driver en route' : 'Trip in progress'}
                                         </span>
-                                    </div>
-                                    <div className="flex-1 p-5 flex flex-col justify-center space-y-4">
-                                        <div className="bg-teal-50 rounded-xl p-4 border border-teal-100">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <div className="w-3 h-3 bg-teal-500 rounded-full animate-pulse" />
-                                                <span className="text-xs font-bold text-teal-700 uppercase tracking-wide">Driver Location</span>
-                                            </div>
-                                            <p className="text-sm text-gray-700 font-mono">
-                                                {driverLocation.lat?.toFixed(5)}, {driverLocation.lng?.toFixed(5)}
-                                            </p>
-                                        </div>
-                                        {riderLocation && (
-                                            <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <div className="w-3 h-3 bg-blue-500 rounded-full" />
-                                                    <span className="text-xs font-bold text-blue-700 uppercase tracking-wide">Your Location</span>
-                                                </div>
-                                                <p className="text-sm text-gray-700 font-mono">
-                                                    {riderLocation.lat?.toFixed(5)}, {riderLocation.lng?.toFixed(5)}
-                                                </p>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
-                            ) : (
-                                <>
-                                    <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-50" />
-                                    <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
-                                        <FiMapPin className="text-gray-300 mx-auto mb-2" size={32} />
-                                        <span className="text-sm text-gray-400 font-medium">Map View</span>
-                                        <span className="block text-xs text-gray-300 mt-1">
-                                            {activeRide && (activeRide.status === 'confirmed' || activeRide.status === 'ongoing')
-                                                ? 'Waiting for driver location...'
-                                                : 'Location sharing starts after ride confirmation'}
-                                        </span>
-                                    </div>
-                                </>
                             )}
                         </div>
 
@@ -274,11 +294,18 @@ const RiderHome = () => {
             </div>
 
             <RatingModal
-                ride={activeRide}
+                ride={completedRide || activeRide}
                 isOpen={showRatingModal}
                 onClose={() => setShowRatingModal(false)}
                 onSubmitted={() => setShowRatingModal(false)}
             />
+
+            {showPaymentScreen && (completedRide || activeRide) && (
+                <PaymentScreen
+                    ride={completedRide || activeRide}
+                    onPaymentSuccess={handlePaymentComplete}
+                />
+            )}
         </div>
     );
 };

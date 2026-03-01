@@ -1,6 +1,6 @@
+require('dotenv').config();
 const http = require('http');
 const { Server } = require('socket.io');
-require('dotenv').config();
 
 const app = require('./src/app');
 const connectDB = require('./src/config/db');
@@ -49,7 +49,6 @@ process.on('unhandledRejection', (err) => {
     server.close(() => process.exit(1));
 });
 
-// Handle uncaught exceptions
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
     console.error('❌ Uncaught Exception:', err.message);

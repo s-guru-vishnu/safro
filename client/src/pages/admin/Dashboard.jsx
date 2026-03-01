@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiUsers, FiTruck, FiDollarSign, FiActivity, FiCheckCircle, FiXCircle, FiPlus, FiBarChart2, FiArrowRight, FiFileText, FiClock, FiMapPin, FiCalendar } from 'react-icons/fi';
 import AdminAIInsights from '../../components/AdminAIInsights';
+import DriverTrackingMap from '../../components/DriverTrackingMap';
 import api from '../../services/api';
 
 const statusColors = {
@@ -135,6 +136,9 @@ const AdminDashboard = () => {
                         </motion.div>
                     ))}
                 </div>
+
+                {/* Driver Tracking Map */}
+                <DriverTrackingMap />
 
                 {/* Two Column Layout */}
                 <div className="grid lg:grid-cols-2 gap-6 mb-6">
@@ -380,6 +384,10 @@ const AdminDashboard = () => {
                                             <div>
                                                 <p className="text-xs text-gray-500">License Number</p>
                                                 <p className="font-semibold text-gray-900 uppercase">{selectedApp.licenseNumber}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-500">Taluk</p>
+                                                <p className="font-bold text-teal-600">{selectedApp.taluk}</p>
                                             </div>
                                         </div>
                                     </section>

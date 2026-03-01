@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { FiDollarSign, FiTruck, FiStar, FiMapPin } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import RatingStars from '../../components/RatingStars';
+import { useSocket } from '../../context/SocketContext';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
 const statusColors = {
@@ -16,7 +18,10 @@ const Earnings = () => {
     const [rides, setRides] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+    const { socket } = useSocket();
+    const { user } = useAuth();
+
+    const fetchEarningsData = () => {
         Promise.all([
             api.get('/drivers/stats'),
             api.get('/rides/history?limit=5')
@@ -24,7 +29,32 @@ const Earnings = () => {
             setStats(statsRes.data);
             setRides(ridesRes.data.rides);
         }).catch(console.error).finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        fetchEarningsData();
     }, []);
+
+    // Socket listener for real-time earnings updates
+    useEffect(() => {
+        if (!socket || !user) return;
+
+        // Join driver room if not already joined
+        socket.emit('joinRoom', { userId: user._id, role: 'driver' });
+
+        const handleRideStatusChanged = (data) => {
+            if (data.status === 'completed') {
+                // Fetch fresh stats when a ride is completed
+                fetchEarningsData();
+            }
+        };
+
+        socket.on('rideStatusChanged', handleRideStatusChanged);
+
+        return () => {
+            socket.off('rideStatusChanged', handleRideStatusChanged);
+        };
+    }, [socket, user]);
 
     if (loading) {
         return (

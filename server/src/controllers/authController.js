@@ -124,6 +124,9 @@ const getProfile = async (req, res, next) => {
                 guardianPhone: user.guardianPhone,
                 guardianEmail: user.guardianEmail,
                 profileImage: user.profileImage,
+                walletBalance: user.walletBalance,
+                quickPayEnabled: user.quickPayEnabled,
+                defaultPaymentMethod: user.defaultPaymentMethod,
                 createdAt: user.createdAt
             },
             driverProfile
@@ -137,10 +140,18 @@ const getProfile = async (req, res, next) => {
 // @route   PUT /api/auth/profile
 const updateProfile = async (req, res, next) => {
     try {
-        const { name, phone, guardianPhone, guardianEmail } = req.body;
+        const updateData = {};
+        const allowedUpdates = ['name', 'phone', 'guardianPhone', 'guardianEmail', 'quickPayEnabled', 'defaultPaymentMethod', 'profileImage', 'taluk'];
+
+        allowedUpdates.forEach(field => {
+            if (req.body[field] !== undefined) {
+                updateData[field] = req.body[field];
+            }
+        });
+
         const user = await User.findByIdAndUpdate(
             req.user._id,
-            { name, phone, guardianPhone, guardianEmail },
+            updateData,
             { new: true, runValidators: true }
         );
 
@@ -154,6 +165,9 @@ const updateProfile = async (req, res, next) => {
                 guardianPhone: user.guardianPhone,
                 guardianEmail: user.guardianEmail,
                 profileImage: user.profileImage,
+                walletBalance: user.walletBalance,
+                quickPayEnabled: user.quickPayEnabled,
+                defaultPaymentMethod: user.defaultPaymentMethod,
                 createdAt: user.createdAt
             }
         });
@@ -191,14 +205,15 @@ const applyAsDriver = async (req, res, next) => {
             // Step 4: Vehicle
             vehicleType, vehicleModel, vehicleNumber, vehicleColor, manufacturingYear,
             // Step 5: Insurance & RC
-            insurancePolicyNumber, insuranceExpiry, insuranceDocument, rcNumber, rcDocument,
-            // Extra
-            city, address
+            insurancePolicyNumber, insuranceExpiry, insuranceDocument,
+            rcNumber, rcDocument,
+            // Step 6: Address
+            city, address, taluk
         } = req.body;
 
-        if (!vehicleType || !vehicleNumber || !licenseNumber) {
+        if (!vehicleType || !vehicleNumber || !licenseNumber || !taluk) {
             return res.status(400).json({
-                message: 'Vehicle type, vehicle number, and license number are required'
+                message: 'Vehicle type, vehicle number, license number, and taluk are required'
             });
         }
 
@@ -239,7 +254,8 @@ const applyAsDriver = async (req, res, next) => {
             rcNumber: rcNumber || '',
             rcDocument: rcDocument || '',
             city: city || '',
-            address: address || ''
+            address: address || '',
+            taluk: taluk || ''
         });
 
         // Notify admin about new application

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiUser, FiMail, FiPhone, FiCamera, FiArrowRight, FiX } from 'react-icons/fi';
+import { FiUser, FiMail, FiPhone, FiCamera, FiArrowRight, FiX, FiMapPin } from 'react-icons/fi';
 
 const Step1Personal = ({ formData, updateField, nextStep }) => {
     const [errors, setErrors] = useState({});
@@ -11,6 +11,7 @@ const Step1Personal = ({ formData, updateField, nextStep }) => {
         else if (!/\S+@\S+\.\S+/.test(formData.email)) e.email = 'Invalid email format';
         if (!formData.phone.trim()) e.phone = 'Phone number is required';
         else if (formData.phone.length < 10) e.phone = 'Enter a valid phone number';
+        if (!formData.taluk?.trim()) e.taluk = 'Taluk is required';
         setErrors(e);
         return Object.keys(e).length === 0;
     };
@@ -31,7 +32,7 @@ const Step1Personal = ({ formData, updateField, nextStep }) => {
         reader.readAsDataURL(file);
     };
 
-    const isValid = formData.fullName.trim() && formData.email.trim() && formData.phone.trim();
+    const isValid = formData.fullName.trim() && formData.email.trim() && formData.phone.trim() && formData.taluk?.trim();
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
@@ -113,14 +114,30 @@ const Step1Personal = ({ formData, updateField, nextStep }) => {
                     </div>
                     {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
                 </div>
+
+                {/* Taluk */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Taluk *</label>
+                    <div className="relative">
+                        <FiMapPin className="absolute left-3.5 top-3.5 text-gray-400" size={16} />
+                        <input
+                            type="text"
+                            value={formData.taluk}
+                            onChange={(e) => updateField('taluk', e.target.value)}
+                            placeholder="Enter your taluk (e.g., Madurai North)"
+                            className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white text-gray-900 placeholder-gray-400 text-sm transition-all outline-none ${errors.taluk ? 'border-red-300' : 'border-gray-200'}`}
+                        />
+                    </div>
+                    {errors.taluk && <p className="text-xs text-red-500 mt-1">{errors.taluk}</p>}
+                </div>
             </div>
 
             <button
                 onClick={handleContinue}
                 disabled={!isValid}
                 className={`mt-8 w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all ${isValid
-                        ? 'bg-gray-900 text-white hover:bg-gray-800 shadow-sm hover:shadow-md active:scale-[0.98]'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    ? 'bg-gray-900 text-white hover:bg-gray-800 shadow-sm hover:shadow-md active:scale-[0.98]'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}
             >
                 Continue <FiArrowRight size={14} />

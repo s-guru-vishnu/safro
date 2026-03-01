@@ -75,6 +75,24 @@ const userSchema = new mongoose.Schema({
             coordinates: { type: [Number], default: [0, 0] } // [lng, lat]
         },
         radiusKm: { type: Number, default: 50 }
+    },
+    walletBalance: {
+        type: Number,
+        default: 0
+    },
+    quickPayEnabled: {
+        type: Boolean,
+        default: false
+    },
+    defaultPaymentMethod: {
+        type: String,
+        enum: ['wallet', 'razorpay', 'cash'],
+        default: 'cash'
+    },
+    taluk: {
+        type: String,
+        trim: true,
+        default: ''
     }
 }, {
     timestamps: true

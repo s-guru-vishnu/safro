@@ -1,20 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import { FiMapPin, FiNavigation, FiDollarSign, FiClock, FiPhone, FiArrowLeft } from 'react-icons/fi';
 import { motion } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import StatusBadge from '../../components/StatusBadge';
 import api from '../../services/api';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
+import MapView from '../../components/map/MapView';
 
 const statusMessages = {
     requested: 'Finding your driver...',
@@ -30,10 +22,25 @@ const statusMessages = {
 };
 
 const Tracking = () => {
+    const { user } = useAuth();
     const location = useLocation();
     const { socket } = useSocket();
     const [ride, setRide] = useState(location.state?.ride || null);
     const [driverLocation, setDriverLocation] = useState(null);
+    const [riderLocation, setRiderLocation] = useState(null);
+
+    // Get rider's current location for initial map view
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    setRiderLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                },
+                (err) => console.warn('Geolocation unavailable:', err.message),
+                { enableHighAccuracy: true, timeout: 5000 }
+            );
+        }
+    }, []);
 
     useEffect(() => {
         if (!ride) {
@@ -46,7 +53,11 @@ const Tracking = () => {
     useEffect(() => {
         if (socket && ride) {
             socket.emit('joinRide', { rideId: ride._id });
-            socket.on('driverLocationUpdate', (data) => setDriverLocation(data.location));
+            socket.on('driverLocationUpdate', (data) => {
+                // Support both {latitude, longitude} and {lat, lng}
+                const loc = data.location.lat ? data.location : { lat: data.location.latitude, lng: data.location.longitude };
+                setDriverLocation(loc);
+            });
             socket.on('rideStatusChanged', (data) => setRide(prev => ({ ...prev, status: data.status })));
             socket.on('rideAccepted', (data) => {
                 if (data.rideId === ride._id) setRide(prev => ({ ...prev, status: 'accepted', driverId: data.driverId }));
@@ -58,6 +69,35 @@ const Tracking = () => {
             };
         }
     }, [socket, ride]);
+
+    // Live location sharing — only when ride is confirmed or ongoing
+    useEffect(() => {
+        if (!socket || !ride) return;
+        const isLive = ride.status === 'confirmed' || ride.status === 'accepted' || ride.status === 'on_trip' || ride.status === 'driver_arrived';
+        if (!isLive) return;
+
+        // Watch our own position and emit to driver
+        let watchId = null;
+        if (navigator.geolocation) {
+            watchId = navigator.geolocation.watchPosition(
+                (pos) => {
+                    const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    setRiderLocation(loc);
+                    socket.emit('updateRiderLocation', {
+                        rideId: ride._id,
+                        riderId: user._id,
+                        location: loc
+                    });
+                },
+                (err) => console.warn('Geolocation error:', err.message),
+                { enableHighAccuracy: true, maximumAge: 5000 }
+            );
+        }
+
+        return () => {
+            if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+        };
+    }, [socket, ride?._id, ride?.status, user?._id]);
 
     const center = ride?.pickupLocation?.coordinates?.coordinates
         ? [ride.pickupLocation.coordinates.coordinates[1], ride.pickupLocation.coordinates.coordinates[0]]
@@ -93,28 +133,29 @@ const Tracking = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                     {/* Map */}
-                    <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm" style={{ height: 420 }}>
-                        <MapContainer center={center} zoom={14} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
-                            <TileLayer
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                attribution='&copy; OpenStreetMap'
-                            />
-                            {ride.pickupLocation?.coordinates?.coordinates && (
-                                <Marker position={[
-                                    ride.pickupLocation.coordinates.coordinates[1],
-                                    ride.pickupLocation.coordinates.coordinates[0]
-                                ]} />
-                            )}
-                            {ride.dropLocation?.coordinates?.coordinates && (
-                                <Marker position={[
-                                    ride.dropLocation.coordinates.coordinates[1],
-                                    ride.dropLocation.coordinates.coordinates[0]
-                                ]} />
-                            )}
-                            {driverLocation && (
-                                <Marker position={[driverLocation.latitude, driverLocation.longitude]} />
-                            )}
-                        </MapContainer>
+                    <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm relative" style={{ height: 420 }}>
+                        <MapView
+                            pickupCoordinates={ride.pickupLocation?.coordinates?.coordinates ? {
+                                lat: ride.pickupLocation.coordinates.coordinates[1],
+                                lng: ride.pickupLocation.coordinates.coordinates[0]
+                            } : null}
+                            dropCoordinates={ride.dropLocation?.coordinates?.coordinates ? {
+                                lat: ride.dropLocation.coordinates.coordinates[1],
+                                lng: ride.dropLocation.coordinates.coordinates[0]
+                            } : null}
+                            driverCoordinates={driverLocation}
+                            riderCoordinates={riderLocation}
+                        />
+
+                        {/* Status Overlay for Map */}
+                        <div className="absolute top-4 left-4 z-[1000]">
+                            <div className="bg-gray-900/90 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2 shadow-lg border border-white/10 text-white">
+                                <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse" />
+                                <span className="text-[10px] font-bold uppercase tracking-widest leading-none">
+                                    {statusMessages[ride.status] || 'Live Tracking'}
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Info Panel */}

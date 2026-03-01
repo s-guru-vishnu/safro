@@ -5,7 +5,9 @@ import NegotiationChat from '../../components/NegotiationChat';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMapPin, FiNavigation, FiMessageCircle, FiXCircle } from 'react-icons/fi';
+import { FiMapPin, FiNavigation, FiMessageCircle, FiXCircle, FiCheckCircle } from 'react-icons/fi';
+import { Banknote } from 'lucide-react';
+import MapView from '../../components/map/MapView';
 
 const DriverDashboard = () => {
     const { user } = useAuth();
@@ -171,7 +173,13 @@ const DriverDashboard = () => {
         }
         setActiveRide(ride);
         localStorage.setItem('activeRideId', ride._id);
-        setShowChat(false);
+
+        if (['requested', 'negotiating', 'pending'].includes(ride.status)) {
+            setShowChat(true);
+            setIsNegotiating(true);
+        } else {
+            setShowChat(false);
+        }
     };
 
     const handleRideUpdate = (updatedRide) => {
@@ -217,15 +225,25 @@ const DriverDashboard = () => {
 
     const handleCompleteRide = async () => {
         try {
-            await api.put(`/rides/${activeRide._id}/complete`);
+            const res = await api.put(`/rides/${activeRide._id}/complete`);
+            setActiveRide(res.data.ride);
+            toast.success('Ride completed! Waiting for payment.');
+        } catch (err) {
+            toast.error('Failed to complete ride');
+        }
+    };
+
+    const handleConfirmCash = async () => {
+        try {
+            localStorage.removeItem('activeRideId');
             setActiveRide(null);
             setShowChat(false);
             setIsNegotiating(false);
             setRiderLocation(null);
-            toast.success('Ride completed! Earnings updated.');
+            toast.success('Cash payment confirmed! Earnings updated.');
             fetchAvailableRides();
         } catch (err) {
-            toast.error('Failed to complete ride');
+            toast.error(err.response?.data?.message || 'Failed to confirm cash');
         }
     };
 
@@ -344,142 +362,154 @@ const DriverDashboard = () => {
                     <div className="lg:col-span-2">
                         {activeRide ? (
                             <div className="space-y-4">
-                                <div className="bg-white rounded-xl border border-gray-200 p-5">
-                                    <div className="flex justify-between items-center mb-3">
-                                        <h3 className="text-sm font-bold text-gray-900">
-                                            {activeRide.status === 'confirmed' ? 'Current Ride' : activeRide.status === 'ongoing' ? 'Ride in Progress' : 'Negotiating'}
-                                        </h3>
-                                        {(activeRide.status === 'negotiating' || activeRide.status === 'pending') && (
-                                            <button
-                                                onClick={handleFailNegotiation}
-                                                className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 font-medium"
-                                            >
-                                                <FiXCircle size={14} /> Cancel Negotiation
-                                            </button>
-                                        )}
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                                    <div className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col justify-between">
                                         <div>
-                                            <span className="text-xs text-gray-400">Pickup</span>
-                                            <p className="font-medium text-gray-800 mt-0.5">{activeRide.pickupLocation?.address}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-xs text-gray-400">Drop</span>
-                                            <p className="font-medium text-gray-800 mt-0.5">{activeRide.dropLocation?.address}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-xs text-gray-400">Status</span>
-                                            <p className="font-bold text-teal-600 mt-0.5 uppercase text-xs">{activeRide.status?.replace('_', ' ')}</p>
-                                        </div>
-                                        {activeRide.otp && (
-                                            <div>
-                                                <span className="text-xs text-gray-400">OTP</span>
-                                                <p className="font-mono font-bold text-lg text-gray-900 mt-0.5">{activeRide.otp}</p>
-                                            </div>
-                                        )}
-                                        {activeRide.status === 'confirmed' && (
-                                            <div className="col-span-2 pt-4 border-t border-gray-100 mt-2">
-                                                <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Start Ride</p>
-                                                <div className="flex gap-2">
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Enter OTP"
-                                                        maxLength={4}
-                                                        className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
-                                                        id="ride-otp-input"
-                                                    />
+                                            <div className="flex justify-between items-center mb-3">
+                                                <h3 className="text-sm font-bold text-gray-900">
+                                                    {activeRide.status === 'confirmed' ? 'Current Ride' : activeRide.status === 'ongoing' ? 'Ride in Progress' : 'Negotiating'}
+                                                </h3>
+                                                {(activeRide.status === 'negotiating' || activeRide.status === 'pending') && (
                                                     <button
-                                                        onClick={() => {
-                                                            const otp = document.getElementById('ride-otp-input').value;
-                                                            handleStartRide(otp);
-                                                        }}
-                                                        className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 transition-all"
+                                                        onClick={handleFailNegotiation}
+                                                        className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 font-medium"
                                                     >
-                                                        Verify & Start
+                                                        <FiXCircle size={14} /> Cancel
                                                     </button>
+                                                )}
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                                                <div>
+                                                    <span className="text-xs text-gray-400">Pickup</span>
+                                                    <p className="font-medium text-gray-800 mt-0.5">{activeRide.pickupLocation?.address}</p>
+                                                </div>
+                                                <div>
+                                                    <span className="text-xs text-gray-400">Drop</span>
+                                                    <p className="font-medium text-gray-800 mt-0.5">{activeRide.dropLocation?.address}</p>
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <span className="text-xs text-gray-400">Status</span>
+                                                    <p className="font-bold text-teal-600 mt-0.5 uppercase text-xs">{activeRide.status?.replace('_', ' ')}</p>
                                                 </div>
                                             </div>
-                                        )}
+                                        </div>
 
-                                        {activeRide.status === 'ongoing' && (
-                                            <div className="col-span-2 pt-4 border-t border-gray-100 mt-2">
-                                                <button
-                                                    onClick={handleCompleteRide}
-                                                    className="w-full bg-teal-600 text-white py-3 rounded-lg text-sm font-bold hover:bg-teal-700 transition-all shadow-md shadow-teal-100 flex items-center justify-center gap-2"
-                                                >
-                                                    <FiCheckCircle /> Complete Ride
-                                                </button>
-                                            </div>
-                                        )}
+                                        <div className="space-y-3">
+                                            {activeRide.status === 'confirmed' && (
+                                                <div className="pt-4 border-t border-gray-100 mt-2">
+                                                    <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Start Ride</p>
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="OTP"
+                                                            maxLength={4}
+                                                            className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                                                            id="ride-otp-input"
+                                                        />
+                                                        <button
+                                                            onClick={() => {
+                                                                const otp = document.getElementById('ride-otp-input').value;
+                                                                handleStartRide(otp);
+                                                            }}
+                                                            className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 transition-all"
+                                                        >
+                                                            Verify
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
 
-                                        {/* Start Negotiation button — only for pending rides */}
-                                        {(activeRide.status === 'requested' || activeRide.status === 'negotiating' || activeRide.status === 'pending') && !showChat && (
-                                            <div className="col-span-2 pt-4 border-t border-gray-100 mt-2">
-                                                <button
-                                                    onClick={handleStartNegotiation}
-                                                    className="w-full bg-gray-900 text-white py-3 rounded-lg text-sm font-bold hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
-                                                >
-                                                    <FiMessageCircle size={16} /> Start Live Negotiation
-                                                </button>
+                                            {activeRide.status === 'ongoing' && (
+                                                <div className="pt-4 border-t border-gray-100 mt-2">
+                                                    <button
+                                                        onClick={handleCompleteRide}
+                                                        className="w-full bg-teal-600 text-white py-3 rounded-lg text-sm font-bold hover:bg-teal-700 transition-all shadow-md shadow-teal-100 flex items-center justify-center gap-2"
+                                                    >
+                                                        <FiCheckCircle /> Complete Ride
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            {activeRide.status === 'completed' && activeRide.paymentStatus !== 'Paid' && (
+                                                <div className="pt-4 border-t border-gray-100 mt-2 bg-amber-50 p-4 rounded-xl border border-amber-100">
+                                                    <p className="text-xs font-bold text-amber-800 mb-2 uppercase tracking-wider text-center">Payment Pending</p>
+                                                    <button
+                                                        onClick={handleConfirmCash}
+                                                        className="w-full bg-amber-600 text-white py-3 rounded-lg text-sm font-bold hover:bg-amber-700 transition-all shadow-md shadow-amber-100 flex items-center justify-center gap-2 mb-2"
+                                                    >
+                                                        <Banknote className="w-5 h-5" /> Confirm Cash
+                                                    </button>
+                                                    <p className="text-[10px] text-amber-600 text-center italic">Confirm after receiving ₹{activeRide.negotiatedFare || activeRide.fare?.final}</p>
+                                                </div>
+                                            )}
+
+                                            {/* Start Negotiation button (only shown if chat isn't auto-opened somehow) */}
+                                            {(activeRide.status === 'requested' || activeRide.status === 'negotiating' || activeRide.status === 'pending') && !showChat && (
+                                                <div className="pt-4 border-t border-gray-100 mt-2">
+                                                    <button
+                                                        onClick={handleStartNegotiation}
+                                                        className="w-full bg-gray-900 text-white py-3 rounded-lg text-sm font-bold hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
+                                                    >
+                                                        <FiMessageCircle size={16} /> Open Chat
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Location Panel — visible for all active ride states */}
+                                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm h-64 xl:h-auto min-h-[250px] relative">
+                                        <MapView
+                                            pickupCoordinates={activeRide.pickupLocation?.coordinates?.coordinates ? {
+                                                lat: activeRide.pickupLocation.coordinates.coordinates[1],
+                                                lng: activeRide.pickupLocation.coordinates.coordinates[0]
+                                            } : null}
+                                            dropCoordinates={activeRide.dropLocation?.coordinates?.coordinates ? {
+                                                lat: activeRide.dropLocation.coordinates.coordinates[1],
+                                                lng: activeRide.dropLocation.coordinates.coordinates[0]
+                                            } : null}
+                                            driverCoordinates={driverLocation}
+                                            riderCoordinates={riderLocation}
+                                        />
+
+                                        {/* Live Overlay */}
+                                        {(activeRide.status === 'confirmed' || activeRide.status === 'ongoing') && (
+                                            <div className="absolute top-4 left-4 z-[1000]">
+                                                <div className="bg-gray-900/90 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2 shadow-lg border border-white/10 text-white">
+                                                    <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse" />
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest leading-none">
+                                                        Trip Active
+                                                    </span>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
-                                {/* Live Chat — only shown after clicking Start Negotiation */}
+                                {/* Live Chat — shown for pending/negotiating rides */}
                                 {showChat && (activeRide.status === 'requested' || activeRide.status === 'negotiating' || activeRide.status === 'pending') && (
-                                    <NegotiationChat ride={activeRide} onRideUpdate={handleRideUpdate} />
-                                )}
-
-                                {/* Live Location Panel — only after ride confirmed */}
-                                {(activeRide.status === 'confirmed' || activeRide.status === 'ongoing') && (
-                                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                                        <div className="bg-gradient-to-br from-gray-900 to-gray-800 px-5 py-3 flex items-center justify-between">
-                                            <h3 className="text-white text-sm font-bold flex items-center gap-2">
-                                                <FiNavigation size={14} className="text-teal-400" />
-                                                Live Tracking
-                                            </h3>
-                                            <span className="flex items-center gap-1.5 text-xs text-teal-300">
-                                                <span className="w-2 h-2 bg-teal-400 rounded-full animate-pulse" />
-                                                Live
-                                            </span>
-                                        </div>
-                                        <div className="p-5 space-y-4">
-                                            {riderLocation ? (
-                                                <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
-                                                        <span className="text-xs font-bold text-blue-700 uppercase tracking-wide">Rider Location</span>
-                                                    </div>
-                                                    <p className="text-sm text-gray-700 font-mono">
-                                                        {riderLocation.lat?.toFixed(5)}, {riderLocation.lng?.toFixed(5)}
-                                                    </p>
-                                                </div>
-                                            ) : (
-                                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 text-center">
-                                                    <p className="text-xs text-gray-400">Waiting for rider location...</p>
-                                                </div>
-                                            )}
-                                            {driverLocation && (
-                                                <div className="bg-teal-50 rounded-xl p-4 border border-teal-100">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <div className="w-3 h-3 bg-teal-500 rounded-full" />
-                                                        <span className="text-xs font-bold text-teal-700 uppercase tracking-wide">Your Location</span>
-                                                    </div>
-                                                    <p className="text-sm text-gray-700 font-mono">
-                                                        {driverLocation.lat?.toFixed(5)}, {driverLocation.lng?.toFixed(5)}
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
+                                    <div className="flex-1 min-h-[400px]">
+                                        <NegotiationChat ride={activeRide} onRideUpdate={handleRideUpdate} />
                                     </div>
                                 )}
                             </div>
                         ) : (
-                            <div className="bg-white h-80 rounded-xl border border-gray-200 flex flex-col items-center justify-center text-gray-400">
-                                <FiMessageCircle className="mb-3 opacity-30" size={36} />
-                                <p className="text-sm font-medium">Select a ride to start negotiating</p>
-                                <p className="text-xs text-gray-300 mt-1">Pick from available rides on the left</p>
+                            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm h-[80vh] min-h-[500px] relative flex flex-col">
+                                {driverLocation ? (
+                                    <MapView driverCoordinates={driverLocation} />
+                                ) : (
+                                    <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-6 bg-gray-50 h-full">
+                                        <FiMapPin className="mb-3 opacity-30" size={36} />
+                                        <p className="text-sm font-medium">Acquiring live location...</p>
+                                    </div>
+                                )}
+                                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] bg-white/90 backdrop-blur-md px-6 py-3 rounded-full shadow-xl border border-gray-200 flex items-center gap-3 w-max max-w-[90%]">
+                                    <FiNavigation className="text-teal-600 animate-pulse" size={18} />
+                                    <div>
+                                        <p className="text-sm font-bold text-gray-800">You are online</p>
+                                        <p className="text-xs text-gray-500">Pick a ride from the available rides list</p>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -488,12 +518,5 @@ const DriverDashboard = () => {
         </div>
     );
 };
-
-const FiCheckCircle = () => (
-    <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-    </svg>
-);
 
 export default DriverDashboard;

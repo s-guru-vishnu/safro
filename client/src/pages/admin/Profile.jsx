@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiUser, FiMail, FiPhone, FiShield, FiCalendar, FiEdit3, FiSave, FiX } from 'react-icons/fi';
+import { FiUser, FiMail, FiPhone, FiShield, FiCalendar, FiEdit3, FiSave, FiX, FiMapPin } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -12,7 +12,7 @@ const AdminProfile = () => {
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [form, setForm] = useState({ name: '', phone: '' });
+    const [form, setForm] = useState({ name: '', phone: '', taluk: '' });
 
     useEffect(() => {
         api.get('/auth/profile').then(res => {
@@ -20,6 +20,7 @@ const AdminProfile = () => {
             setForm({
                 name: res.data.user?.name || '',
                 phone: res.data.user?.phone || '',
+                taluk: res.data.user?.taluk || '',
             });
             setLoading(false);
         }).catch(() => setLoading(false));
@@ -43,6 +44,7 @@ const AdminProfile = () => {
         setForm({
             name: profile?.name || '',
             phone: profile?.phone || '',
+            taluk: profile?.taluk || '',
         });
         setEditing(false);
     };
@@ -102,6 +104,7 @@ const AdminProfile = () => {
                                 >
                                     <Field icon={FiUser} label="Full Name" value={form.name} onChange={v => setForm(p => ({ ...p, name: v }))} />
                                     <Field icon={FiPhone} label="Phone" value={form.phone} onChange={v => setForm(p => ({ ...p, phone: v }))} />
+                                    <Field icon={FiMapPin} label="Taluk (Admin Region)" value={form.taluk} onChange={v => setForm(p => ({ ...p, taluk: v }))} />
 
                                     <div className="flex gap-3 pt-2">
                                         <button
@@ -133,6 +136,7 @@ const AdminProfile = () => {
                                 >
                                     <InfoRow icon={FiMail} label="Email" value={data?.email} />
                                     <InfoRow icon={FiPhone} label="Phone" value={data?.phone || 'Not set'} />
+                                    <InfoRow icon={FiMapPin} label="Taluk" value={data?.taluk || 'All Regions'} />
                                     <InfoRow
                                         icon={FiCalendar}
                                         label="Member Since"

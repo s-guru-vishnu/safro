@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FiMenu, FiX, FiUser, FiLogOut, FiChevronDown, FiHome, FiMapPin, FiInfo, FiShield, FiHelpCircle,
-    FiGrid, FiList, FiDollarSign, FiToggleLeft, FiToggleRight, FiUsers, FiTruck, FiBarChart2
+    FiGrid, FiList, FiDollarSign, FiToggleLeft, FiToggleRight, FiUsers, FiTruck, FiBarChart2, FiCreditCard
 } from 'react-icons/fi';
 
 const Navbar = () => {
@@ -48,6 +48,7 @@ const Navbar = () => {
                     { path: '/rider/history', label: 'My Rides', icon: <FiList /> },
                     { path: '/rider/tracking', label: 'Tracking', icon: <FiGrid /> },
                     { path: '/driver/register', label: 'Drive', icon: <FiTruck /> },
+                    { path: '/rider/wallet', label: 'Wallet', icon: <FiCreditCard /> },
                 ];
             case 'driver':
                 return [
@@ -70,7 +71,7 @@ const Navbar = () => {
 
     return (
         <>
-            <nav className={`fixed top-0 w-full z-50 transition-all duration-300 bg-white ${scrolled ? 'shadow-md border-b border-gray-100' : ''
+            <nav className={`fixed top-0 w-full z-[1001] transition-all duration-300 bg-white ${scrolled ? 'shadow-md border-b border-gray-100' : ''
                 }`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
@@ -132,7 +133,11 @@ const Navbar = () => {
                                                 <Link to={`/${user.role}/profile`} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900">
                                                     <FiUser size={14} /> Profile
                                                 </Link>
-                                                <button onClick={handleLogout} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-500 hover:bg-red-50">
+                                                <div className="h-px bg-gray-100 my-1 mx-2" />
+                                                <button
+                                                    onClick={handleLogout}
+                                                    className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 text-left transition-colors"
+                                                >
                                                     <FiLogOut size={14} /> Logout
                                                 </button>
                                             </motion.div>
@@ -169,7 +174,7 @@ const Navbar = () => {
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="fixed inset-x-0 top-16 z-40 bg-white border-b border-gray-200 shadow-lg lg:hidden"
+                        className="fixed inset-x-0 top-16 z-[1000] bg-white border-b border-gray-200 shadow-lg lg:hidden"
                     >
                         <div className="px-4 py-4 space-y-1">
                             {(user ? getRoleLinks() : publicLinks).map((link) => (

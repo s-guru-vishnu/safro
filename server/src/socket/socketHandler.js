@@ -113,6 +113,14 @@ const socketHandler = (io) => {
                     timestamp: new Date()
                 });
             }
+            // Also broadcast to admin room for dashboard map
+            if (driverId && location) {
+                io.to('admin').emit('adminDriverLocationUpdate', {
+                    driverId,
+                    location,
+                    timestamp: new Date()
+                });
+            }
         });
 
         // Rider location update (live tracking — only relayed in confirmed/ongoing rides)
@@ -120,6 +128,14 @@ const socketHandler = (io) => {
             const { rideId, riderId, location } = data;
             if (rideId) {
                 io.to(`ride_${rideId}`).emit('riderLocationUpdate', {
+                    riderId,
+                    location,
+                    timestamp: new Date()
+                });
+            }
+            // Also broadcast to admin room for dashboard map
+            if (riderId && location) {
+                io.to('admin').emit('adminRiderLocationUpdate', {
                     riderId,
                     location,
                     timestamp: new Date()

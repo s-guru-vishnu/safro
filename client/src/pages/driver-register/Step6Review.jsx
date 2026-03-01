@@ -39,6 +39,7 @@ const Step6Review = ({ formData, prevStep, onSubmit, submitting }) => {
                     <Row label="Full Name" value={formData.fullName} />
                     <Row label="Email" value={formData.email} />
                     <Row label="Phone" value={formData.phone} />
+                    <Row label="Taluk" value={formData.taluk} />
                     {formData.profilePhoto && (
                         <div className="pt-2">
                             <img src={formData.profilePhoto} alt="Profile" className="w-14 h-14 rounded-full object-cover border-2 border-teal-100" />

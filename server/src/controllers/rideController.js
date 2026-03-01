@@ -1,6 +1,7 @@
 const Ride = require('../models/Ride');
 const User = require('../models/User');
 const Driver = require('../models/Driver');
+const Payment = require('../models/Payment');
 const { predictFare } = require('../services/farePredictionService');
 const { checkRide } = require('../services/fraudDetectionService');
 
@@ -395,6 +396,56 @@ const completeRide = async (req, res, next) => {
         }
 
         ride.status = 'completed';
+
+        // Quick Pay Logic
+        const rider = await User.findById(ride.riderId);
+        const fare = ride.negotiatedFare || ride.fare.final || ride.fare.proposed;
+
+        if (rider.quickPayEnabled && rider.walletBalance >= fare && ride.paymentStatus !== 'Paid') {
+            const commissionPercentage = 0.15;
+            const platformCommission = Math.round(fare * commissionPercentage);
+            const driverAmount = fare - platformCommission;
+            const cashback = Math.round(fare * 0.02);
+
+            // Process payment
+            rider.walletBalance -= (fare - cashback); // Net deduction
+            await rider.save();
+
+            ride.paymentStatus = 'Paid';
+            ride.paymentMethod = 'wallet';
+            ride.platformCommission = platformCommission;
+            ride.driverAmount = driverAmount;
+            ride.paidAt = new Date();
+
+            // Notify driver payout
+            await Driver.findOneAndUpdate(
+                { userId: ride.driverId },
+                { $inc: { payoutBalance: driverAmount } }
+            );
+
+            // Create Payment record
+            await Payment.create({
+                rideId: ride._id,
+                riderId: ride.riderId,
+                driverId: ride.driverId,
+                amount: fare,
+                method: 'wallet',
+                status: 'completed',
+                cashback
+            });
+
+
+            const io = req.app.get('io');
+            if (io) {
+                io.to(`ride_${ride._id}`).emit('paymentSuccess', {
+                    rideId: ride._id,
+                    method: 'wallet',
+                    quickPay: true,
+                    cashback
+                });
+            }
+        }
+
         await ride.save();
 
         // Free rider — clear activeRideId

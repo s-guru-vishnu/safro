@@ -21,23 +21,32 @@ export const AuthProvider = ({ children }) => {
 
             if (savedToken) {
                 setToken(savedToken);
-                if (savedUser) {
-                    setUser(JSON.parse(savedUser));
-                    setLoading(false);
-                } else {
-                    // Token exists but no user data - fetch profile
+
+                // Use cached user immediately for fast rendering
+                if (savedUser && savedUser !== 'undefined') {
                     try {
-                        const res = await api.get('/auth/profile');
-                        const userData = res.data.user;
-                        localStorage.setItem('safro_user', JSON.stringify(userData));
-                        setUser(userData);
-                    } catch (err) {
-                        console.error('Failed to fetch profile on init:', err);
+                        setUser(JSON.parse(savedUser));
+                    } catch (e) {
+                        console.error('Error parsing saved user:', e);
+                        localStorage.removeItem('safro_user');
+                    }
+                }
+
+                // Always re-fetch profile from server to stay in sync
+                try {
+                    const res = await api.get('/auth/profile');
+                    const userData = res.data.user;
+                    localStorage.setItem('safro_user', JSON.stringify(userData));
+                    setUser(userData);
+                } catch (err) {
+                    console.error('Failed to fetch profile on init:', err);
+                    // If fetch fails and we have no cached user, clear auth
+                    if (!savedUser || savedUser === 'undefined') {
                         localStorage.removeItem('safro_token');
                         localStorage.removeItem('safro_user');
-                    } finally {
-                        setLoading(false);
                     }
+                } finally {
+                    setLoading(false);
                 }
             } else {
                 setLoading(false);

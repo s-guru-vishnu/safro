@@ -21,6 +21,11 @@ const getDriverApplications = async (req, res, next) => {
         if (req.query.status) query.status = req.query.status;
         if (req.query.city) query.city = new RegExp(req.query.city, 'i');
 
+        // REGIONAL FILTER: Admins only see apps from their taluk (if set)
+        if (req.user.role === 'admin' && req.user.taluk) {
+            query.taluk = req.user.taluk;
+        }
+
         const [applications, total] = await Promise.all([
             DriverApplication.find(query)
                 .sort({ createdAt: -1 })
@@ -192,7 +197,9 @@ const approveApplication = async (req, res, next) => {
                 vehicleModel: application.vehicleModel,
                 vehicleNumber: application.vehicleNumber,
                 vehicleColor: application.vehicleColor,
-                licenseNumber: application.licenseNumber
+                licenseNumber: application.licenseNumber,
+                upiId: application.upiId,
+                taluk: application.taluk
             });
         }
 
@@ -395,7 +402,10 @@ const getAnalytics = async (req, res, next) => {
             Ride.countDocuments({ status: 'completed' }),
             Ride.countDocuments({ status: 'cancelled' }),
             Ride.countDocuments({ status: { $in: ['requested', 'accepted', 'on_trip'] } }),
-            DriverApplication.countDocuments({ status: { $in: ['pending', 'under_review', 'meeting_scheduled'] } }),
+            DriverApplication.countDocuments({
+                status: { $in: ['pending', 'under_review', 'meeting_scheduled'] },
+                ...(req.user.role === 'admin' && req.user.taluk ? { taluk: req.user.taluk } : {})
+            }),
             Payment.aggregate([
                 { $match: { status: 'completed' } },
                 { $group: { _id: null, totalRevenue: { $sum: '$amount' } } }
@@ -449,7 +459,8 @@ const createDriver = async (req, res, next) => {
             vehicleNumber,
             vehicleColor,
             licenseNumber,
-            city
+            city,
+            taluk
         } = req.body;
 
         // Check if user exists
@@ -465,7 +476,8 @@ const createDriver = async (req, res, next) => {
             password, // In a real app, you might auto-generate this and email it
             phone,
             role: 'driver',
-            isVerified: true // Admin created, so auto-verify
+            isVerified: true, // Admin created, so auto-verify
+            taluk
         });
 
         // Create Driver Profile
@@ -477,6 +489,7 @@ const createDriver = async (req, res, next) => {
             vehicleColor,
             licenseNumber,
             city,
+            taluk,
             isAvailable: true,
             status: 'approved'
         });
@@ -560,6 +573,121 @@ const getAIInsights = async (req, res, next) => {
     }
 };
 
+// @desc    Get all driver payout balances
+// @route   GET /api/admin/payouts
+const getDriverPayouts = async (req, res, next) => {
+    try {
+        const drivers = await Driver.find({ payoutBalance: { $gt: 0 } })
+            .populate('userId', 'name email phone');
+
+        res.json({
+            count: drivers.length,
+            drivers: drivers.map(d => ({
+                driverId: d._id,
+                userId: d.userId._id,
+                name: d.userId.name,
+                email: d.userId.email,
+                phone: d.userId.phone,
+                balance: d.payoutBalance,
+                upiId: d.upiId,
+                lastPushed: d.updatedAt
+            }))
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Process payout for a driver (marks as paid)
+// @route   POST /api/admin/payouts/:driverId/process
+const processDriverPayout = async (req, res, next) => {
+    try {
+        const { driverId } = req.params;
+        const driver = await Driver.findById(driverId);
+
+        if (!driver) {
+            return res.status(404).json({ message: 'Driver not found' });
+        }
+
+        const payoutAmount = driver.payoutBalance;
+        if (payoutAmount <= 0) {
+            return res.status(400).json({ message: 'No balance to pay out' });
+        }
+
+        // In a real app, you would integrate with Razorpay Payouts API here.
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Get driver locations for admin map
+// @route   GET /api/admin/driver-locations
+const getDriverLocations = async (req, res, next) => {
+    try {
+        const query = { status: { $in: ['verified', 'approved'] } };
+
+        // Regional filter: admins only see drivers from their taluk
+        if (req.user.taluk) {
+            query.taluk = req.user.taluk;
+        }
+
+        const drivers = await Driver.find(query)
+            .populate('userId', 'name phone');
+
+        const locations = drivers
+            .filter(d => {
+                const coords = d.currentLocation?.coordinates;
+                return coords && (coords[0] !== 0 || coords[1] !== 0);
+            })
+            .map(d => ({
+                _id: d._id,
+                name: d.userId?.name || 'Unknown',
+                phone: d.userId?.phone || '',
+                vehicleType: d.vehicleType,
+                vehicleNumber: d.vehicleNumber,
+                isAvailable: d.isAvailable,
+                lat: d.currentLocation.coordinates[1],
+                lng: d.currentLocation.coordinates[0]
+            }));
+
+        res.json({ drivers: locations });
+    } catch (error) {
+        console.error('Driver locations error:', error);
+        next(error);
+    }
+};
+
+// @desc    Get rider locations for admin map
+// @route   GET /api/admin/rider-locations
+const getRiderLocations = async (req, res, next) => {
+    try {
+        const query = { status: { $in: ['pending', 'negotiating', 'accepted', 'confirmed', 'driver_arrived', 'otp_verified', 'on_trip'] } };
+
+        const activeRides = await Ride.find(query)
+            .populate('riderId', 'name phone');
+
+        const locations = activeRides
+            .filter(ride => {
+                const coords = ride.pickupLocation?.coordinates;
+                return coords && coords.lat && coords.lng;
+            })
+            .map(ride => ({
+                _id: ride.riderId?._id || `unknown-${ride._id}`,
+                rideId: ride._id,
+                name: ride.riderId?.name || 'Unknown Rider',
+                phone: ride.riderId?.phone || '',
+                status: ride.status,
+                lat: ride.pickupLocation.coordinates.lat,
+                lng: ride.pickupLocation.coordinates.lng
+            }));
+
+        res.json({ riders: locations });
+    } catch (error) {
+        console.error('Rider locations error:', error);
+        next(error);
+    }
+};
+
 module.exports = {
     getDriverApplications,
     getApplicationDetails,
@@ -573,5 +701,9 @@ module.exports = {
     suspendUser,
     getAnalytics,
     createDriver,
-    getAIInsights
+    getAIInsights,
+    getDriverPayouts,
+    processDriverPayout,
+    getDriverLocations,
+    getRiderLocations
 };

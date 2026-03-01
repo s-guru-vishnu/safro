@@ -16,7 +16,11 @@ const {
 
     getAnalytics,
     createDriver,
-    getAIInsights
+    getAIInsights,
+    getDriverPayouts,
+    processDriverPayout,
+    getDriverLocations,
+    getRiderLocations
 } = require('../controllers/adminController');
 
 // All admin routes require auth + admin role
@@ -53,6 +57,14 @@ router.get('/rides', getAllRides);
 router.get('/users', getAllUsers);
 router.put('/users/:id/suspend', suspendUser);
 router.get('/analytics', getAnalytics);
+router.get('/driver-locations', getDriverLocations);
 router.get('/ai-insights', getAIInsights);
+
+// ── Payout Management ──────────────────────────────────────────
+router.get('/payouts', getDriverPayouts);
+router.post('/payouts/:driverId/process', processDriverPayout);
+
+// ── Rider Location ──────────────────────────────────────────────
+router.get('/rider-locations', getRiderLocations);
 
 module.exports = router;

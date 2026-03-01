@@ -1,0 +1,24 @@
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32m✓[39m 2313 modules transformed.
+[31m✗[39m Build failed in 4.47s
+[31merror during build:
+[31msrc/components/Navbar.jsx (7:94): "FiWallet" is not exported by "node_modules/react-icons/fi/index.mjs", imported by "src/components/Navbar.jsx".[31m
+file: [36mC:/Users/guruv/OneDrive/Desktop/Safro/client/src/components/Navbar.jsx:7:94[31m
+[33m
+5: import {
+6:     FiMenu, FiX, FiUser, FiLogOut, FiChevronDown, FiHome, FiMapPin, FiInfo, FiShield, FiHelpCircle,
+7:     FiGrid, FiList, FiDollarSign, FiToggleLeft, FiToggleRight, FiUsers, FiTruck, FiBarChart2, FiWallet
+                                                                                                 ^
+8: } from 'react-icons/fi';
+[31m
+    at getRollupError (file:///C:/Users/guruv/OneDrive/Desktop/Safro/client/node_modules/rollup/dist/es/shared/parseAst.js:402:41)
+    at error (file:///C:/Users/guruv/OneDrive/Desktop/Safro/client/node_modules/rollup/dist/es/shared/parseAst.js:398:42)
+    at Module.error (file:///C:/Users/guruv/OneDrive/Desktop/Safro/client/node_modules/rollup/dist/es/shared/node-entry.js:17040:16)
+    at Module.traceVariable (file:///C:/Users/guruv/OneDrive/Desktop/Safro/client/node_modules/rollup/dist/es/shared/node-entry.js:17452:29)
+    at ModuleScope.findVariable (file:///C:/Users/guruv/OneDrive/Desktop/Safro/client/node_modules/rollup/dist/es/shared/node-entry.js:15070:39)
+    at ReturnValueScope.findVariable (file:///C:/Users/guruv/OneDrive/Desktop/Safro/client/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)
+    at FunctionBodyScope.findVariable (file:///C:/Users/guruv/OneDrive/Desktop/Safro/client/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)
+    at ReturnValueScope.findVariable (file:///C:/Users/guruv/OneDrive/Desktop/Safro/client/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)
+    at FunctionBodyScope.findVariable (file:///C:/Users/guruv/OneDrive/Desktop/Safro/client/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)
+    at BlockScope.findVariable (file:///C:/Users/guruv/OneDrive/Desktop/Safro/client/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)[39m

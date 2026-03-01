@@ -1,12 +1,35 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
-const { processPayment, getPaymentHistory } = require('../controllers/paymentController');
+const {
+    createRazorpayOrder,
+    verifyRazorpayPayment,
+    payWithWallet,
+    confirmCashPayment,
+    getPaymentHistory,
+    handleRazorpayWebhook
+} = require('../controllers/paymentController');
 
-// POST /api/payments/pay
-router.post('/pay', protect, processPayment);
+/**
+ * PRODUCTION SECURE: Webhook (Signature verified in controller)
+ * MUST be placed before express.json() in app.js and use raw body.
+ */
+router.post('/webhook', handleRazorpayWebhook);
 
-// GET /api/payments/history
-router.get('/history', protect, getPaymentHistory);
+// All other payment routes are protected
+router.use(protect);
+
+// Razorpay Flows
+router.post('/create-order', createRazorpayOrder);
+router.post('/verify', verifyRazorpayPayment);
+
+// Wallet Flow
+router.post('/pay-wallet', payWithWallet);
+
+// Cash Flow
+router.post('/confirm-cash', confirmCashPayment);
+
+// history
+router.get('/history', getPaymentHistory);
 
 module.exports = router;

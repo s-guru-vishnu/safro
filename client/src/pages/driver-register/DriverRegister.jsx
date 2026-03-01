@@ -53,6 +53,7 @@ const DriverRegister = () => {
         insuranceDocument: '',
         rcNumber: '',
         rcDocument: '',
+        taluk: '',
     });
 
     const updateField = (field, value) => {
@@ -83,6 +84,7 @@ const DriverRegister = () => {
                 insuranceDocument: formData.insuranceDocument,
                 rcNumber: formData.rcNumber,
                 rcDocument: formData.rcDocument,
+                taluk: formData.taluk,
             });
             toast.success('Application submitted!');
             navigate('/driver/submitted');

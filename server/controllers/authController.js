@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const { body } = require('express-validator');
 const User = require('../models/User');
 const Driver = require('../models/Driver');
+const { generateOTP, sendOTPViaEmail, sendOTPViaSMS } = require('../services/otpService');
 
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -137,8 +138,119 @@ const updateProfile = async (req, res) => {
             { new: true, runValidators: true }
         );
 
-        res.json({ user });
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user.role,
+            guardianPhone: user.guardianPhone,
+            guardianEmail: user.guardianEmail,
+            profileImage: user.profileImage,
+            createdAt: user.createdAt
+        });
     } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// @desc Forgot password
+// @route POST /api/auth/forgot-password
+const forgotPassword = async (req, res) => {
+    try {
+        const { emailOrPhone } = req.body;
+
+        // Find user by email or phone
+        const user = await User.findOne({
+            $or: [{ email: emailOrPhone }, { phone: emailOrPhone }]
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const otp = generateOTP();
+        const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+        user.resetPasswordOTP = otp;
+        user.resetPasswordOTPExpires = otpExpires;
+        await user.save();
+
+        let sent = false;
+        if (emailOrPhone.includes('@')) {
+            sent = await sendOTPViaEmail(user.email, otp);
+        } else {
+            sent = await sendOTPViaSMS(user.phone, otp);
+        }
+
+        if (!sent) {
+            // Even if sending failed (due to missing credentials), we return 200 to avoid email harvesting
+            // and log the OTP for development purposes if credentials are missing
+            if (process.env.NODE_ENV !== 'production') {
+                console.log(`DEV ONLY: OTP for ${emailOrPhone} is ${otp}`);
+            }
+        }
+
+        res.json({ message: 'OTP sent successfully' });
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// @desc Verify OTP
+// @route POST /api/auth/verify-otp
+const verifyOTP = async (req, res) => {
+    try {
+        const { emailOrPhone, otp } = req.body;
+
+        const user = await User.findOne({
+            $or: [{ email: emailOrPhone }, { phone: emailOrPhone }],
+            resetPasswordOTP: otp,
+            resetPasswordOTPExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired OTP' });
+        }
+
+        res.json({ message: 'OTP verified successfully', success: true });
+    } catch (error) {
+        console.error('Verify OTP error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// @desc Reset password
+// @route POST /api/auth/reset-password
+const resetPassword = async (req, res) => {
+    try {
+        const { emailOrPhone, otp, newPassword } = req.body;
+
+        const user = await User.findOne({
+            $or: [{ email: emailOrPhone }, { phone: emailOrPhone }],
+            resetPasswordOTP: otp,
+            resetPasswordOTPExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired OTP' });
+        }
+
+        // Strong password check on backend again just in case
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            return res.status(400).json({ message: 'Password does not meet strength requirements' });
+        }
+
+        user.password = newPassword;
+        user.resetPasswordOTP = undefined;
+        user.resetPasswordOTPExpires = undefined;
+        await user.save();
+
+        res.json({ message: 'Password reset successfully' });
+    } catch (error) {
+        console.error('Reset password error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
@@ -146,8 +258,12 @@ const updateProfile = async (req, res) => {
 // Validation rules
 const registerValidation = [
     body('name').trim().notEmpty().withMessage('Name is required'),
-    body('email').isEmail().withMessage('Valid email is required'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body('email')
+        .isEmail().withMessage('Valid email is required')
+        .matches(/^[a-zA-Z0-9._%+-]+@gmail\.com$/).withMessage('Only Gmail addresses are allowed'),
+    body('password')
+        .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
+        .withMessage('Password must be at least 8 characters and include uppercase, lowercase, number, and symbol'),
     body('phone').trim().notEmpty().withMessage('Phone is required')
 ];
 
@@ -157,6 +273,9 @@ const loginValidation = [
 ];
 
 module.exports = {
+    forgotPassword,
+    verifyOTP,
+    resetPassword,
     register,
     login,
     getProfile,

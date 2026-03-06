@@ -96,6 +96,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/map', mapRoutes);
+app.use('/api/test', require('./routes/testEmailRoute'));
 
 // ─── Health Check ───────────────────────────────────────────────
 app.get('/api/health', (req, res) => {

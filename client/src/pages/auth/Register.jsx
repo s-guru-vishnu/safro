@@ -35,12 +35,23 @@ const Register = () => {
         setError('');
         setLoading(true);
         try {
+            // Frontend validation
+            const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+            if (!gmailRegex.test(form.email)) {
+                throw new Error('Only Gmail addresses are allowed');
+            }
+
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            if (!passwordRegex.test(form.password)) {
+                throw new Error('Password must be at least 8 characters and include uppercase, lowercase, number, and symbol');
+            }
+
             const user = await register(form);
             toast.success('Registration successful!');
             const routes = { rider: '/rider/home', driver: '/driver/dashboard', admin: '/admin/dashboard' };
             navigate(routes[user.role] || '/');
         } catch (err) {
-            const msg = err.response?.data?.message || 'Registration failed';
+            const msg = err.response?.data?.message || err.message || 'Registration failed';
             setError(msg);
             toast.error(msg);
         } finally {
@@ -95,7 +106,7 @@ const Register = () => {
                                 <input
                                     type={showPass ? 'text' : 'password'}
                                     name="password"
-                                    placeholder="Min 6 characters"
+                                    placeholder="Min 8 characters, A-z, 0-9, @"
                                     value={form.password}
                                     onChange={handleChange}
                                     required

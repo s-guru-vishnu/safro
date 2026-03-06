@@ -8,13 +8,14 @@ import GuestRoute from './components/GuestRoute';
 import { Toaster } from 'react-hot-toast';
 import SafronChatbot from './components/SafronChatbot';
 
-// Pages
 import Landing from './pages/Landing';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import GoogleCallback from './pages/auth/GoogleCallback';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import VerifyOTP from './pages/auth/VerifyOTP';
+import ResetPassword from './pages/auth/ResetPassword';
 
-// Rider
 import RiderHome from './pages/rider/Home';
 import RiderTracking from './pages/rider/Tracking';
 import RiderHistory from './pages/rider/History';
@@ -23,24 +24,28 @@ import RiderWallet from './pages/rider/Wallet';
 import RiderSOS from './pages/rider/SOS';
 import PaymentScreen from './pages/rider/PaymentScreen';
 
-// Driver
 import DriverDashboard from './pages/driver/Dashboard';
 import DriverRequests from './pages/driver/Requests';
 import DriverNavigation from './pages/driver/Navigation';
 import DriverEarnings from './pages/driver/Earnings';
 import DriverProfile from './pages/driver/Profile';
 
-// Driver Registration
 import DriverRegister from './pages/driver-register/DriverRegister';
 import DriverSubmitted from './pages/driver-register/DriverSubmitted';
 
-// Admin
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminRides from './pages/admin/Rides';
 import AdminUsers from './pages/admin/Users';
 import AdminAlerts from './pages/admin/Alerts';
 import AdminCreateDriver from './pages/admin/CreateDriver';
 import AdminProfile from './pages/admin/Profile';
+
+import About from './pages/static/About';
+import Careers from './pages/static/Careers';
+import Blog from './pages/static/Blog';
+import Privacy from './pages/static/Privacy';
+import Terms from './pages/static/Terms';
+import FAQ from './pages/static/FAQ';
 
 const HIDE_NAVBAR_PATHS = [];
 
@@ -53,8 +58,17 @@ function AppContent() {
       {showNavbar && <Navbar />}
       <Routes>
         <Route path="/" element={<Landing />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/careers" element={<Careers />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/faq" element={<FAQ />} />
         <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
         <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
+        <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
+        <Route path="/verify-otp" element={<GuestRoute><VerifyOTP /></GuestRoute>} />
+        <Route path="/reset-password" element={<GuestRoute><ResetPassword /></GuestRoute>} />
         <Route path="/auth/google/callback" element={<GuestRoute><GoogleCallback /></GuestRoute>} />
         <Route path="/driver/register" element={<ProtectedRoute allowedRoles={['rider']}><DriverRegister /></ProtectedRoute>} />
         <Route path="/driver/submitted" element={<ProtectedRoute allowedRoles={['rider']}><DriverSubmitted /></ProtectedRoute>} />

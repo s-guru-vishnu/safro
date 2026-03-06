@@ -60,7 +60,7 @@ const OnboardingNavbar = () => {
                                         className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg py-2 z-50"
                                     >
                                         <a
-                                            href="mailto:support@safro.in"
+                                            href="mailto:safro.2026.safro@gmail.com"
                                             className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                                         >
                                             <FiMail size={14} className="text-teal-500" />

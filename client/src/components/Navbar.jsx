@@ -35,19 +35,24 @@ const Navbar = () => {
         { path: '/', label: 'Home', icon: <FiHome /> },
         { path: '/rider/home', label: 'Book Ride', icon: <FiMapPin /> },
         { path: '/driver/register', label: 'Drive', icon: <FiTruck /> },
-        { path: '/#safety', label: 'Safety', icon: <FiShield /> },
-        { path: '/#faq', label: 'FAQ', icon: <FiHelpCircle /> },
     ];
 
     const getRoleLinks = () => {
         if (!user) return [];
         switch (user.role) {
             case 'rider':
+                const hasActiveApplication = user.driverApplicationStatus &&
+                    ['pending', 'under_review', 'meeting_scheduled'].includes(user.driverApplicationStatus);
+
                 return [
                     { path: '/rider/home', label: 'Book Ride', icon: <FiMapPin /> },
                     { path: '/rider/history', label: 'My Rides', icon: <FiList /> },
                     { path: '/rider/tracking', label: 'Tracking', icon: <FiGrid /> },
-                    { path: '/driver/register', label: 'Drive', icon: <FiTruck /> },
+                    {
+                        path: hasActiveApplication ? '/driver/submitted' : '/driver/register',
+                        label: hasActiveApplication ? 'Drive Status' : 'Drive',
+                        icon: <FiTruck />
+                    },
                     { path: '/rider/wallet', label: 'Wallet', icon: <FiCreditCard /> },
                 ];
             case 'driver':

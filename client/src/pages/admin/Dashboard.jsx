@@ -24,6 +24,8 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [showAppsList, setShowAppsList] = useState(false);
     const [selectedApp, setSelectedApp] = useState(null);
+    const [previewImage, setPreviewImage] = useState(null);
+    const [zoomLevel, setZoomLevel] = useState(1);
     const [isActionLoading, setIsActionLoading] = useState(false);
 
     useEffect(() => {
@@ -269,15 +271,15 @@ const AdminDashboard = () => {
                 {/* Modals & Overlays */}
                 <AnimatePresence>
                     {showAppsList && (
-                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                        <div className="fixed inset-0 z-[1040] flex items-center justify-center p-4">
                             <motion.div
                                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                                 onClick={() => setShowAppsList(false)}
-                                className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+                                className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm z-[1050]"
                             />
                             <motion.div
                                 initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-                                className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col"
+                                className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col z-[1100]"
                             >
                                 <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                                     <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -324,15 +326,15 @@ const AdminDashboard = () => {
                     )}
 
                     {selectedApp && (
-                        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+                        <div className="fixed inset-0 z-[1200] flex items-center justify-center p-4">
                             <motion.div
                                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                                 onClick={() => setSelectedApp(null)}
-                                className="absolute inset-0 bg-gray-900/80 backdrop-blur-md"
+                                className="absolute inset-0 bg-gray-900/80 backdrop-blur-md z-[1210]"
                             />
                             <motion.div
                                 initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }}
-                                className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+                                className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col z-[1220]"
                             >
                                 <div className="p-6 bg-teal-600 text-white flex items-center justify-between">
                                     <div>
@@ -397,15 +399,98 @@ const AdminDashboard = () => {
                                         <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                                             <FiFileText /> Submitted Documents
                                         </h3>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center justify-between p-3 border border-gray-100 rounded-xl">
-                                                <span className="text-sm text-gray-700">Driver's License Photo</span>
-                                                <span className="text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded uppercase">Uploaded</span>
+                                        <div className="space-y-4">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-100 rounded-2xl bg-gray-50/50 gap-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-teal-100 text-teal-600 rounded-xl flex items-center justify-center">
+                                                        <FiFileText size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-gray-900">Driver's License</p>
+                                                        <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{selectedApp.licenseNumber}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded uppercase mr-2">Uploaded</span>
+                                                    {selectedApp.licenseImage && (
+                                                        <button
+                                                            onClick={() => setPreviewImage(selectedApp.licenseImage)}
+                                                            className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs font-bold hover:bg-gray-50 transition-all shadow-sm flex items-center gap-1.5"
+                                                        >
+                                                            <FiMapPin size={12} /> View Doc
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div className="flex items-center justify-between p-3 border border-gray-100 rounded-xl">
-                                                <span className="text-sm text-gray-700">Vehicle RC (Registation Certificate)</span>
-                                                <span className="text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded uppercase">Uploaded</span>
+
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-100 rounded-2xl bg-gray-50/50 gap-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+                                                        <FiFileText size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-gray-900">Vehicle RC</p>
+                                                        <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{selectedApp.rcNumber || 'Document'}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded uppercase mr-2">Uploaded</span>
+                                                    {selectedApp.rcDocument && (
+                                                        <button
+                                                            onClick={() => setPreviewImage(selectedApp.rcDocument)}
+                                                            className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs font-bold hover:bg-gray-50 transition-all shadow-sm flex items-center gap-1.5"
+                                                        >
+                                                            <FiMapPin size={12} /> View Doc
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
+
+                                            {selectedApp.aadhaarImage && (
+                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-100 rounded-2xl bg-gray-50/50 gap-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
+                                                            <FiFileText size={18} />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-bold text-gray-900">Aadhaar Card</p>
+                                                            <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{selectedApp.aadhaarNumber}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded uppercase mr-2">Uploaded</span>
+                                                        <button
+                                                            onClick={() => setPreviewImage(selectedApp.aadhaarImage)}
+                                                            className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs font-bold hover:bg-gray-50 transition-all shadow-sm flex items-center gap-1.5"
+                                                        >
+                                                            <FiMapPin size={12} /> View Doc
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {selectedApp.insuranceDocument && (
+                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-100 rounded-2xl bg-gray-50/50 gap-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center">
+                                                            <FiFileText size={18} />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-bold text-gray-900">Vehicle Insurance</p>
+                                                            <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{selectedApp.insurancePolicyNumber || 'Policy Document'}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded uppercase mr-2">Uploaded</span>
+                                                        <button
+                                                            onClick={() => setPreviewImage(selectedApp.insuranceDocument)}
+                                                            className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs font-bold hover:bg-gray-50 transition-all shadow-sm flex items-center gap-1.5"
+                                                        >
+                                                            <FiMapPin size={12} /> View Doc
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </section>
                                 </div>
@@ -430,6 +515,78 @@ const AdminDashboard = () => {
                                         className="px-6 py-3 bg-red-50 text-red-600 rounded-xl font-bold text-sm hover:bg-red-100 transition-all disabled:opacity-50"
                                     >
                                         Reject
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+
+                    {/* Image Preview Modal */}
+                    {previewImage && (
+                        <div className="fixed inset-0 z-[1400] flex items-center justify-center p-4">
+                            <motion.div
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                onClick={() => setPreviewImage(null)}
+                                className="absolute inset-0 bg-black/95 backdrop-blur-xl z-[1410]"
+                            />
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+                                className="relative max-w-4xl w-full max-h-[85vh] z-[1420] flex flex-col items-center"
+                            >
+                                <button
+                                    onClick={() => setPreviewImage(null)}
+                                    className="absolute -top-12 right-0 text-white hover:text-gray-300 text-sm font-bold flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-md transition-all"
+                                >
+                                    <FiXCircle /> Close Preview
+                                </button>
+                                <div className="w-full h-full rounded-2xl overflow-auto bg-gray-900 border border-white/10 shadow-2xl custom-scrollbar flex items-center justify-center">
+                                    <div
+                                        style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.2s ease-out' }}
+                                        className="origin-center"
+                                    >
+                                        <img
+                                            src={previewImage}
+                                            alt="Document Preview"
+                                            className="max-h-[70vh] w-auto h-auto object-contain"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="mt-4 flex flex-wrap justify-center gap-3">
+                                    <div className="flex bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-1">
+                                        <button
+                                            onClick={() => setZoomLevel(prev => Math.max(0.5, prev - 0.25))}
+                                            className="px-3 py-1.5 text-white hover:bg-white/20 rounded-lg text-sm font-bold transition-all"
+                                            title="Zoom Out"
+                                        >
+                                            -
+                                        </button>
+                                        <span className="px-3 py-1.5 text-white text-xs font-bold border-x border-white/10 flex items-center">
+                                            {Math.round(zoomLevel * 100)}%
+                                        </span>
+                                        <button
+                                            onClick={() => setZoomLevel(prev => Math.min(3, prev + 0.25))}
+                                            className="px-3 py-1.5 text-white hover:bg-white/20 rounded-lg text-sm font-bold transition-all"
+                                            title="Zoom In"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                    <button
+                                        onClick={() => setZoomLevel(1)}
+                                        className="px-4 py-2 bg-white/10 text-white rounded-xl font-bold text-xs hover:bg-white/20 transition-all border border-white/20"
+                                    >
+                                        Reset Zoom
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            const link = document.createElement('a');
+                                            link.href = previewImage;
+                                            link.download = `document-${Date.now()}.png`;
+                                            link.click();
+                                        }}
+                                        className="px-6 py-2 bg-teal-500 text-white rounded-xl font-bold text-xs hover:bg-teal-600 transition-all shadow-lg shadow-teal-500/20"
+                                    >
+                                        Download Image
                                     </button>
                                 </div>
                             </motion.div>

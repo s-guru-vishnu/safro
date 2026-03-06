@@ -18,8 +18,14 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: [true, 'Password is required'],
-        minlength: 6,
+        minlength: 8,
         select: false
+    },
+    resetPasswordOTP: String,
+    resetPasswordOTPExpires: Date,
+    isEmailVerified: {
+        type: Boolean,
+        default: false
     },
     phone: {
         type: String,

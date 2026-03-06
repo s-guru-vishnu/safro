@@ -4,6 +4,7 @@ const Driver = require('../models/Driver');
 const Payment = require('../models/Payment');
 const { predictFare } = require('../services/farePredictionService');
 const { checkRide } = require('../services/fraudDetectionService');
+const { sendRideBookedEmail, sendDriverAssignedEmail, sendRideCompletedEmail, sendPaymentReceiptEmail, sendRideCancelledEmail } = require('../services/notificationService');
 
 // Helper: parse distance string to km number
 const parseDistanceKm = (distStr) => {
@@ -143,6 +144,12 @@ const requestRide = async (req, res, next) => {
             io.to('driver').emit('newRideRequest', ride);
         }
 
+        // 📧 Email: Ride Booked (non-blocking)
+        sendRideBookedEmail(
+            { name: req.user.name, email: req.user.email },
+            { pickupAddress: pickupLocation?.address, dropAddress: dropLocation?.address, proposedFare }
+        );
+
         res.status(201).json(ride);
     } catch (error) {
         next(error);
@@ -254,6 +261,19 @@ const confirmRide = async (req, res, next) => {
             // Remove from available pool for all drivers
             io.to('driver').emit('rideRemovedFromPool', { rideId: ride._id.toString() });
         }
+
+        // 📧 Email: Driver Assigned (non-blocking)
+        try {
+            const rider = await User.findById(ride.riderId);
+            const driverDoc = await Driver.findOne({ userId: driverId }).populate('userId', 'name phone');
+            if (rider && driverDoc) {
+                sendDriverAssignedEmail(
+                    { name: rider.name, email: rider.email },
+                    { name: driverDoc.userId?.name, vehicleNumber: driverDoc.vehicleNumber, vehicleType: driverDoc.vehicleType, phone: driverDoc.userId?.phone },
+                    { agreedFare: finalFare }
+                );
+            }
+        } catch (emailErr) { console.error('[EMAIL] confirmRide notification error:', emailErr.message); }
 
         res.json(updated);
     } catch (error) {
@@ -472,6 +492,21 @@ const completeRide = async (req, res, next) => {
             });
         }
 
+        // 📧 Email: Ride Completed + Payment Receipt (non-blocking)
+        const riderUser = await User.findById(ride.riderId);
+        if (riderUser) {
+            sendRideCompletedEmail(
+                { name: riderUser.name, email: riderUser.email },
+                { pickupAddress: ride.pickupLocation?.address, dropAddress: ride.dropLocation?.address, distance: ride.distance, duration: ride.duration, agreedFare: ride.negotiatedFare || ride.fare?.final || ride.fare?.proposed }
+            );
+            if (ride.paymentStatus === 'Paid') {
+                sendPaymentReceiptEmail(
+                    { name: riderUser.name, email: riderUser.email },
+                    { _id: ride._id, paymentMethod: ride.paymentMethod || 'wallet', agreedFare: ride.negotiatedFare || ride.fare?.final, platformFee: ride.platformCommission, totalPaid: ride.negotiatedFare || ride.fare?.final }
+                );
+            }
+        }
+
         res.json(ride);
     } catch (error) {
         next(error);
@@ -534,6 +569,29 @@ const cancelRide = async (req, res, next) => {
                 cancelledBy
             });
         }
+
+        // 📧 Email: Ride Cancelled (non-blocking)
+        try {
+            const rider = await User.findById(ride.riderId);
+            if (rider) {
+                sendRideCancelledEmail(
+                    { name: rider.name, email: rider.email },
+                    { pickupAddress: ride.pickupLocation?.address, dropAddress: ride.dropLocation?.address },
+                    cancelledBy
+                );
+            }
+            // Also notify driver if they were assigned and rider cancelled
+            if (cancelledBy === 'rider' && driverUserId) {
+                const driverUser = await User.findById(driverUserId);
+                if (driverUser) {
+                    sendRideCancelledEmail(
+                        { name: driverUser.name, email: driverUser.email },
+                        { pickupAddress: ride.pickupLocation?.address, dropAddress: ride.dropLocation?.address },
+                        cancelledBy
+                    );
+                }
+            }
+        } catch (e) { /* non-blocking */ }
 
         res.json(ride);
     } catch (error) {

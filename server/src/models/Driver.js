@@ -9,7 +9,7 @@ const driverSchema = new mongoose.Schema({
     },
     vehicleType: {
         type: String,
-        enum: ['bike', 'auto', 'sedan', 'suv'],
+        enum: ['bike', 'auto', 'sedan', 'suv', 'car'],
         required: [true, 'Vehicle type is required']
     },
     vehicleModel: {
@@ -35,6 +35,11 @@ const driverSchema = new mongoose.Schema({
     isAvailable: {
         type: Boolean,
         default: false
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'verified', 'approved', 'rejected', 'suspended'],
+        default: 'approved'
     },
     currentLocation: {
         type: {

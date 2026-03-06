@@ -4,10 +4,14 @@
  */
 const Ride = require('../models/Ride');
 const Negotiation = require('../models/Negotiation');
+const { driverLocationHandler, startDBPersistence } = require('./driverLocationHandler');
 
 const socketHandler = (io) => {
     // Track userId → socketId for targeted emissions
     const userSocketMap = new Map();
+
+    // Start batch DB persistence for driver locations (every 10s)
+    startDBPersistence(10000);
 
     io.on('connection', (socket) => {
         console.log(`🔌 Socket connected: ${socket.id}`);
@@ -103,27 +107,10 @@ const socketHandler = (io) => {
             }
         });
 
-        // Driver location update (live tracking — only relayed in confirmed/ongoing rides)
-        socket.on('updateDriverLocation', (data) => {
-            const { rideId, driverId, location } = data;
-            if (rideId) {
-                io.to(`ride_${rideId}`).emit('driverLocationUpdate', {
-                    driverId,
-                    location,
-                    timestamp: new Date()
-                });
-            }
-            // Also broadcast to admin room for dashboard map
-            if (driverId && location) {
-                io.to('admin').emit('adminDriverLocationUpdate', {
-                    driverId,
-                    location,
-                    timestamp: new Date()
-                });
-            }
-        });
+        // ── Driver Location Tracking (delegated) ────────────────────
+        driverLocationHandler(io, socket);
 
-        // Rider location update (live tracking — only relayed in confirmed/ongoing rides)
+        // ── Rider location update ────────────────────────────────────
         socket.on('updateRiderLocation', (data) => {
             const { rideId, riderId, location } = data;
             if (rideId) {

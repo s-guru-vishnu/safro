@@ -1,7 +1,12 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const Driver = require('../models/Driver');
+const OTP = require('../models/OTP');
+const { sendWelcomeEmail, sendApplicationSubmittedEmail, sendOTPEmail } = require('../services/notificationService');
+const { sendEmail } = require('../services/emailService');
 
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -40,6 +45,9 @@ const register = async (req, res, next) => {
         });
 
         const token = generateToken(user._id);
+
+        // 📧 Welcome email (non-blocking)
+        sendWelcomeEmail({ name, email });
 
         res.status(201).json({
             token,
@@ -114,6 +122,13 @@ const getProfile = async (req, res, next) => {
             driverProfile = await Driver.findOne({ userId: user._id });
         }
 
+        let latestApplication = null;
+        if (user.role === 'rider') {
+            latestApplication = await DriverApplication.findOne({ userId: user._id })
+                .sort({ createdAt: -1 })
+                .select('status createdAt');
+        }
+
         res.json({
             user: {
                 _id: user._id,
@@ -127,9 +142,11 @@ const getProfile = async (req, res, next) => {
                 walletBalance: user.walletBalance,
                 quickPayEnabled: user.quickPayEnabled,
                 defaultPaymentMethod: user.defaultPaymentMethod,
-                createdAt: user.createdAt
+                createdAt: user.createdAt,
+                driverApplicationStatus: latestApplication ? latestApplication.status : null
             },
-            driverProfile
+            driverProfile,
+            latestApplication
         });
     } catch (error) {
         next(error);
@@ -268,6 +285,12 @@ const applyAsDriver = async (req, res, next) => {
             });
         }
 
+        // 📧 Application submitted email (non-blocking)
+        sendApplicationSubmittedEmail(
+            { name: req.user.name, email: req.user.email },
+            { vehicleType: application.vehicleType, vehicleNumber: application.vehicleNumber }
+        );
+
         res.status(201).json({
             message: 'Driver application submitted successfully. An admin will review and contact you for verification.',
             application
@@ -307,6 +330,137 @@ const googleCallback = async (req, res) => {
         res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=GoogleAuthFailed`);
     }
 };
+// ─── FORGOT PASSWORD FLOW ───────────────────────────────────────
+
+// @desc    Send password reset OTP
+// @route   POST /api/auth/forgot-password
+const forgotPassword = async (req, res, next) => {
+    try {
+        const { emailOrPhone } = req.body;
+        if (!emailOrPhone) {
+            return res.status(400).json({ message: 'Email or phone is required' });
+        }
+
+        // Find user by email or phone
+        const user = await User.findOne({
+            $or: [{ email: emailOrPhone }, { phone: emailOrPhone }]
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: 'No account found with this email or phone' });
+        }
+
+        // Generate 4-digit OTP
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+        const hashedOTP = await bcrypt.hash(otp, 10);
+
+        // Rate limit: prevent spam (60s cooldown)
+        const recentOTP = await OTP.findOne({
+            phone: emailOrPhone,
+            createdAt: { $gt: new Date(Date.now() - 60 * 1000) }
+        });
+        if (recentOTP) {
+            return res.status(429).json({ message: 'Please wait 60 seconds before requesting again' });
+        }
+
+        // Delete old OTPs and save new one
+        await OTP.deleteMany({ phone: emailOrPhone });
+        await OTP.create({
+            phone: emailOrPhone,
+            otp: hashedOTP,
+            expiresAt: new Date(Date.now() + 5 * 60 * 1000)
+        });
+
+        // Send OTP via email (Standardized via notificationService)
+        if (user.email) {
+            sendOTPEmail(user, otp, 'Password Reset');
+        }
+
+        res.json({ message: 'OTP sent successfully', emailOrPhone });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Verify reset OTP
+// @route   POST /api/auth/verify-reset-otp
+const verifyResetOTP = async (req, res, next) => {
+    try {
+        const { emailOrPhone, otp } = req.body;
+        if (!emailOrPhone || !otp) {
+            return res.status(400).json({ message: 'Email/phone and OTP are required' });
+        }
+
+        const otpRecord = await OTP.findOne({ phone: emailOrPhone });
+        if (!otpRecord) {
+            return res.status(400).json({ message: 'OTP expired or not found' });
+        }
+
+        if (otpRecord.attempts >= 5) {
+            await OTP.deleteOne({ _id: otpRecord._id });
+            return res.status(400).json({ message: 'Too many failed attempts. Request a new OTP.' });
+        }
+
+        const isMatch = await bcrypt.compare(otp, otpRecord.otp);
+        if (!isMatch) {
+            otpRecord.attempts += 1;
+            await otpRecord.save();
+            return res.status(400).json({ message: 'Invalid OTP' });
+        }
+
+        res.json({ message: 'OTP verified', verified: true });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Reset password with OTP
+// @route   POST /api/auth/reset-password
+const resetPassword = async (req, res, next) => {
+    try {
+        const { emailOrPhone, otp, newPassword } = req.body;
+        if (!emailOrPhone || !otp || !newPassword) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        // Verify OTP one more time
+        const otpRecord = await OTP.findOne({ phone: emailOrPhone });
+        if (!otpRecord) {
+            return res.status(400).json({ message: 'OTP expired. Please request a new one.' });
+        }
+
+        const isMatch = await bcrypt.compare(otp, otpRecord.otp);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Invalid OTP' });
+        }
+
+        // Find user
+        const user = await User.findOne({
+            $or: [{ email: emailOrPhone }, { phone: emailOrPhone }]
+        });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Update password
+        user.password = newPassword;
+        await user.save();
+
+        // Clean up OTP
+        await OTP.deleteMany({ phone: emailOrPhone });
+
+        // Send confirmation email
+        if (user.email) {
+            sendEmail(user.email, '✅ Password Changed — Safro',
+                `<div style="font-family:'Segoe UI',sans-serif;padding:20px;"><h2>Password Changed</h2><p>Hi ${user.name}, your Safro password was changed successfully. If this wasn't you, contact support immediately.</p></div>`
+            ).catch(console.error);
+        }
+
+        res.json({ message: 'Password reset successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
 
 module.exports = {
     register,
@@ -317,5 +471,8 @@ module.exports = {
     getMyApplicationStatus,
     registerValidation,
     loginValidation,
-    googleCallback
+    googleCallback,
+    forgotPassword,
+    verifyResetOTP,
+    resetPassword
 };

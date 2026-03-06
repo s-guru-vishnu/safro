@@ -34,6 +34,11 @@ api.interceptors.response.use(
     }
 );
 
+// Auth API methods
+export const forgotPassword = (emailOrPhone) => api.post('/auth/forgot-password', { emailOrPhone });
+export const verifyOtpForReset = (emailOrPhone, otp) => api.post('/auth/verify-reset-otp', { emailOrPhone, otp });
+export const resetPassword = (emailOrPhone, otp, newPassword) => api.post('/auth/reset-password', { emailOrPhone, otp, newPassword });
+
 // OTP API methods
 export const sendOtp = (phone) => api.post('/auth/send-otp', { phone });
 export const verifyOtp = (phone, otp) => api.post('/auth/verify-otp', { phone, otp });

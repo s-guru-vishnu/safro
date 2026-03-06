@@ -3,11 +3,12 @@ const crypto = require('crypto');
 const OTP = require('../models/OTP');
 const User = require('../models/User');
 const { sendSMS } = require('../services/smsService');
+const { sendOTPEmail } = require('../services/notificationService');
 const jwt = require('jsonwebtoken');
 
-// Generate 6-digit OTP
+// Generate 4-digit OTP
 const generateOTP = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+    return Math.floor(1000 + Math.random() * 9000).toString();
 };
 
 // @desc    Send OTP to phone
@@ -43,9 +44,15 @@ const sendOTP = async (req, res, next) => {
             expiresAt: new Date(Date.now() + 5 * 60 * 1000) // 5 mins
         });
 
-        // Send SMS
+        // Send SMS (Standard)
         const message = `Your Safro verification OTP is ${otp}. Valid for 5 minutes.`;
         await sendSMS(phone, message);
+
+        // Also send Email if user exists and has email
+        const user = await User.findOne({ phone });
+        if (user && user.email) {
+            sendOTPEmail(user, otp, 'Verification');
+        }
 
         res.json({ message: 'OTP sent successfully', phone });
     } catch (error) {

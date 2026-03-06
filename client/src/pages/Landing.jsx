@@ -371,18 +371,18 @@ const Landing = () => {
                         <div>
                             <h4 className="text-sm font-semibold text-gray-900 mb-3">Company</h4>
                             <ul className="space-y-2 text-sm text-gray-500">
-                                <li><a href="#" className="hover:text-gray-900 transition-colors">About</a></li>
-                                <li><a href="#" className="hover:text-gray-900 transition-colors">Careers</a></li>
-                                <li><a href="#" className="hover:text-gray-900 transition-colors">Blog</a></li>
+                                <li><Link to="/about" className="hover:text-gray-900 transition-colors">About</Link></li>
+                                <li><Link to="/careers" className="hover:text-gray-900 transition-colors">Careers</Link></li>
+                                <li><Link to="/blog" className="hover:text-gray-900 transition-colors">Blog</Link></li>
                             </ul>
                         </div>
 
                         <div>
                             <h4 className="text-sm font-semibold text-gray-900 mb-3">Legal</h4>
                             <ul className="space-y-2 text-sm text-gray-500">
-                                <li><a href="#" className="hover:text-gray-900 transition-colors">Privacy</a></li>
-                                <li><a href="#" className="hover:text-gray-900 transition-colors">Terms</a></li>
-                                <li><a href="#faq" className="hover:text-gray-900 transition-colors">FAQ</a></li>
+                                <li><Link to="/privacy" className="hover:text-gray-900 transition-colors">Privacy</Link></li>
+                                <li><Link to="/terms" className="hover:text-gray-900 transition-colors">Terms</Link></li>
+                                <li><Link to="/faq" className="hover:text-gray-900 transition-colors">FAQ</Link></li>
                             </ul>
                         </div>
                     </div>

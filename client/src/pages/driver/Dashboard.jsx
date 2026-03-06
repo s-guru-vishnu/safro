@@ -5,7 +5,7 @@ import NegotiationChat from '../../components/NegotiationChat';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMapPin, FiNavigation, FiMessageCircle, FiXCircle, FiCheckCircle } from 'react-icons/fi';
+import { FiMapPin, FiNavigation, FiMessageCircle, FiXCircle, FiCheckCircle, FiDollarSign, FiTruck, FiStar } from 'react-icons/fi';
 import { Banknote } from 'lucide-react';
 import MapView from '../../components/map/MapView';
 
@@ -18,19 +18,47 @@ const DriverDashboard = () => {
     const [driverLocation, setDriverLocation] = useState(null);
     const [isNegotiating, setIsNegotiating] = useState(false);
     const [riderLocation, setRiderLocation] = useState(null);
+    const [stats, setStats] = useState(null);
 
-    // Get driver's current location for geo-filtered rides
+    // Get driver's current location for geo-filtered rides + register with tracking system
     useEffect(() => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    setDriverLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-                },
-                (err) => console.warn('Geolocation unavailable:', err.message),
-                { enableHighAccuracy: true, timeout: 5000 }
-            );
-        }
-    }, []);
+        if (!navigator.geolocation || !socket) return;
+
+        let driverProfileId = null;
+
+        // Fetch the driver profile ID to use for driverJoin
+        api.get('/drivers/stats').then(res => {
+            driverProfileId = res.data?._id;
+        }).catch(() => { });
+
+        // Get initial position and register with tracking
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                setDriverLocation(loc);
+
+                // Emit driverJoin for cache registration
+                socket.emit('driverLocationIdle', { userId: user._id, location: loc });
+            },
+            (err) => console.warn('Geolocation unavailable:', err.message),
+            { enableHighAccuracy: true, timeout: 5000 }
+        );
+
+        // Watch position — throttled to every ~5 seconds via maximumAge
+        const watchId = navigator.geolocation.watchPosition(
+            (pos) => {
+                const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                setDriverLocation(loc);
+
+                // Send location update (compatible with both old and new handler)
+                socket.emit('driverLocationIdle', { userId: user._id, location: loc });
+            },
+            (err) => console.warn('Watch position error:', err.message),
+            { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+        );
+
+        return () => navigator.geolocation.clearWatch(watchId);
+    }, [socket, user._id]);
 
     // Fetch active ride on mount (restore after refresh)
     useEffect(() => {
@@ -51,6 +79,16 @@ const DriverDashboard = () => {
             }
         };
         fetchActiveRide();
+
+        const fetchStats = async () => {
+            try {
+                const res = await api.get('/drivers/stats');
+                setStats(res.data);
+            } catch (err) {
+                console.error('Error fetching driver stats:', err);
+            }
+        };
+        fetchStats();
     }, []);
 
     // Socket Reconnection Resync
@@ -135,6 +173,9 @@ const DriverDashboard = () => {
                     setShowChat(false);
                     setIsNegotiating(false);
                     fetchAvailableRides();
+
+                    // Re-fetch stats on ride completion
+                    api.get('/drivers/stats').then(res => setStats(res.data)).catch(console.error);
                 }
             });
 
@@ -283,7 +324,7 @@ const DriverDashboard = () => {
     return (
         <div className="min-h-[calc(100vh-64px)] bg-gray-50 py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Driver Dashboard</h1>
                         <p className="text-sm text-gray-500 mt-1">Manage your rides and negotiations</p>
@@ -296,6 +337,39 @@ const DriverDashboard = () => {
                             </span>
                         )}
                     </div>
+                </div>
+
+                {/* Driver Stats Overview */}
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <FiDollarSign size={20} />
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-500 font-medium">Total Earnings</p>
+                            <p className="font-bold text-gray-900 text-lg">₹{stats?.totalEarnings || 0}</p>
+                        </div>
+                    </motion.div>
+
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+                            <FiTruck size={20} />
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-500 font-medium">Completed Rides</p>
+                            <p className="font-bold text-gray-900 text-lg">{stats?.totalRides || 0}</p>
+                        </div>
+                    </motion.div>
+
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-yellow-50 text-yellow-600 flex items-center justify-center">
+                            <FiStar size={20} />
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-500 font-medium">Current Rating</p>
+                            <p className="font-bold text-gray-900 text-lg">{stats?.rating?.toFixed(1) || '—'}</p>
+                        </div>
+                    </motion.div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

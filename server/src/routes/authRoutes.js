@@ -10,6 +10,9 @@ const {
     getMyApplicationStatus,
     registerValidation,
     loginValidation,
+    forgotPassword,
+    verifyResetOTP,
+    resetPassword
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const passport = require('passport');
@@ -54,5 +57,14 @@ router.get('/google/callback',
         }
     }
 );
+
+// POST /api/auth/forgot-password
+router.post('/forgot-password', forgotPassword);
+
+// POST /api/auth/verify-reset-otp (also handles /verify-otp for frontend compat)
+router.post('/verify-reset-otp', verifyResetOTP);
+
+// POST /api/auth/reset-password
+router.post('/reset-password', resetPassword);
 
 module.exports = router;

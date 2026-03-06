@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { FiMapPin, FiAlertCircle, FiNavigation } from 'react-icons/fi';
 import 'leaflet/dist/leaflet.css';
 import mapService from '../../services/mapService';
+import SUB_OFFICES from '../../data/subOffices';
 
 // Fix for default Leaflet marker icons using SVG
 const createIcon = (color) => L.divIcon({
@@ -23,6 +24,22 @@ const icons = {
     driver: createIcon('#3b82f6'), // Blue
     rider: createIcon('#0d9488')   // Teal
 };
+
+const subOfficeIcon = L.divIcon({
+    html: `<div style="
+        width: 28px; height: 28px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px;
+        border-radius: 6px;
+        border: 2px solid #f97316;
+        background: #fff7ed;
+        box-shadow: 0 2px 6px rgba(249,115,22,0.25);
+    ">🏢</div>`,
+    className: 'suboffice-icon',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -16]
+});
 
 // Error Boundary Fallback UI
 const MapFallback = ({ message }) => (
@@ -130,6 +147,22 @@ const MapView = ({ pickupCoordinates, dropCoordinates, driverCoordinates, riderC
                         dashArray="10, 10"
                     />
                 )}
+
+                {/* Sub-Office Markers */}
+                {SUB_OFFICES.map(office => (
+                    <Marker
+                        key={`office-${office.taluk}`}
+                        position={[office.lat, office.lng]}
+                        icon={subOfficeIcon}
+                    >
+                        <Popup>
+                            <div>
+                                <p style={{ fontWeight: 'bold', color: '#ea580c', fontSize: '13px', margin: 0 }}>{office.name}</p>
+                                <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '3px' }}>{office.taluk} Taluk</p>
+                            </div>
+                        </Popup>
+                    </Marker>
+                ))}
 
                 <RecenterMap pickup={pickupCoordinates} drop={dropCoordinates} rider={riderCoordinates} driver={driverCoordinates} />
             </MapContainer>

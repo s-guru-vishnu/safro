@@ -3,6 +3,7 @@ const Driver = require('../models/Driver');
 const DriverApplication = require('../models/DriverApplication');
 const Ride = require('../models/Ride');
 const Payment = require('../models/Payment');
+const { sendApplicationApprovedEmail, sendApplicationRejectedEmail, sendMeetingScheduledEmail } = require('../services/notificationService');
 const { sendSMS } = require('../services/smsService');
 
 // ──────────────────────────────────────────────────────────────
@@ -72,8 +73,8 @@ const reviewApplication = async (req, res, next) => {
             return res.status(404).json({ message: 'Application not found' });
         }
 
-        if (application.status !== 'pending') {
-            return res.status(400).json({ message: `Application is already ${application.status}` });
+        if (!['pending', 'meeting_scheduled'].includes(application.status)) {
+            return res.status(400).json({ message: `Cannot move ${application.status} application to under review` });
         }
 
         application.status = 'under_review';
@@ -143,6 +144,13 @@ const scheduleMeeting = async (req, res, next) => {
                 const message = `Hi ${user.name}, your Safro driver application is under review. Please visit ${location} on ${new Date(scheduledDate).toLocaleDateString()} for offline document verification. Notes: ${notes || 'Bring all original documents.'}`;
                 await sendSMS(user.phone, message);
             }
+            // 📧 Email: Meeting Scheduled (non-blocking)
+            if (user) {
+                sendMeetingScheduledEmail(
+                    { name: user.name, email: user.email },
+                    { scheduledDate, location, notes }
+                );
+            }
         } catch (smsError) {
             console.error('Failed to send verification SMS:', smsError.message);
             // Don't fail the whole request just because SMS failed
@@ -199,7 +207,10 @@ const approveApplication = async (req, res, next) => {
                 vehicleColor: application.vehicleColor,
                 licenseNumber: application.licenseNumber,
                 upiId: application.upiId,
-                taluk: application.taluk
+                taluk: application.taluk,
+                currentLocation: application.homeLocation && application.homeLocation.coordinates[0] !== 0
+                    ? application.homeLocation
+                    : { type: 'Point', coordinates: [77.5946, 12.9716] } // Default to Bengaluru if no home location
             });
         }
 
@@ -211,6 +222,11 @@ const approveApplication = async (req, res, next) => {
                 status: 'approved',
                 message: 'Congratulations! Your driver application has been approved. You can now start accepting rides.'
             });
+        }
+
+        // 📧 Email: Application Approved (non-blocking)
+        if (user) {
+            sendApplicationApprovedEmail({ name: user.name, email: user.email });
         }
 
         res.json({
@@ -253,6 +269,14 @@ const rejectApplication = async (req, res, next) => {
                 reason: application.rejectionReason
             });
         }
+
+        // 📧 Email: Application Rejected (non-blocking)
+        try {
+            const applicantUser = await User.findById(application.userId);
+            if (applicantUser) {
+                sendApplicationRejectedEmail({ name: applicantUser.name, email: applicantUser.email }, application.rejectionReason);
+            }
+        } catch (e) { /* non-blocking */ }
 
         res.json({ message: 'Application rejected', application });
     } catch (error) {
@@ -620,74 +644,6 @@ const processDriverPayout = async (req, res, next) => {
     }
 };
 
-// @desc    Get driver locations for admin map
-// @route   GET /api/admin/driver-locations
-const getDriverLocations = async (req, res, next) => {
-    try {
-        const query = { status: { $in: ['verified', 'approved'] } };
-
-        // Regional filter: admins only see drivers from their taluk
-        if (req.user.taluk) {
-            query.taluk = req.user.taluk;
-        }
-
-        const drivers = await Driver.find(query)
-            .populate('userId', 'name phone');
-
-        const locations = drivers
-            .filter(d => {
-                const coords = d.currentLocation?.coordinates;
-                return coords && (coords[0] !== 0 || coords[1] !== 0);
-            })
-            .map(d => ({
-                _id: d._id,
-                name: d.userId?.name || 'Unknown',
-                phone: d.userId?.phone || '',
-                vehicleType: d.vehicleType,
-                vehicleNumber: d.vehicleNumber,
-                isAvailable: d.isAvailable,
-                lat: d.currentLocation.coordinates[1],
-                lng: d.currentLocation.coordinates[0]
-            }));
-
-        res.json({ drivers: locations });
-    } catch (error) {
-        console.error('Driver locations error:', error);
-        next(error);
-    }
-};
-
-// @desc    Get rider locations for admin map
-// @route   GET /api/admin/rider-locations
-const getRiderLocations = async (req, res, next) => {
-    try {
-        const query = { status: { $in: ['pending', 'negotiating', 'accepted', 'confirmed', 'driver_arrived', 'otp_verified', 'on_trip'] } };
-
-        const activeRides = await Ride.find(query)
-            .populate('riderId', 'name phone');
-
-        const locations = activeRides
-            .filter(ride => {
-                const coords = ride.pickupLocation?.coordinates;
-                return coords && coords.lat && coords.lng;
-            })
-            .map(ride => ({
-                _id: ride.riderId?._id || `unknown-${ride._id}`,
-                rideId: ride._id,
-                name: ride.riderId?.name || 'Unknown Rider',
-                phone: ride.riderId?.phone || '',
-                status: ride.status,
-                lat: ride.pickupLocation.coordinates.lat,
-                lng: ride.pickupLocation.coordinates.lng
-            }));
-
-        res.json({ riders: locations });
-    } catch (error) {
-        console.error('Rider locations error:', error);
-        next(error);
-    }
-};
-
 module.exports = {
     getDriverApplications,
     getApplicationDetails,
@@ -703,7 +659,5 @@ module.exports = {
     createDriver,
     getAIInsights,
     getDriverPayouts,
-    processDriverPayout,
-    getDriverLocations,
-    getRiderLocations
+    processDriverPayout
 };

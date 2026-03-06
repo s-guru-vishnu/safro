@@ -124,7 +124,7 @@ const Step1Personal = ({ formData, updateField, nextStep }) => {
                             type="text"
                             value={formData.taluk}
                             onChange={(e) => updateField('taluk', e.target.value)}
-                            placeholder="Enter your taluk (e.g., Madurai North)"
+                            placeholder="Enter your taluk Nearby (e.g., Coimbatore North)"
                             className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white text-gray-900 placeholder-gray-400 text-sm transition-all outline-none ${errors.taluk ? 'border-red-300' : 'border-gray-200'}`}
                         />
                     </div>

@@ -21,6 +21,7 @@ const RiderHome = () => {
     const [riderLocation, setRiderLocation] = useState(null);
     const [showPaymentScreen, setShowPaymentScreen] = useState(false);
     const [completedRide, setCompletedRide] = useState(null);
+    const [cancelLoading, setCancelLoading] = useState(false);
 
     // Get rider's current location for the initial map view
     useEffect(() => {
@@ -187,6 +188,23 @@ const RiderHome = () => {
         setShowRatingModal(true);
     };
 
+    const handleCancelRide = async () => {
+        if (!window.confirm('Are you sure you want to cancel this ride?')) return;
+        setCancelLoading(true);
+        try {
+            await api.put(`/rides/${activeRide._id}/cancel`, {
+                reason: 'Cancelled by rider'
+            });
+            toast.success('Ride cancelled successfully');
+            setActiveRide(null);
+            localStorage.removeItem('activeRideId');
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to cancel ride');
+        } finally {
+            setCancelLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-[calc(100vh-64px)] bg-gray-50 py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -247,6 +265,17 @@ const RiderHome = () => {
                                 {/* AI Fare Prediction */}
                                 {activeRide?.aiPrediction && (
                                     <AIFareCard prediction={activeRide.aiPrediction} />
+                                )}
+
+                                {/* Cancel Button */}
+                                {(activeRide.status === 'requested' || activeRide.status === 'negotiating' || activeRide.status === 'pending' || activeRide.status === 'accepted' || activeRide.status === 'confirmed') && (
+                                    <button
+                                        onClick={handleCancelRide}
+                                        disabled={cancelLoading}
+                                        className="w-full mt-4 bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-3 rounded-xl transition-colors border border-red-200"
+                                    >
+                                        {cancelLoading ? 'Cancelling...' : 'Cancel Ride'}
+                                    </button>
                                 )}
                             </>
                         )}

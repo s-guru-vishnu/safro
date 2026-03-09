@@ -2,14 +2,14 @@
  * Notification Service — Central Dispatcher
  * 
  * All notification channels (email, SMS, push) route through here.
- * Currently supports email. Designed for future SMS/WhatsApp/push expansion.
- * 
  * Every function is non-blocking — they fire-and-forget.
+ * SMS failures are caught and logged — they never break the workflow.
  */
 
 const { sendEmail } = require('./emailService');
+const { sendWhatsAppMessage } = require('./whatsappService');
 
-// Templates
+// Email Templates
 const welcomeTemplate = require('../templates/welcomeTemplate');
 const rideBookedTemplate = require('../templates/rideBookedTemplate');
 const driverAssignedTemplate = require('../templates/driverAssignedTemplate');
@@ -22,6 +22,10 @@ const applicationApprovedTemplate = require('../templates/applicationApprovedTem
 const applicationRejectedTemplate = require('../templates/applicationRejectedTemplate');
 const meetingScheduledTemplate = require('../templates/meetingScheduledTemplate');
 const otpTemplate = require('../templates/otpTemplate');
+
+// ══════════════════════════════════════════════════════════════════
+//  EMAIL NOTIFICATIONS
+// ══════════════════════════════════════════════════════════════════
 
 // ── Auth ─────────────────────────────────────────────────────────
 
@@ -115,21 +119,111 @@ const sendOTPEmail = (user, otp, purpose = 'Verification') => {
     sendEmail(user.email, subject, html).catch(console.error);
 };
 
+// ══════════════════════════════════════════════════════════════════
+//  WHATSAPP NOTIFICATIONS
+// ══════════════════════════════════════════════════════════════════
+
+/** Ride booked — WhatsApp to rider */
+const sendRideBookedWhatsApp = (user, ride) => {
+    if (!user?.phone) return;
+    const msg = `Safro 🚗\n\nYour ride has been booked successfully.\nDriver will arrive soon.`;
+    sendWhatsAppMessage(user.phone, msg).catch(console.error);
+};
+
+/** Driver assigned — WhatsApp to rider */
+const sendDriverAssignedWhatsApp = (user, driver) => {
+    if (!user?.phone) return;
+    const msg = `Safro 🚗\n\nDriver ${driver?.name || 'Unknown'} is on the way.\nVehicle: ${driver?.vehicleNumber || 'N/A'}`;
+    sendWhatsAppMessage(user.phone, msg).catch(console.error);
+};
+
+/** Ride started — WhatsApp to rider */
+const sendRideStartedWhatsApp = (user, driver) => {
+    if (!user?.phone) return;
+    const msg = `Safro 🚗\n\nYour ride has started.\nDriver: ${driver?.name || 'Your driver'}`;
+    sendWhatsAppMessage(user.phone, msg).catch(console.error);
+};
+
+/** Ride completed — WhatsApp to rider */
+const sendRideCompletedWhatsApp = (user, ride) => {
+    if (!user?.phone) return;
+    const fare = ride?.agreedFare || ride?.fare || 'N/A';
+    const msg = `Safro 🚗\n\nRide completed.\nFare: ₹${fare}`;
+    sendWhatsAppMessage(user.phone, msg).catch(console.error);
+};
+
+/** Payment receipt — WhatsApp to rider */
+const sendPaymentReceiptWhatsApp = (user, ride) => {
+    if (!user?.phone) return;
+    const fare = ride?.agreedFare || ride?.totalPaid || ride?.fare || 'N/A';
+    const method = ride?.paymentMethod || 'N/A';
+    const msg = `Safro 🚗\n\nPayment receipt: ₹${fare} received.\nMethod: ${method}`;
+    sendWhatsAppMessage(user.phone, msg).catch(console.error);
+};
+
+/**
+ * SOS Alert — WhatsApp to admin, guardian, and emergency contacts
+ * @param {object} user - User who triggered SOS { name, phone, guardianPhone }
+ * @param {object} location - { lat, lng }
+ * @returns {Array} Array of { recipient, status } for logging
+ */
+const sendSOSAlertWhatsApp = async (user, location) => {
+    const lat = location?.lat || 0;
+    const lng = location?.lng || 0;
+    const mapsLink = `https://maps.google.com/?q=${lat},${lng}`;
+
+    const msg = `🚨 SOS ALERT\n\nUser: ${user?.name || 'Unknown'}\nLocation:\n${mapsLink}`;
+
+    const results = [];
+
+    // Send to admin phone (if configured)
+    const adminPhone = process.env.ADMIN_PHONE;
+    if (adminPhone) {
+        const result = await sendWhatsAppMessage(adminPhone, msg);
+        results.push({ recipient: adminPhone, status: result ? 'sent' : 'failed' });
+        console.log("SOS Alert will go to for all the guardian they added");
+    }
+
+    // Send to guardian
+    if (user?.guardianPhone) {
+        const result = await sendWhatsAppMessage(user.guardianPhone, msg);
+        results.push({ recipient: user.guardianPhone, status: result ? 'sent' : 'failed' });
+    }
+
+    // Send to user's own phone (confirmation)
+    if (user?.phone) {
+        const selfMsg = `Safro SOS: Your emergency alert has been sent to your emergency contacts. Help is on the way.`;
+        const result = await sendWhatsAppMessage(user.phone, selfMsg);
+        results.push({ recipient: user.phone, status: result ? 'sent' : 'failed' });
+    }
+
+    return results;
+};
+
 module.exports = {
-    // Auth
+    // Email — Auth
     sendWelcomeEmail,
-    // Ride
+    // Email — Ride
     sendRideBookedEmail,
     sendDriverAssignedEmail,
     sendRideCompletedEmail,
     sendRideCancelledEmail,
-    // Payment
+    // Email — Payment
     sendPaymentReceiptEmail,
     sendWalletTopupEmail,
-    // Driver Applications
+    // Email — Driver Applications
     sendApplicationSubmittedEmail,
     sendApplicationApprovedEmail,
     sendApplicationRejectedEmail,
     sendMeetingScheduledEmail,
-    sendOTPEmail
+    // Email — OTP
+    sendOTPEmail,
+    // WhatsApp — Ride lifecycle
+    sendRideBookedWhatsApp,
+    sendDriverAssignedWhatsApp,
+    sendRideStartedWhatsApp,
+    sendRideCompletedWhatsApp,
+    sendPaymentReceiptWhatsApp,
+    // WhatsApp — Emergency
+    sendSOSAlertWhatsApp,
 };

@@ -26,9 +26,15 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            localStorage.removeItem('safro_token');
-            localStorage.removeItem('safro_user');
-            window.location.href = '/login';
+            const isAuthRequest = error.config?.url?.includes('/auth/login') || error.config?.url?.includes('/auth/register');
+
+            if (!isAuthRequest) {
+                localStorage.removeItem('safro_token');
+                localStorage.removeItem('safro_user');
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login';
+                }
+            }
         }
         return Promise.reject(error);
     }

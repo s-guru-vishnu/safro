@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { FiMapPin, FiNavigation, FiDollarSign, FiClock, FiPhone, FiArrowLeft } from 'react-icons/fi';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import StatusBadge from '../../components/StatusBadge';
@@ -28,6 +29,7 @@ const Tracking = () => {
     const [ride, setRide] = useState(location.state?.ride || null);
     const [driverLocation, setDriverLocation] = useState(null);
     const [riderLocation, setRiderLocation] = useState(null);
+    const [cancelLoading, setCancelLoading] = useState(false);
 
     // Get rider's current location for initial map view
     useEffect(() => {
@@ -103,6 +105,25 @@ const Tracking = () => {
         ? [ride.pickupLocation.coordinates.coordinates[1], ride.pickupLocation.coordinates.coordinates[0]]
         : [12.9716, 77.5946];
 
+    const isConfirmed = ride?.status === 'confirmed' || ride?.status === 'driver_arrived' || ride?.status === 'otp_verified' || ride?.status === 'on_trip';
+    const canCancel = ride?.status === 'requested' || ride?.status === 'negotiating' || ride?.status === 'pending' || ride?.status === 'accepted' || ride?.status === 'confirmed';
+
+    const handleCancelRide = async () => {
+        if (!window.confirm('Are you sure you want to cancel this ride?')) return;
+        setCancelLoading(true);
+        try {
+            await api.put(`/rides/${ride._id}/cancel`, {
+                reason: 'Cancelled by rider'
+            });
+            toast.success('Ride cancelled successfully');
+            setRide(prev => ({ ...prev, status: 'cancelled' }));
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to cancel ride');
+        } finally {
+            setCancelLoading(false);
+        }
+    };
+
     if (!ride) {
         return (
             <div className="min-h-[calc(100vh-64px)] bg-gray-50 flex items-center justify-center">
@@ -111,7 +132,6 @@ const Tracking = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center bg-white rounded-2xl border border-gray-200 p-12 max-w-sm mx-auto"
                 >
-                    <div className="text-5xl mb-4">🚗</div>
                     <h3 className="text-lg font-bold text-gray-900 mb-1">No Active Ride</h3>
                     <p className="text-sm text-gray-400 mb-6">Book a ride to see live tracking here.</p>
                     <Link to="/rider/home" className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-all">
@@ -219,10 +239,20 @@ const Tracking = () => {
                             </div>
                         </motion.div>
 
+                        {canCancel && (
+                            <button
+                                onClick={handleCancelRide}
+                                disabled={cancelLoading}
+                                className="w-full mt-4 bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-3 rounded-xl transition-colors border border-red-200"
+                            >
+                                {cancelLoading ? 'Cancelling...' : 'Cancel Ride'}
+                            </button>
+                        )}
+
                         {/* SOS */}
                         <Link
                             to="/rider/sos"
-                            className="block w-full py-3 rounded-xl text-center text-sm font-semibold bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-colors"
+                            className="block w-full mt-4 py-3 rounded-xl text-center text-sm font-semibold bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-colors"
                         >
                             🚨 Emergency SOS
                         </Link>

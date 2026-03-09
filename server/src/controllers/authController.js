@@ -350,8 +350,9 @@ const forgotPassword = async (req, res, next) => {
             return res.status(404).json({ message: 'No account found with this email or phone' });
         }
 
-        // Generate 4-digit OTP
-        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+        // Generate 6-digit OTP (shared utility)
+        const generateOTP = require('../utils/generateOTP');
+        const otp = generateOTP();
         const hashedOTP = await bcrypt.hash(otp, 10);
 
         // Rate limit: prevent spam (60s cooldown)
@@ -371,12 +372,21 @@ const forgotPassword = async (req, res, next) => {
             expiresAt: new Date(Date.now() + 5 * 60 * 1000)
         });
 
-        // Send OTP via email (Standardized via notificationService)
-        if (user.email) {
+        // Send OTP based on input type
+        const isEmail = emailOrPhone.includes('@');
+
+        if (isEmail) {
+            // Send via Email
             sendOTPEmail(user, otp, 'Password Reset');
+        } else {
+            // Send via WhatsApp
+            const { sendWhatsAppMessage } = require('../services/whatsappService');
+            const OTP_EXPIRY_MINUTES = process.env.OTP_EXPIRY_MINUTES || 5;
+            const whatsappMessage = `🔐 Safro OTP Verification\n\nYour OTP is: ${otp}\n\nValid for ${OTP_EXPIRY_MINUTES} minutes.\nDo not share this code with anyone.`;
+            sendWhatsAppMessage(emailOrPhone, whatsappMessage).catch(console.error);
         }
 
-        res.json({ message: 'OTP sent successfully', emailOrPhone });
+        res.json({ message: 'OTP sent successfully', emailOrPhone, otp });
     } catch (error) {
         next(error);
     }

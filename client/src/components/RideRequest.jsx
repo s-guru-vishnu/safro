@@ -4,8 +4,10 @@ import { motion } from 'framer-motion';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import mapService from '../services/mapService';
+import { reverseGeocode } from '../services/locationService';
 import { calculateDistance } from '../utils/distanceCalculator';
 import MapView from './map/MapView';
+import LocationInput from './map/LocationInput';
 
 const RideRequest = ({ onRideCreated }) => {
     const [pickup, setPickup] = useState('');
@@ -16,33 +18,53 @@ const RideRequest = ({ onRideCreated }) => {
     const [dropCoords, setDropCoords] = useState(null);
     const [distance, setDistance] = useState(0);
     const [crowdZoneAlert, setCrowdZoneAlert] = useState(null);
+    const [activeInput, setActiveInput] = useState('pickup');
 
-    // Geocode pickup
-    const handlePickupBlur = async () => {
-        if (!pickup) return;
-        const results = await mapService.searchLocation(pickup);
-        if (results.length > 0) {
-            setPickupCoords({ lat: results[0].lat, lng: results[0].lng });
-            // Check for crowd zones
-            try {
-                const czRes = await api.get(`/map/check-crowd-zones?lat=${results[0].lat}&lng=${results[0].lng}`);
-                if (czRes.data.inZone) {
-                    setCrowdZoneAlert(czRes.data.message);
-                } else {
-                    setCrowdZoneAlert(null);
-                }
-            } catch (err) {
-                console.warn('CrowdZone check failed (non-blocking)');
+    const handlePickupSelect = async (loc) => {
+        if (!loc) return;
+        setPickupCoords({ lat: loc.lat, lng: loc.lng });
+        try {
+            const czRes = await api.get(`/map/check-crowd-zones?lat=${loc.lat}&lng=${loc.lng}`);
+            if (czRes.data.inZone) {
+                setCrowdZoneAlert(czRes.data.message);
+            } else {
+                setCrowdZoneAlert(null);
             }
+        } catch (err) {
+            console.warn('CrowdZone check failed (non-blocking)');
         }
     };
 
-    // Geocode drop
-    const handleDropBlur = async () => {
-        if (!drop) return;
-        const results = await mapService.searchLocation(drop);
-        if (results.length > 0) {
-            setDropCoords({ lat: results[0].lat, lng: results[0].lng });
+    const handleDropSelect = (loc) => {
+        if (!loc) return;
+        setDropCoords({ lat: loc.lat, lng: loc.lng });
+    };
+
+    const handleMapClick = async (latlng) => {
+        const { lat, lng } = latlng;
+
+        // Optimistic UI updates
+        if (activeInput === 'pickup') {
+            setPickupCoords({ lat, lng });
+            setPickup('Finding address...');
+        } else {
+            setDropCoords({ lat, lng });
+            setDrop('Finding address...');
+        }
+
+        const loc = await reverseGeocode(lat, lng);
+        if (loc) {
+            if (activeInput === 'pickup') {
+                setPickup(loc.name || loc.address);
+                handlePickupSelect(loc);
+            } else {
+                setDrop(loc.name || loc.address);
+                handleDropSelect(loc);
+            }
+        } else {
+            const fallback = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            if (activeInput === 'pickup') setPickup(fallback);
+            else setDrop(fallback);
         }
     };
 
@@ -122,29 +144,25 @@ const RideRequest = ({ onRideCreated }) => {
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="relative">
-                    <FiMapPin className="absolute left-3.5 top-3.5 text-teal-600" size={16} />
-                    <input
-                        type="text"
+                <div className="relative" onClick={() => setActiveInput('pickup')}>
+                    <LocationInput
                         placeholder="Pickup Location"
+                        icon={<FiMapPin size={16} />}
                         value={pickup}
-                        onChange={(e) => setPickup(e.target.value)}
-                        onBlur={handlePickupBlur}
-                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition-all outline-none"
-                        required
+                        onChange={setPickup}
+                        onSelect={handlePickupSelect}
+                        activeColor="teal"
                     />
                 </div>
 
-                <div className="relative">
-                    <FiMapPin className="absolute left-3.5 top-3.5 text-red-500" size={16} />
-                    <input
-                        type="text"
+                <div className="relative" onClick={() => setActiveInput('drop')}>
+                    <LocationInput
                         placeholder="Drop Location"
+                        icon={<FiMapPin size={16} />}
                         value={drop}
-                        onChange={(e) => setDrop(e.target.value)}
-                        onBlur={handleDropBlur}
-                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition-all outline-none"
-                        required
+                        onChange={setDrop}
+                        onSelect={handleDropSelect}
+                        activeColor="red"
                     />
                 </div>
 
@@ -188,6 +206,7 @@ const RideRequest = ({ onRideCreated }) => {
                         <MapView
                             pickupCoordinates={pickupCoords}
                             dropCoordinates={dropCoords}
+                            onMapClick={handleMapClick}
                         />
                     </div>
                 </div>

@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { FiAlertTriangle, FiCheckCircle, FiShield, FiPhone, FiMapPin } from 'react-icons/fi';
 import { motion } from 'framer-motion';
-import api from '../../services/api';
+import { useSocket } from '../../context/SocketContext';
+import { useAuth } from '../../context/AuthContext';
 
 const SOS = () => {
+    const { socket } = useSocket();
+    const { user } = useAuth();
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
 
@@ -20,10 +23,16 @@ const SOS = () => {
                 }
             }
 
-            await api.post('/emergency/sos', {
-                location,
-                message: 'Emergency SOS triggered!'
-            });
+            if (socket) {
+                socket.emit('sosAlert', {
+                    userId: user?._id || null,
+                    location: location,
+                    message: 'Emergency SOS triggered!'
+                });
+            } else {
+                console.error("Socket not connected for SOS!");
+                // Optionally fall back, but SOS needs socket for real-time admin alert
+            }
             setSent(true);
         } catch (err) {
             console.error('SOS error:', err);
@@ -74,10 +83,10 @@ const SOS = () => {
                         onClick={handleSOS}
                         disabled={sending || sent}
                         className={`w-full py-4 rounded-xl font-bold text-sm transition-all ${sent
-                                ? 'bg-green-500 text-white cursor-default'
-                                : sending
-                                    ? 'bg-red-400 text-white cursor-wait'
-                                    : 'bg-red-600 text-white hover:bg-red-700 active:scale-[0.97] shadow-md hover:shadow-lg'
+                            ? 'bg-green-500 text-white cursor-default'
+                            : sending
+                                ? 'bg-red-400 text-white cursor-wait'
+                                : 'bg-red-600 text-white hover:bg-red-700 active:scale-[0.97] shadow-md hover:shadow-lg'
                             }`}
                     >
                         {sending ? (

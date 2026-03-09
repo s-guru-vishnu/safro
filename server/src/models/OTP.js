@@ -1,11 +1,14 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+const OTP_EXPIRY = parseInt(process.env.OTP_EXPIRY_MINUTES) || 5;
+
 const otpSchema = new mongoose.Schema({
     phone: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        index: true
     },
     otp: {
         type: String,
@@ -15,10 +18,14 @@ const otpSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    verified: {
+        type: Boolean,
+        default: false
+    },
     expiresAt: {
         type: Date,
         required: true,
-        default: () => Date.now() + 5 * 60 * 1000 // 5 minutes
+        default: () => Date.now() + OTP_EXPIRY * 60 * 1000
     }
 }, {
     timestamps: true

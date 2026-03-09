@@ -4,7 +4,7 @@ const Driver = require('../models/Driver');
 const Payment = require('../models/Payment');
 const { predictFare } = require('../services/farePredictionService');
 const { checkRide } = require('../services/fraudDetectionService');
-const { sendRideBookedEmail, sendDriverAssignedEmail, sendRideCompletedEmail, sendPaymentReceiptEmail, sendRideCancelledEmail } = require('../services/notificationService');
+const { sendRideBookedEmail, sendDriverAssignedEmail, sendRideCompletedEmail, sendPaymentReceiptEmail, sendRideCancelledEmail, sendRideBookedWhatsApp, sendDriverAssignedWhatsApp, sendRideStartedWhatsApp, sendRideCompletedWhatsApp, sendPaymentReceiptWhatsApp } = require('../services/notificationService');
 
 // Helper: parse distance string to km number
 const parseDistanceKm = (distStr) => {
@@ -144,10 +144,14 @@ const requestRide = async (req, res, next) => {
             io.to('driver').emit('newRideRequest', ride);
         }
 
-        // 📧 Email: Ride Booked (non-blocking)
+        // 📧 Email + 📱 WhatsApp: Ride Booked (non-blocking)
         sendRideBookedEmail(
             { name: req.user.name, email: req.user.email },
             { pickupAddress: pickupLocation?.address, dropAddress: dropLocation?.address, proposedFare }
+        );
+        sendRideBookedWhatsApp(
+            { phone: req.user.phone },
+            { pickupAddress: pickupLocation?.address }
         );
 
         res.status(201).json(ride);
@@ -262,7 +266,7 @@ const confirmRide = async (req, res, next) => {
             io.to('driver').emit('rideRemovedFromPool', { rideId: ride._id.toString() });
         }
 
-        // 📧 Email: Driver Assigned (non-blocking)
+        // 📧 Email + 📱 WhatsApp: Driver Assigned (non-blocking)
         try {
             const rider = await User.findById(ride.riderId);
             const driverDoc = await Driver.findOne({ userId: driverId }).populate('userId', 'name phone');
@@ -272,8 +276,12 @@ const confirmRide = async (req, res, next) => {
                     { name: driverDoc.userId?.name, vehicleNumber: driverDoc.vehicleNumber, vehicleType: driverDoc.vehicleType, phone: driverDoc.userId?.phone },
                     { agreedFare: finalFare }
                 );
+                sendDriverAssignedWhatsApp(
+                    { phone: rider.phone },
+                    { name: driverDoc.userId?.name, vehicleNumber: driverDoc.vehicleNumber }
+                );
             }
-        } catch (emailErr) { console.error('[EMAIL] confirmRide notification error:', emailErr.message); }
+        } catch (notifErr) { console.error('[NOTIFY] confirmRide notification error:', notifErr.message); }
 
         res.json(updated);
     } catch (error) {
@@ -391,6 +399,18 @@ const startRide = async (req, res, next) => {
             });
         }
 
+        // 📱 WhatsApp: Ride Started (non-blocking)
+        try {
+            const rider = await User.findById(ride.riderId);
+            const driverUser = await User.findById(ride.driverId);
+            if (rider) {
+                sendRideStartedWhatsApp(
+                    { phone: rider.phone },
+                    { name: driverUser?.name || 'Your driver' }
+                );
+            }
+        } catch (smsErr) { console.error('[WhatsApp] startRide notification error:', smsErr.message); }
+
         res.json(ride);
     } catch (error) {
         next(error);
@@ -492,17 +512,26 @@ const completeRide = async (req, res, next) => {
             });
         }
 
-        // 📧 Email: Ride Completed + Payment Receipt (non-blocking)
+        // 📧 Email + 📱 WhatsApp: Ride Completed + Payment Receipt (non-blocking)
         const riderUser = await User.findById(ride.riderId);
         if (riderUser) {
+            const agreedFare = ride.negotiatedFare || ride.fare?.final || ride.fare?.proposed;
             sendRideCompletedEmail(
                 { name: riderUser.name, email: riderUser.email },
-                { pickupAddress: ride.pickupLocation?.address, dropAddress: ride.dropLocation?.address, distance: ride.distance, duration: ride.duration, agreedFare: ride.negotiatedFare || ride.fare?.final || ride.fare?.proposed }
+                { pickupAddress: ride.pickupLocation?.address, dropAddress: ride.dropLocation?.address, distance: ride.distance, duration: ride.duration, agreedFare }
+            );
+            sendRideCompletedWhatsApp(
+                { phone: riderUser.phone },
+                { agreedFare }
             );
             if (ride.paymentStatus === 'Paid') {
                 sendPaymentReceiptEmail(
                     { name: riderUser.name, email: riderUser.email },
-                    { _id: ride._id, paymentMethod: ride.paymentMethod || 'wallet', agreedFare: ride.negotiatedFare || ride.fare?.final, platformFee: ride.platformCommission, totalPaid: ride.negotiatedFare || ride.fare?.final }
+                    { _id: ride._id, paymentMethod: ride.paymentMethod || 'wallet', agreedFare, platformFee: ride.platformCommission, totalPaid: agreedFare }
+                );
+                sendPaymentReceiptWhatsApp(
+                    { phone: riderUser.phone },
+                    { agreedFare, paymentMethod: ride.paymentMethod || 'wallet' }
                 );
             }
         }

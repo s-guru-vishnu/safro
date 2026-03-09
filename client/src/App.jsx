@@ -77,6 +77,7 @@ function AppContent() {
         <Route path="/rider/history" element={<ProtectedRoute allowedRoles={['rider']}><RiderHistory /></ProtectedRoute>} />
         <Route path="/rider/profile" element={<ProtectedRoute allowedRoles={['rider']}><RiderProfile /></ProtectedRoute>} />
         <Route path="/rider/wallet" element={<ProtectedRoute allowedRoles={['rider']}><RiderWallet /></ProtectedRoute>} />
+        <Route path="/rider/sos" element={<ProtectedRoute allowedRoles={['rider']}><RiderSOS /></ProtectedRoute>} />
         <Route path="/rider/payment/:rideId" element={<ProtectedRoute allowedRoles={['rider']}><PaymentScreen /></ProtectedRoute>} />
         <Route path="/driver/dashboard" element={<ProtectedRoute allowedRoles={['driver']}><DriverDashboard /></ProtectedRoute>} />
         <Route path="/driver/requests" element={<ProtectedRoute allowedRoles={['driver']}><DriverRequests /></ProtectedRoute>} />

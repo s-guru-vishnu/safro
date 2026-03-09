@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiLock, FiArrowRight } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { verifyOtpForReset } from '../../services/api';
+import { verifyOtpForReset, forgotPassword } from '../../services/api';
 
 const VerifyOTP = () => {
     const [searchParams] = useSearchParams();
@@ -12,11 +12,37 @@ const VerifyOTP = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
+    const [cooldown, setCooldown] = useState(60);
+    const [resending, setResending] = useState(false);
+
     useEffect(() => {
         if (!emailOrPhone) {
             navigate('/forgot-password');
+            return;
         }
+
+        const timer = setInterval(() => {
+            setCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+        }, 1000);
+
+        return () => clearInterval(timer);
     }, [emailOrPhone, navigate]);
+
+    const handleResend = async () => {
+        if (cooldown > 0 || resending) return;
+
+        setResending(true);
+        try {
+            const response = await forgotPassword(emailOrPhone);
+            const devOtp = response.data?.otp;
+            toast.success(`OTP sent successfully! ${devOtp ? ' (Dev OTP: ' + devOtp + ')' : ''}`, { duration: 5000 });
+            setCooldown(60);
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to resend OTP');
+        } finally {
+            setResending(false);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -52,8 +78,8 @@ const VerifyOTP = () => {
                             <FiLock className="absolute left-3.5 top-3.5 text-gray-400" size={16} />
                             <input
                                 type="text"
-                                maxLength="4"
-                                placeholder="4-digit OTP"
+                                maxLength="6"
+                                placeholder="6-digit OTP"
                                 value={otp}
                                 onChange={(e) => setOtp(e.target.value)}
                                 className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900 placeholder-gray-400 text-sm tracking-widest transition-all outline-none text-center"
@@ -71,6 +97,23 @@ const VerifyOTP = () => {
                         {!loading && <FiArrowRight size={14} />}
                     </button>
                 </form>
+
+                <div className="mt-6 text-center">
+                    <p className="text-sm text-gray-500">
+                        Didn't receive the code?{' '}
+                        <button
+                            type="button"
+                            onClick={handleResend}
+                            disabled={cooldown > 0 || resending}
+                            className={`font-medium transition-colors ${cooldown > 0 || resending
+                                    ? 'text-gray-400 cursor-not-allowed'
+                                    : 'text-teal-600 hover:text-teal-700'
+                                }`}
+                        >
+                            {resending ? 'Sending...' : cooldown > 0 ? `Resend OTP in ${cooldown}s` : 'Resend OTP'}
+                        </button>
+                    </p>
+                </div>
             </motion.div>
         </div>
     );

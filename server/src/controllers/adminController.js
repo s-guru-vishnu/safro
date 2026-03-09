@@ -4,7 +4,7 @@ const DriverApplication = require('../models/DriverApplication');
 const Ride = require('../models/Ride');
 const Payment = require('../models/Payment');
 const { sendApplicationApprovedEmail, sendApplicationRejectedEmail, sendMeetingScheduledEmail } = require('../services/notificationService');
-const { sendSMS } = require('../services/smsService');
+const { sendWhatsAppMessage } = require('../services/whatsappService');
 
 // ──────────────────────────────────────────────────────────────
 // DRIVER APPLICATION MANAGEMENT
@@ -142,7 +142,7 @@ const scheduleMeeting = async (req, res, next) => {
             const user = await User.findById(application.userId);
             if (user && user.phone) {
                 const message = `Hi ${user.name}, your Safro driver application is under review. Please visit ${location} on ${new Date(scheduledDate).toLocaleDateString()} for offline document verification. Notes: ${notes || 'Bring all original documents.'}`;
-                await sendSMS(user.phone, message);
+                await sendWhatsAppMessage(user.phone, message);
             }
             // 📧 Email: Meeting Scheduled (non-blocking)
             if (user) {

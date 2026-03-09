@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { FiMapPin, FiAlertCircle, FiNavigation } from 'react-icons/fi';
 import 'leaflet/dist/leaflet.css';
@@ -70,7 +70,19 @@ const RecenterMap = ({ pickup, drop, rider, driver }) => {
     return null;
 };
 
-const MapView = ({ pickupCoordinates, dropCoordinates, driverCoordinates, riderCoordinates, height = '100%' }) => {
+// Map click event handler
+const MapEventHandler = ({ onMapClick }) => {
+    useMapEvents({
+        click(e) {
+            if (onMapClick) {
+                onMapClick(e.latlng);
+            }
+        }
+    });
+    return null;
+};
+
+const MapView = ({ pickupCoordinates, dropCoordinates, driverCoordinates, riderCoordinates, onMapClick, height = '100%' }) => {
     const [route, setRoute] = useState([]);
     const [hasError, setHasError] = useState(false);
 
@@ -165,6 +177,7 @@ const MapView = ({ pickupCoordinates, dropCoordinates, driverCoordinates, riderC
                 ))}
 
                 <RecenterMap pickup={pickupCoordinates} drop={dropCoordinates} rider={riderCoordinates} driver={driverCoordinates} />
+                <MapEventHandler onMapClick={onMapClick} />
             </MapContainer>
         </div>
     );

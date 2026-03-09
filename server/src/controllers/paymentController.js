@@ -7,7 +7,7 @@ const User = require('../models/User');
 const Driver = require('../models/Driver');
 const WalletTransaction = require('../models/WalletTransaction');
 const { calculateCommission } = require('../services/commissionService');
-const { sendPaymentReceiptEmail, sendWalletTopupEmail } = require('../services/notificationService');
+const { sendPaymentReceiptEmail, sendWalletTopupEmail, sendPaymentReceiptWhatsApp } = require('../services/notificationService');
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_your_key',
@@ -119,6 +119,13 @@ const verifyRazorpayPayment = async (req, res, next) => {
             const topupAmount = orderDetails.amount / 100;
 
             const user = await User.findById(req.user._id).session(session);
+            if (!user) {
+                console.error(`❌ [Verify] User ${req.user._id} not found for top-up`);
+                await session.abortTransaction();
+                session.endSession();
+                return res.status(404).json({ status: "failure", message: "User not found" });
+            }
+
             user.walletBalance += topupAmount;
             await user.save({ session });
 
@@ -217,13 +224,17 @@ const verifyRazorpayPayment = async (req, res, next) => {
 
         console.log(`💰 [Verify] Payment SUCCESS for Ride ${rideId}`);
 
-        // 📧 Email: Payment Receipt (non-blocking)
+        // 📧 Email + 📱 WhatsApp: Payment Receipt (non-blocking)
         try {
             const riderUser = await User.findById(ride.riderId);
             if (riderUser) {
                 sendPaymentReceiptEmail(
                     { name: riderUser.name, email: riderUser.email },
                     { _id: ride._id, paymentMethod: 'razorpay', agreedFare: fare, platformFee: platformCommission, totalPaid: fare }
+                );
+                sendPaymentReceiptWhatsApp(
+                    { phone: riderUser.phone },
+                    { agreedFare: fare, paymentMethod: 'razorpay' }
                 );
             }
         } catch (e) { /* non-blocking */ }
@@ -406,10 +417,14 @@ const payWithWallet = async (req, res, next) => {
         const io = req.app.get('io');
         if (io) io.to(`ride_${ride._id}`).emit('paymentSuccess', { rideId: ride._id, method: 'wallet', cashback });
 
-        // 📧 Email: Payment Receipt (non-blocking)
+        // 📧 Email + 📱 WhatsApp: Payment Receipt (non-blocking)
         sendPaymentReceiptEmail(
             { name: user.name, email: user.email },
             { _id: ride._id, paymentMethod: 'wallet', agreedFare: fare, platformFee: platformCommission, totalPaid: fare }
+        );
+        sendPaymentReceiptWhatsApp(
+            { phone: user.phone },
+            { agreedFare: fare, paymentMethod: 'wallet' }
         );
 
         res.json({ status: "success", ride, newBalance: user.walletBalance, cashback });
@@ -462,13 +477,17 @@ const confirmCashPayment = async (req, res, next) => {
         const io = req.app.get('io');
         if (io) io.to(`ride_${ride._id}`).emit('paymentSuccess', { rideId: ride._id, method: 'cash' });
 
-        // 📧 Email: Payment Receipt (non-blocking)
+        // 📧 Email + 📱 WhatsApp: Payment Receipt (non-blocking)
         try {
             const riderUser = await User.findById(ride.riderId);
             if (riderUser) {
                 sendPaymentReceiptEmail(
                     { name: riderUser.name, email: riderUser.email },
                     { _id: ride._id, paymentMethod: 'cash', agreedFare: fare, platformFee: platformCommission, totalPaid: fare }
+                );
+                sendPaymentReceiptWhatsApp(
+                    { phone: riderUser.phone },
+                    { agreedFare: fare, paymentMethod: 'cash' }
                 );
             }
         } catch (e) { /* non-blocking */ }

@@ -4,6 +4,9 @@
  */
 const Ride = require('../models/Ride');
 const Negotiation = require('../models/Negotiation');
+const User = require('../models/User');
+const SOS = require('../models/SOS');
+const { sendSOSAlertWhatsApp } = require('../services/notificationService');
 const { driverLocationHandler, startDBPersistence } = require('./driverLocationHandler');
 
 const socketHandler = (io) => {
@@ -49,19 +52,16 @@ const socketHandler = (io) => {
             console.log(`👤 User ${userId} joined room: ${role}`);
         });
 
-        // Join specific ride room (for negotiation)
         socket.on('joinRide', ({ rideId }) => {
             socket.join(`ride_${rideId}`);
-            console.log(`🚗 Socket ${socket.userId || socket.id} joined ride: ${rideId}`);
+            console.log(`Socket ${socket.userId || socket.id} joined ride: ${rideId}`);
         });
 
-        // Leave ride room
         socket.on('leaveRide', ({ rideId }) => {
             socket.leave(`ride_${rideId}`);
-            console.log(`🚗 Socket ${socket.userId || socket.id} left ride: ${rideId}`);
+            console.log(`Socket ${socket.userId || socket.id} left ride: ${rideId}`);
         });
 
-        // Join negotiation — join ride room + signal entry
         socket.on('joinNegotiation', ({ rideId, userId, role }) => {
             socket.join(`ride_${rideId}`);
             socket.to(`ride_${rideId}`).emit('negotiationJoined', {
@@ -72,7 +72,6 @@ const socketHandler = (io) => {
             console.log(`💬 ${role} ${userId} joined negotiation for ride ${rideId}`);
         });
 
-        // Leave negotiation
         socket.on('leaveNegotiation', ({ rideId, userId, role }) => {
             socket.to(`ride_${rideId}`).emit('negotiationLeft', {
                 userId,
@@ -145,12 +144,43 @@ const socketHandler = (io) => {
             io.to('driver').emit('newRideRequest', data);
         });
 
-        // Emergency SOS alert
-        socket.on('sosAlert', (data) => {
+        // Emergency SOS alert — save to DB + send SMS
+        socket.on('sosAlert', async (data) => {
+            // Broadcast to admin room immediately
             io.to('admin').emit('sosAlert', {
                 ...data,
                 timestamp: new Date()
             });
+
+            // Save SOS event and send SMS (non-blocking)
+            try {
+                const userId = data.userId || socket.userId;
+                const location = data.location || {};
+                const rideId = data.rideId || null;
+
+                // Save to DB
+                const sosRecord = await SOS.create({
+                    userId,
+                    rideId,
+                    location: { lat: location.lat || 0, lng: location.lng || 0 }
+                });
+
+                // Look up user for contact info
+                const user = await User.findById(userId);
+                if (user) {
+                    const results = await sendSOSAlertWhatsApp(
+                        { name: user.name, phone: user.phone, guardianPhone: user.guardianPhone },
+                        location
+                    );
+                    // Update SOS record with alert results
+                    sosRecord.alertsSent = results;
+                    await sosRecord.save();
+                }
+
+                console.log(`🚨 SOS saved and alerts sent for user ${userId}`);
+            } catch (sosErr) {
+                console.error('[SOS] Error saving/sending alerts:', sosErr.message);
+            }
         });
 
         // Emergency location sharing

@@ -11,10 +11,12 @@ const {
     failNegotiation,
     getRideHistory,
     getAIFare,
-    getActiveRide
+    getActiveRide,
+    getFareEstimate
 } = require('../controllers/rideController');
 const { protect } = require('../middleware/authMiddleware');
 
+router.post('/estimate', protect, getFareEstimate);
 router.post('/request', protect, requestRide);
 router.get('/available', protect, getAvailableRides);
 router.get('/active', protect, getActiveRide);

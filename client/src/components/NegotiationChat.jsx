@@ -229,7 +229,7 @@ const NegotiationChat = ({ ride: initialRide, onRideUpdate }) => {
                                     <div className={`max-w-[85%] rounded-2xl p-3 shadow-sm ${isOwn
                                         ? 'bg-gray-900 text-white rounded-br-none'
                                         : 'bg-gray-100 text-gray-800 rounded-bl-none'
-                                        } ${isOffer && isAccepted ? 'border-2 border-green-500 !bg-green-50 !text-green-900 ring-4 ring-green-100' : ''}`}>
+                                        } ${isOffer && isAccepted ? 'border-2 border-green-500 !bg-green-50 !text-green-900 ring-4 ring-green-100' : ''} ${isOffer ? 'min-w-[260px]' : ''}`}>
 
                                         <div className="flex items-center justify-between gap-4 mb-1">
                                             <span className={`text-[10px] font-bold uppercase tracking-wider ${isOwn ? 'text-gray-400' : 'text-gray-500'}`}>

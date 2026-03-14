@@ -8,7 +8,7 @@ const GuestRoute = ({ children }) => {
     if (loading) return <LoadingSpinner size="lg" text="Loading..." />;
 
     if (user) {
-        const routes = { rider: '/rider/home', driver: '/driver/dashboard', admin: '/admin/dashboard' };
+        const routes = { rider: '/', driver: '/', admin: '/' };
         return <Navigate to={routes[user.role] || '/'} replace />;
     }
 

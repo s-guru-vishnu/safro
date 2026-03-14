@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
+import api from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FiMenu, FiX, FiUser, FiLogOut, FiChevronDown, FiHome, FiMapPin, FiInfo, FiShield, FiHelpCircle,
-    FiGrid, FiList, FiDollarSign, FiToggleLeft, FiToggleRight, FiUsers, FiTruck, FiBarChart2, FiCreditCard
+    FiGrid, FiList, FiDollarSign, FiToggleLeft, FiToggleRight, FiUsers, FiTruck, FiBarChart2, FiCreditCard,
+    FiBell, FiAlertCircle, FiCheckCircle
 } from 'react-icons/fi';
 
 const Navbar = () => {
@@ -14,6 +17,24 @@ const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
+    const [notificationsOpen, setNotificationsOpen] = useState(false);
+    const [hasActiveRide, setHasActiveRide] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const { socket } = useSocket();
+    const notificationSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+
+    useEffect(() => {
+        if (user?.role === 'rider') {
+            api.get('/rides/active').then(res => {
+                const ride = res.data.ride;
+                if (ride && ['confirmed', 'accepted', 'driver_arrived', 'otp_verified', 'on_trip'].includes(ride.status)) {
+                    setHasActiveRide(true);
+                } else {
+                    setHasActiveRide(false);
+                }
+            }).catch(() => setHasActiveRide(false));
+        }
+    }, [location.pathname, user]);
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -24,7 +45,110 @@ const Navbar = () => {
     useEffect(() => {
         setMenuOpen(false);
         setProfileOpen(false);
+        setNotificationsOpen(false);
     }, [location.pathname]);
+
+    // Socket Notifications Listener
+    useEffect(() => {
+        if (!socket || !user) return;
+
+        const addNotification = (notif) => {
+            notificationSound.play().catch(e => console.log('Sound play blocked by browser policy'));
+            setNotifications(prev => [{
+                id: Date.now(),
+                read: false,
+                timestamp: new Date(),
+                ...notif
+            }, ...prev].slice(0, 20)); // Keep last 20
+        };
+
+        // Listen for SOS (Admins)
+        if (user.role === 'admin') {
+            socket.on('sosAlert', (data) => {
+                addNotification({
+                    type: 'sos',
+                    title: '🚨 EMERGENCY SOS',
+                    message: `${data.userName} triggered an alert!`,
+                    icon: <FiAlertCircle className="text-red-500" />,
+                    link: '/admin/alerts'
+                });
+            });
+        }
+
+        // Listen for New Ride Requests (Drivers)
+        if (user.role === 'driver') {
+            socket.on('newRideRequest', (ride) => {
+                addNotification({
+                    type: 'request',
+                    title: '🚕 New Ride Request',
+                    message: `From: ${ride.pickupLocation?.address?.substring(0, 25)}...`,
+                    icon: <FiTruck className="text-teal-500" />,
+                    link: '/driver/dashboard'
+                });
+            });
+        }
+
+        // Listen for Status Changes (All)
+        socket.on('rideAccepted', (data) => {
+            addNotification({
+                type: 'status',
+                title: '📈 Ride Accepted',
+                message: 'A driver has accepted the ride!',
+                icon: <FiCheckCircle className="text-emerald-500" />,
+                link: user.role === 'rider' ? '/rider/tracking' : '/driver/dashboard'
+            });
+        });
+
+        socket.on('rideStarted', (data) => {
+            addNotification({
+                type: 'status',
+                title: '🚗 Ride Started',
+                message: 'The trip has officially begun.',
+                icon: <FiTruck className="text-blue-500" />,
+                link: user.role === 'rider' ? '/rider/tracking' : '/driver/dashboard'
+            });
+        });
+
+        socket.on('rideCompleted', (data) => {
+            addNotification({
+                type: 'status',
+                title: '✨ Ride Completed',
+                message: 'You have reached your destination.',
+                icon: <FiCheckCircle className="text-teal-500" />,
+                link: user.role === 'rider' ? '/rider/history' : '/driver/earnings'
+            });
+        });
+
+        socket.on('rideCancelled', (data) => {
+            addNotification({
+                type: 'status',
+                title: '❌ Ride Cancelled',
+                message: 'The ride has been cancelled.',
+                icon: <FiAlertCircle className="text-red-500" />,
+                link: user.role === 'rider' ? '/rider/home' : '/driver/dashboard'
+            });
+        });
+
+        return () => {
+            socket.off('sosAlert');
+            socket.off('newRideRequest');
+            socket.off('rideAccepted');
+            socket.off('rideStarted');
+            socket.off('rideCompleted');
+            socket.off('rideCancelled');
+        };
+    }, [socket, user]);
+
+    const unreadCount = notifications.filter(n => !n.read).length;
+
+    const markAllRead = () => {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    };
+
+    const clearNotifications = (e) => {
+        e.stopPropagation();
+        setNotifications([]);
+    };
 
     const handleLogout = () => {
         logout();
@@ -44,7 +168,7 @@ const Navbar = () => {
                 const hasActiveApplication = user.driverApplicationStatus &&
                     ['pending', 'under_review', 'meeting_scheduled'].includes(user.driverApplicationStatus);
 
-                return [
+                const links = [
                     { path: '/rider/home', label: 'Book Ride', icon: <FiMapPin /> },
                     { path: '/rider/history', label: 'My Rides', icon: <FiList /> },
                     { path: '/rider/tracking', label: 'Tracking', icon: <FiGrid /> },
@@ -55,6 +179,8 @@ const Navbar = () => {
                     },
                     { path: '/rider/wallet', label: 'Wallet', icon: <FiCreditCard /> },
                 ];
+
+                return hasActiveRide ? links.filter(link => link.path !== '/rider/home') : links;
             case 'driver':
                 return [
                     { path: '/driver/dashboard', label: 'Dashboard', icon: <FiGrid /> },
@@ -110,6 +236,70 @@ const Navbar = () => {
 
                         {/* Right Side */}
                         <div className="hidden lg:flex items-center gap-3">
+                            {user && (
+                                <div className="relative">
+                                    <button
+                                        onClick={() => {
+                                            setNotificationsOpen(!notificationsOpen);
+                                            setProfileOpen(false);
+                                            if (!notificationsOpen) markAllRead();
+                                        }}
+                                        className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all relative"
+                                    >
+                                        <FiBell size={20} />
+                                        {unreadCount > 0 && (
+                                            <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+                                                {unreadCount}
+                                            </span>
+                                        )}
+                                    </button>
+
+                                    <AnimatePresence>
+                                        {notificationsOpen && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 8 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: 8 }}
+                                                className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden"
+                                            >
+                                                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                                                    <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
+                                                    <button onClick={clearNotifications} className="text-[10px] text-gray-400 hover:text-red-500 font-medium">Clear all</button>
+                                                </div>
+                                                <div className="max-h-[350px] overflow-y-auto">
+                                                    {notifications.length === 0 ? (
+                                                        <div className="py-12 text-center">
+                                                            <FiBell className="mx-auto text-gray-200 mb-2" size={32} />
+                                                            <p className="text-xs text-gray-400">No new alerts</p>
+                                                        </div>
+                                                    ) : (
+                                                        notifications.map((notif) => (
+                                                            <Link
+                                                                key={notif.id}
+                                                                to={notif.link}
+                                                                onClick={() => setNotificationsOpen(false)}
+                                                                className="flex gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors last:border-0"
+                                                            >
+                                                                <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                                    {notif.icon}
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-xs font-bold text-gray-900 leading-tight mb-0.5">{notif.title}</p>
+                                                                    <p className="text-[11px] text-gray-500 leading-snug truncate">{notif.message}</p>
+                                                                    <p className="text-[9px] text-gray-400 mt-1 uppercase font-medium">
+                                                                        {new Date(notif.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                    </p>
+                                                                </div>
+                                                            </Link>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            )}
+
                             {user ? (
                                 <div className="relative">
                                     <button
@@ -161,16 +351,85 @@ const Navbar = () => {
                             )}
                         </div>
 
-                        {/* Mobile Toggle */}
-                        <button
-                            className="lg:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-                            onClick={() => setMenuOpen(!menuOpen)}
-                        >
-                            {menuOpen ? <FiX size={22} /> : <FiMenu size={22} />}
-                        </button>
+                        {/* Mobile Right Side */}
+                        <div className="flex lg:hidden items-center gap-2">
+                            {user && (
+                                <button
+                                    onClick={() => {
+                                        setNotificationsOpen(!notificationsOpen);
+                                        setMenuOpen(false);
+                                        if (!notificationsOpen) markAllRead();
+                                    }}
+                                    className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all relative"
+                                >
+                                    <FiBell size={20} />
+                                    {unreadCount > 0 && (
+                                        <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+                                            {unreadCount}
+                                        </span>
+                                    )}
+                                </button>
+                            )}
+
+                            {/* Mobile Toggle */}
+                            <button
+                                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                                onClick={() => {
+                                    setMenuOpen(!menuOpen);
+                                    setNotificationsOpen(false);
+                                }}
+                            >
+                                {menuOpen ? <FiX size={22} /> : <FiMenu size={22} />}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </nav>
+
+            {/* Mobile Notifications Dropdown (Shared logic but separate trigger) */}
+            <AnimatePresence>
+                {notificationsOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="fixed inset-x-0 top-16 z-[1000] bg-white border-b border-gray-200 shadow-lg lg:hidden"
+                    >
+                        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                            <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
+                            <button onClick={clearNotifications} className="text-[10px] text-gray-400 hover:text-red-500 font-medium">Clear all</button>
+                        </div>
+                        <div className="max-h-[300px] overflow-y-auto px-2">
+                            {notifications.length === 0 ? (
+                                <div className="py-10 text-center">
+                                    <FiBell className="mx-auto text-gray-200 mb-2" size={32} />
+                                    <p className="text-xs text-gray-400">No new alerts</p>
+                                </div>
+                            ) : (
+                                notifications.map((notif) => (
+                                    <Link
+                                        key={notif.id}
+                                        to={notif.link}
+                                        onClick={() => setNotificationsOpen(false)}
+                                        className="flex gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors last:border-0"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                            {notif.icon}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-bold text-gray-900 leading-tight mb-0.5">{notif.title}</p>
+                                            <p className="text-[11px] text-gray-500 leading-snug truncate">{notif.message}</p>
+                                            <p className="text-[9px] text-gray-400 mt-1 uppercase font-medium">
+                                                {new Date(notif.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </p>
+                                        </div>
+                                    </Link>
+                                ))
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Mobile Menu */}
             <AnimatePresence>

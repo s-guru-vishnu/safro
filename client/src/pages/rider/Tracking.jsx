@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { FiMapPin, FiNavigation, FiDollarSign, FiClock, FiPhone, FiArrowLeft } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -25,6 +25,7 @@ const statusMessages = {
 const Tracking = () => {
     const { user } = useAuth();
     const location = useLocation();
+    const navigate = useNavigate();
     const { socket } = useSocket();
     const [ride, setRide] = useState(location.state?.ride || null);
     const [driverLocation, setDriverLocation] = useState(null);
@@ -60,7 +61,14 @@ const Tracking = () => {
                 const loc = data.location.lat ? data.location : { lat: data.location.latitude, lng: data.location.longitude };
                 setDriverLocation(loc);
             });
-            socket.on('rideStatusChanged', (data) => setRide(prev => ({ ...prev, status: data.status })));
+            socket.on('rideStatusChanged', (data) => {
+                setRide(prev => ({ ...prev, status: data.status }));
+                if (data.status === 'completed' || data.status === 'cancelled') {
+                    setTimeout(() => {
+                        navigate('/rider/home');
+                    }, 2000);
+                }
+            });
             socket.on('rideAccepted', (data) => {
                 if (data.rideId === ride._id) setRide(prev => ({ ...prev, status: 'accepted', driverId: data.driverId }));
             });

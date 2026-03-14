@@ -3,6 +3,7 @@ const User = require('../models/User');
 const Driver = require('../models/Driver');
 const Payment = require('../models/Payment');
 const { predictFare } = require('../services/farePredictionService');
+const { calculateEstimatedFare } = require('../services/fareService');
 const { checkRide } = require('../services/fraudDetectionService');
 const { sendRideBookedEmail, sendDriverAssignedEmail, sendRideCompletedEmail, sendPaymentReceiptEmail, sendRideCancelledEmail, sendRideBookedWhatsApp, sendDriverAssignedWhatsApp, sendRideStartedWhatsApp, sendRideCompletedWhatsApp, sendPaymentReceiptWhatsApp } = require('../services/notificationService');
 
@@ -57,6 +58,23 @@ const VALID_TRANSITIONS = {
 
 const isValidTransition = (from, to) => {
     return VALID_TRANSITIONS[from]?.includes(to) ?? false;
+};
+
+// @desc    Get Fare Estimate via OSRM & Multipliers
+// @route   POST /api/rides/estimate
+const getFareEstimate = async (req, res, next) => {
+    try {
+        const { pickup, drop } = req.body;
+
+        if (!pickup || !drop || !pickup.lat || !pickup.lng || !drop.lat || !drop.lng) {
+            return res.status(400).json({ message: 'Valid pickup and drop coordinates are required' });
+        }
+
+        const estimate = await calculateEstimatedFare(pickup, drop);
+        res.json(estimate);
+    } catch (error) {
+        next(error);
+    }
 };
 
 // @desc    Request a ride
@@ -734,5 +752,6 @@ module.exports = {
     failNegotiation,
     getRideHistory,
     getAIFare,
-    getActiveRide
+    getActiveRide,
+    getFareEstimate
 };

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import RideRequest from '../../components/RideRequest';
@@ -20,6 +21,7 @@ const RiderHome = () => {
     const [driverLocation, setDriverLocation] = useState(null);
     const [riderLocation, setRiderLocation] = useState(null);
     const [showPaymentScreen, setShowPaymentScreen] = useState(false);
+    const navigate = useNavigate();
     const [completedRide, setCompletedRide] = useState(null);
     const [cancelLoading, setCancelLoading] = useState(false);
 
@@ -47,6 +49,8 @@ const RiderHome = () => {
                     if (res.data.ride.status === 'completed' && res.data.ride.paymentStatus !== 'Paid') {
                         setCompletedRide(res.data.ride);
                         setShowPaymentScreen(true);
+                    } else if (['confirmed', 'accepted', 'driver_arrived', 'otp_verified', 'on_trip'].includes(res.data.ride.status)) {
+                        navigate('/rider/tracking', { state: { ride: res.data.ride } });
                     }
                 }
             } catch (err) {
@@ -86,6 +90,7 @@ const RiderHome = () => {
             socket.on('rideConfirmed', (ride) => {
                 setActiveRide(ride);
                 toast.success('Ride Confirmed! Driver is on the way.');
+                navigate('/rider/tracking', { state: { ride } });
             });
 
             socket.on('rideStatusChanged', (data) => {
@@ -263,7 +268,7 @@ const RiderHome = () => {
                                     </div>
                                 </motion.div>
                                 {/* AI Fare Prediction */}
-                                {activeRide?.aiPrediction && (
+                                {['requested', 'negotiating', 'pending'].includes(activeRide?.status) && activeRide?.aiPrediction && (
                                     <AIFareCard prediction={activeRide.aiPrediction} />
                                 )}
 

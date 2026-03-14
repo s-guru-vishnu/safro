@@ -87,7 +87,7 @@ const Landing = () => {
                             </p>
                             <div className="flex flex-wrap gap-4">
                                 <Link
-                                    to={!user ? '/rider/home' : user.role === 'driver' ? '/driver/dashboard' : user.role === 'admin' ? '/admin/dashboard' : '/rider/home'}
+                                    to={'/'}
                                     className="inline-flex items-center gap-2 px-7 py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition-all shadow-sm hover:shadow-md"
                                 >
                                     {user && (user.role === 'driver' || user.role === 'admin') ? 'Go to Dashboard' : 'Start Negotiation'} <FiArrowRight />

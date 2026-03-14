@@ -19,6 +19,7 @@ const RideRequest = ({ onRideCreated }) => {
     const [distance, setDistance] = useState(0);
     const [crowdZoneAlert, setCrowdZoneAlert] = useState(null);
     const [activeInput, setActiveInput] = useState('pickup');
+    const [estimateData, setEstimateData] = useState(null);
 
     const handlePickupSelect = async (loc) => {
         if (!loc) return;
@@ -70,12 +71,30 @@ const RideRequest = ({ onRideCreated }) => {
 
     // Auto-calculate distance
     useEffect(() => {
-        if (pickupCoords && dropCoords) {
-            const dist = calculateDistance(pickupCoords, dropCoords);
-            setDistance(dist);
-            // Dynamic fare suggestion base (e.g., ₹20/km)
-            if (!fare) setFare(Math.max(50, Math.round(dist * 25)));
-        }
+        const fetchEstimate = async () => {
+            if (pickupCoords && dropCoords) {
+                try {
+                    const res = await api.post('/rides/estimate', {
+                        pickup: pickupCoords,
+                        drop: dropCoords
+                    });
+                    setDistance(res.data.distanceKm);
+                    setEstimateData(res.data);
+
+                    // Pre-fill the fare with the estimated fare if empty
+                    if (!fare) {
+                        setFare(res.data.estimatedFare);
+                    }
+                } catch (err) {
+                    console.warn("Failed to fetch estimate, falling back:", err);
+                    const dist = calculateDistance(pickupCoords, dropCoords);
+                    setDistance(dist);
+                    setEstimateData(null);
+                    if (!fare) setFare(Math.max(50, Math.round(dist * 25)));
+                }
+            }
+        };
+        fetchEstimate();
     }, [pickupCoords, dropCoords]);
 
     const handleSubmit = async (e) => {
@@ -116,7 +135,7 @@ const RideRequest = ({ onRideCreated }) => {
                 },
                 proposedFare: fare,
                 distance: `${distance || 0} km`,
-                duration: `${Math.round((distance || 0) * 3)} mins` // Simple Estimate
+                duration: estimateData?.durationMin ? `${estimateData.durationMin} mins` : `${Math.round((distance || 0) * 3)} mins`
             });
 
             toast.success('Ride requested! Waiting for drivers...');
@@ -165,6 +184,16 @@ const RideRequest = ({ onRideCreated }) => {
                         activeColor="red"
                     />
                 </div>
+
+                {estimateData && (
+                    <div className="bg-teal-50 border border-teal-100 p-4 rounded-xl flex items-center justify-between">
+                        <div>
+                            <span className="text-xs text-teal-700 font-bold block mb-0.5">Estimated Fare</span>
+                            <span className="text-sm text-teal-600 block leading-tight">Based on {estimateData.distanceKm}km & {estimateData.durationMin}min</span>
+                        </div>
+                        <span className="text-xl font-black text-teal-800">₹{estimateData.estimatedFare}</span>
+                    </div>
+                )}
 
                 <div className="relative">
                     <span className="absolute left-3.5 top-3 text-gray-500 text-sm font-semibold">₹</span>

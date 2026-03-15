@@ -87,7 +87,7 @@ const SafronChatbot = () => {
                         <div className="bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-3 flex items-center justify-between">
                             <div className="flex items-center gap-2.5">
                                 <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-white text-sm font-bold">
-                                    <img src="/logo.png" alt="Logo" className="w-6 h-6" />
+                                    <img src="/Logo.png" alt="Logo" className="w-6 h-6" />
                                 </div>
                                 <div>
                                     <h4 className="text-white font-bold text-sm">Safron</h4>

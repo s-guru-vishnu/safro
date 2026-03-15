@@ -88,7 +88,7 @@ const Landing = () => {
                             <div className="flex flex-wrap gap-4">
                                 <Link
                                     to={'/'}
-                                    className="inline-flex items-center gap-2 px-7 py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition-all shadow-sm hover:shadow-md"
+                                    className="inline-flex items-center gap-2 px-7 py-3.5 bg-teal-600 text-white text-sm font-semibold rounded-lg hover:bg-teal-700 transition-all shadow-sm hover:shadow-md"
                                 >
                                     {user && (user.role === 'driver' || user.role === 'admin') ? 'Go to Dashboard' : 'Start Negotiation'} <FiArrowRight />
                                 </Link>
@@ -208,7 +208,7 @@ const Landing = () => {
                                 variants={fadeUp}
                                 className="text-center"
                             >
-                                <div className="w-14 h-14 bg-gray-900 text-white rounded-2xl flex items-center justify-center text-xl mx-auto mb-5 shadow-sm">
+                                <div className="w-14 h-14 bg-teal-600 text-white rounded-2xl flex items-center justify-center text-xl mx-auto mb-5 shadow-sm">
                                     {s.icon}
                                 </div>
                                 <span className="text-xs font-bold text-teal-600 tracking-wider uppercase">Step {s.num}</span>

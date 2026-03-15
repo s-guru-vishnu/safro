@@ -35,7 +35,7 @@ const VerifyOTP = () => {
         try {
             const response = await forgotPassword(emailOrPhone);
             const devOtp = response.data?.otp;
-            toast.success(`OTP sent successfully! ${devOtp ? ' (Dev OTP: ' + devOtp + ')' : ''}`, { duration: 5000 });
+            toast.success(`OTP sent successfully!`);
             setCooldown(60);
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to resend OTP');

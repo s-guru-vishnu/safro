@@ -1,19 +1,11 @@
-/**
- * OTP Service — Business Logic Layer
- * 
- * Handles OTP generation, storage (hashed), SMS delivery, and verification.
- * Separated from the controller for reusability and testability.
- */
-
 const bcrypt = require('bcryptjs');
 const OTP = require('../models/OTP');
 const generateOTP = require('../utils/generateOTP');
-const { sendWhatsAppMessage } = require('./whatsappService');
 
 const OTP_EXPIRY = parseInt(process.env.OTP_EXPIRY_MINUTES) || 5;
 
 /**
- * Generate, store (hashed), and send OTP via SMS
+ * Generate, store (hashed), and prepare OTP
  * @param {string} phoneNumber - E.164 format phone number
  * @returns {{ success: boolean, message: string }}
  */
@@ -51,11 +43,10 @@ const sendOTPToPhone = async (phoneNumber) => {
         expiresAt: new Date(Date.now() + OTP_EXPIRY * 60 * 1000)
     });
 
-    // Send WhatsApp (non-blocking)
-    const whatsappMessage = `🔐 Safro OTP Verification\n\nYour OTP is: ${otp}\n\nValid for ${OTP_EXPIRY} minutes.\nDo not share this code with anyone.`;
-    await sendWhatsAppMessage(phoneNumber, whatsappMessage);
+    // NOTE: WhatsApp integration removed. OTP sent message remains for business logic.
+    console.log(`[OTP GENERATED] To: ${phoneNumber} | Code: ${otp}`);
 
-    return { success: true, message: 'OTP sent successfully', otp }; // otp returned for email fallback
+    return { success: true, message: 'OTP generated successfully', otp }; // otp returned for email fallback
 };
 
 /**

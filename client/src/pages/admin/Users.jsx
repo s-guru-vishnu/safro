@@ -3,6 +3,7 @@ import api from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiUsers, FiChevronLeft, FiChevronRight, FiTruck, FiChevronDown, FiChevronUp, FiStar } from 'react-icons/fi';
 import RatingStars from '../../components/RatingStars';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const Users = () => {
     const [users, setUsers] = useState([]);
@@ -11,6 +12,7 @@ const Users = () => {
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({});
     const [expandedDriver, setExpandedDriver] = useState(null);
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, userId: null, userName: '', currentStatus: false });
 
     useEffect(() => {
         fetchUsers();
@@ -30,12 +32,17 @@ const Users = () => {
         }
     };
 
-    const handleSuspend = async (userId, userName, currentStatus) => {
-        const action = currentStatus ? 'unsuspend' : 'suspend';
-        if (!window.confirm(`Are you sure you want to ${action} ${userName}?`)) {
-            return;
-        }
+    const handleSuspend = (userId, userName, currentStatus) => {
+        setConfirmModal({
+            isOpen: true,
+            userId,
+            userName,
+            currentStatus
+        });
+    };
 
+    const executeSuspend = async () => {
+        const { userId, currentStatus } = confirmModal;
         try {
             const res = await api.put(`/admin/users/${userId}/suspend`);
             setUsers(prev => prev.map(u => u._id === userId ? { ...u, isSuspended: res.data.user.isSuspended } : u));
@@ -225,6 +232,16 @@ const Users = () => {
                         </button>
                     </div>
                 )}
+
+                <ConfirmModal
+                    isOpen={confirmModal.isOpen}
+                    onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                    onConfirm={executeSuspend}
+                    title={`${confirmModal.currentStatus ? 'Unsuspend' : 'Suspend'} User?`}
+                    message={`Are you sure you want to ${confirmModal.currentStatus ? 'unsuspend' : 'suspend'} ${confirmModal.userName}? This user will ${confirmModal.currentStatus ? 'regain' : 'lose'} access to the platform.`}
+                    confirmText={confirmModal.currentStatus ? 'Unsuspend' : 'Suspend'}
+                    type={confirmModal.currentStatus ? 'success' : 'danger'}
+                />
             </div>
         </div>
     );

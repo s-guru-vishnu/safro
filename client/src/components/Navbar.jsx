@@ -344,7 +344,7 @@ const Navbar = () => {
                                     <Link to="/login" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
                                         Login
                                     </Link>
-                                    <Link to="/register" className="px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition-all shadow-sm">
+                                    <Link to="/register" className="px-5 py-2.5 bg-teal-600 text-white text-sm font-semibold rounded-lg hover:bg-teal-700 transition-all shadow-sm">
                                         Sign Up
                                     </Link>
                                 </>
@@ -470,7 +470,7 @@ const Navbar = () => {
                                         <Link to="/login" className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
                                             Login
                                         </Link>
-                                        <Link to="/register" className="block mx-4 py-3 bg-gray-900 text-white text-center text-sm font-semibold rounded-lg">
+                                        <Link to="/register" className="block mx-4 py-3 bg-teal-600 text-white text-center text-sm font-semibold rounded-lg">
                                             Sign Up
                                         </Link>
                                     </>

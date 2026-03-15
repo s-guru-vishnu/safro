@@ -12,6 +12,7 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import MapView from '../../components/map/MapView';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const RiderHome = () => {
     const { user } = useAuth();
@@ -24,6 +25,7 @@ const RiderHome = () => {
     const navigate = useNavigate();
     const [completedRide, setCompletedRide] = useState(null);
     const [cancelLoading, setCancelLoading] = useState(false);
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
     // Get rider's current location for the initial map view
     useEffect(() => {
@@ -194,8 +196,10 @@ const RiderHome = () => {
     };
 
     const handleCancelRide = async () => {
-        if (!window.confirm('Are you sure you want to cancel this ride?')) return;
-        setCancelLoading(true);
+        setShowCancelConfirm(true);
+    };
+
+    const executeCancelRide = async () => {
         try {
             await api.put(`/rides/${activeRide._id}/cancel`, {
                 reason: 'Cancelled by rider'
@@ -253,7 +257,7 @@ const RiderHome = () => {
                                             </div>
                                         </div>
                                         {activeRide.otp && activeRide.status === 'confirmed' && (
-                                            <div className="flex flex-col items-center justify-center p-4 bg-gray-900 rounded-xl text-white">
+                                            <div className="flex flex-col items-center justify-center p-4 bg-teal-600 rounded-xl text-white shadow-lg shadow-teal-100">
                                                 <span className="text-[10px] uppercase font-bold tracking-widest opacity-60 mb-1">Ride OTP</span>
                                                 <span className="text-3xl font-mono font-bold tracking-[8px]">{activeRide.otp}</span>
                                                 <p className="text-[10px] mt-2 opacity-50">Share this with your driver to start</p>
@@ -309,7 +313,7 @@ const RiderHome = () => {
                             {/* Live Status Overlay */}
                             {activeRide && (activeRide.status === 'confirmed' || activeRide.status === 'ongoing') && (
                                 <div className="absolute top-4 left-4 z-[1000]">
-                                    <div className="bg-gray-900/90 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2 shadow-lg border border-white/10">
+                                    <div className="bg-teal-600/90 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2 shadow-lg border border-white/10">
                                         <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse" />
                                         <span className="text-[10px] font-bold text-white uppercase tracking-widest">
                                             {activeRide.status === 'confirmed' ? 'Driver en route' : 'Trip in progress'}
@@ -340,6 +344,17 @@ const RiderHome = () => {
                     onPaymentSuccess={handlePaymentComplete}
                 />
             )}
+
+            <ConfirmModal
+                isOpen={showCancelConfirm}
+                onClose={() => setShowCancelConfirm(false)}
+                onConfirm={executeCancelRide}
+                title="Cancel Ride?"
+                message="Are you sure you want to cancel this ride? This may affect your rider rating."
+                confirmText="Yes, Cancel"
+                cancelText="Keep Ride"
+                type="danger"
+            />
         </div>
     );
 };

@@ -1,25 +1,49 @@
-import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import { FiMapPin, FiNavigation, FiCheck } from 'react-icons/fi';
 import StatusBadge from '../../components/StatusBadge';
 import api from '../../services/api';
 import { useSocket } from '../../context/SocketContext';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
 import './Driver.css';
 
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+const LIBRARIES = ['places'];
+
+const containerStyle = { height: '100%', width: '100%', borderRadius: '16px' };
+
+const buildIcon = (emoji, borderColor) => ({
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+            <circle cx="20" cy="20" r="18" fill="white" stroke="${borderColor}" stroke-width="3"/>
+            <text x="20" y="26" text-anchor="middle" font-size="18">${emoji}</text>
+        </svg>
+    `)}`,
+    scaledSize: { width: 40, height: 40 },
+    anchor: { x: 20, y: 20 },
 });
+
+const PICKUP_ICON = buildIcon('📍', '#10b981');
+const DROP_ICON = buildIcon('🏁', '#ef4444');
 
 const Navigation = () => {
     const [ride, setRide] = useState(null);
     const [otp, setOtp] = useState('');
     const [otpError, setOtpError] = useState('');
     const { socket } = useSocket();
+    const mapRef = useRef(null);
+
+    const [authError, setAuthError] = useState(false);
+    const { isLoaded, loadError } = useJsApiLoader({
+        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAP_KEY || '',
+        libraries: LIBRARIES,
+    });
+
+    useEffect(() => {
+        window.gm_authFailure = () => {
+            console.error('Safro: Google Maps Authentication Failed.');
+            setAuthError(true);
+        };
+        return () => { delete window.gm_authFailure; };
+    }, []);
 
     useEffect(() => {
         api.get('/rides/active').then(res => {
@@ -70,6 +94,39 @@ const Navigation = () => {
         }
     };
 
+    const center = useMemo(() => {
+        if (ride?.pickupLocation?.coordinates?.coordinates) {
+            return {
+                lat: ride.pickupLocation.coordinates.coordinates[1],
+                lng: ride.pickupLocation.coordinates.coordinates[0],
+            };
+        }
+        return { lat: 11.0168, lng: 76.9558 };
+    }, [ride]);
+
+    const pickupPos = useMemo(() => {
+        if (ride?.pickupLocation?.coordinates?.coordinates) {
+            return { lat: ride.pickupLocation.coordinates.coordinates[1], lng: ride.pickupLocation.coordinates.coordinates[0] };
+        }
+        return null;
+    }, [ride]);
+
+    const dropPos = useMemo(() => {
+        if (ride?.dropLocation?.coordinates?.coordinates) {
+            return { lat: ride.dropLocation.coordinates.coordinates[1], lng: ride.dropLocation.coordinates.coordinates[0] };
+        }
+        return null;
+    }, [ride]);
+
+    // Auto-fit bounds
+    const onLoad = useCallback((map) => {
+        mapRef.current = map;
+        const bounds = new window.google.maps.LatLngBounds();
+        if (pickupPos) bounds.extend(pickupPos);
+        if (dropPos) bounds.extend(dropPos);
+        if (pickupPos || dropPos) map.fitBounds(bounds, 50);
+    }, [pickupPos, dropPos]);
+
     if (!ride) {
         return (
             <div className="driver-nav">
@@ -82,10 +139,6 @@ const Navigation = () => {
         );
     }
 
-    const center = ride.pickupLocation?.coordinates?.coordinates
-        ? [ride.pickupLocation.coordinates.coordinates[1], ride.pickupLocation.coordinates.coordinates[0]]
-        : [12.9716, 77.5946];
-
     return (
         <div className="driver-nav">
             <div className="page-header">
@@ -94,15 +147,32 @@ const Navigation = () => {
             </div>
 
             <div className="tracking-map" style={{ height: '300px', marginBottom: '1.5rem' }}>
-                <MapContainer center={center} zoom={14} style={{ height: '100%', width: '100%', borderRadius: '16px' }}>
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    {ride.pickupLocation?.coordinates?.coordinates && (
-                        <Marker position={[ride.pickupLocation.coordinates.coordinates[1], ride.pickupLocation.coordinates.coordinates[0]]} />
-                    )}
-                    {ride.dropLocation?.coordinates?.coordinates && (
-                        <Marker position={[ride.dropLocation.coordinates.coordinates[1], ride.dropLocation.coordinates.coordinates[0]]} />
-                    )}
-                </MapContainer>
+                {loadError || authError ? (
+                    <div className="flex items-center justify-center h-full bg-gray-50 rounded-2xl border border-gray-100">
+                        <div className="text-center p-4">
+                            <span className="text-xl mb-1 block">🗺️</span>
+                            <p className="text-xs font-semibold text-gray-700">Map unavailable</p>
+                            <p className="text-[10px] text-gray-400 mt-1">
+                                {authError ? "Auth failed (Check API restrictions/billing)" : "Check API key and network"}
+                            </p>
+                        </div>
+                    </div>
+                ) : isLoaded ? (
+                    <GoogleMap
+                        mapContainerStyle={containerStyle}
+                        center={center}
+                        zoom={14}
+                        onLoad={onLoad}
+                        options={{ disableDefaultUI: true, zoomControl: true, gestureHandling: 'greedy' }}
+                    >
+                        {pickupPos && <Marker position={pickupPos} icon={PICKUP_ICON} />}
+                        {dropPos && <Marker position={dropPos} icon={DROP_ICON} />}
+                    </GoogleMap>
+                ) : (
+                    <div className="flex items-center justify-center h-full bg-gray-50 rounded-2xl">
+                        <div className="w-6 h-6 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                )}
             </div>
 
             <div className="tracking-info">

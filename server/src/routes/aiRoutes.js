@@ -9,7 +9,6 @@ const { protect } = require('../middleware/authMiddleware');
 const { predictFare } = require('../services/farePredictionService');
 const { suggestCompromise } = require('../services/negotiationAIService');
 const { analyzeBehavior } = require('../services/fraudDetectionService');
-const { callGroq } = require('../services/groqService');
 const Ride = require('../models/Ride');
 const Driver = require('../models/Driver');
 
@@ -107,28 +106,8 @@ router.get('/driver-recommendation/:rideId', async (req, res, next) => {
             }
         }).populate('userId', 'name rating').limit(5);
 
-        if (nearbyDrivers.length === 0) {
-            return res.json({ recommendation: null, message: 'No available drivers nearby' });
-        }
-
-        // Build summary for AI
-        const driverSummary = nearbyDrivers.map((d, i) => {
-            const dist = d.currentLocation?.coordinates
-                ? Math.sqrt(
-                    Math.pow((d.currentLocation.coordinates[0] - pickupCoords.lng) * 111, 2) +
-                    Math.pow((d.currentLocation.coordinates[1] - pickupCoords.lat) * 111, 2)
-                ).toFixed(1)
-                : 'unknown';
-            return `Driver ${i + 1} (ID: ${d._id}): Rating ${d.rating}, ${d.totalRides} rides, ${dist} km away, Vehicle: ${d.vehicleType}`;
-        }).join('\n');
-
-        const recommendation = await callGroq(
-            `You are Safro's driver matching AI. Choose the best driver for fairness and efficiency. Return JSON with keys: recommendedDriverIndex (0-based), reasoning (max 80 chars).`,
-            `Ride: ${ride.distanceKm || 0} km, Fare: ₹${ride.fare?.proposed || 0}\n\nAvailable drivers:\n${driverSummary}\n\nChoose best driver based on fairness and distance.`
-        );
-
-        const driverIndex = recommendation?.recommendedDriverIndex || 0;
-        const recommended = nearbyDrivers[driverIndex] || nearbyDrivers[0];
+        // Simplify recommendation to the nearest driver
+        const recommended = nearbyDrivers[0];
 
         res.json({
             recommendation: {
@@ -138,7 +117,7 @@ router.get('/driver-recommendation/:rideId', async (req, res, next) => {
                 rating: recommended.rating,
                 totalRides: recommended.totalRides
             },
-            reasoning: recommendation?.reasoning || 'Nearest available driver selected',
+            reasoning: 'Nearest available driver selected',
             allDrivers: nearbyDrivers.map(d => ({
                 driverId: d._id,
                 rating: d.rating,

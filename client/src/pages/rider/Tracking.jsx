@@ -8,6 +8,7 @@ import { useSocket } from '../../context/SocketContext';
 import StatusBadge from '../../components/StatusBadge';
 import api from '../../services/api';
 import MapView from '../../components/map/MapView';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const statusMessages = {
     requested: 'Finding your driver...',
@@ -31,6 +32,7 @@ const Tracking = () => {
     const [driverLocation, setDriverLocation] = useState(null);
     const [riderLocation, setRiderLocation] = useState(null);
     const [cancelLoading, setCancelLoading] = useState(false);
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
     // Get rider's current location for initial map view
     useEffect(() => {
@@ -117,8 +119,10 @@ const Tracking = () => {
     const canCancel = ride?.status === 'requested' || ride?.status === 'negotiating' || ride?.status === 'pending' || ride?.status === 'accepted' || ride?.status === 'confirmed';
 
     const handleCancelRide = async () => {
-        if (!window.confirm('Are you sure you want to cancel this ride?')) return;
-        setCancelLoading(true);
+        setShowCancelConfirm(true);
+    };
+
+    const executeCancelRide = async () => {
         try {
             await api.put(`/rides/${ride._id}/cancel`, {
                 reason: 'Cancelled by rider'
@@ -177,7 +181,7 @@ const Tracking = () => {
 
                         {/* Status Overlay for Map */}
                         <div className="absolute top-4 left-4 z-[1000]">
-                            <div className="bg-gray-900/90 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2 shadow-lg border border-white/10 text-white">
+                            <div className="bg-teal-600/90 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2 shadow-lg border border-white/10 text-white">
                                 <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse" />
                                 <span className="text-[10px] font-bold uppercase tracking-widest leading-none">
                                     {statusMessages[ride.status] || 'Live Tracking'}
@@ -267,6 +271,17 @@ const Tracking = () => {
                     </div>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={showCancelConfirm}
+                onClose={() => setShowCancelConfirm(false)}
+                onConfirm={executeCancelRide}
+                title="Cancel Ride?"
+                message="Are you sure you want to cancel this ride? Driving partners rely on these bookings."
+                confirmText="Yes, Cancel"
+                cancelText="Keep Ride"
+                type="danger"
+            />
         </div>
     );
 };

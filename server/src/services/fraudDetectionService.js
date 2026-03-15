@@ -1,8 +1,7 @@
 /**
  * Fraud Detection Service
- * Uses GROQ to analyze ride behavior patterns for suspicious activity
+ * Analyzes ride behavior patterns for suspicious activity using rule-based logic
  */
-const { callGroq } = require('./groqService');
 const Ride = require('../models/Ride');
 const Negotiation = require('../models/Negotiation');
 
@@ -36,46 +35,21 @@ const analyzeBehavior = async (userId) => {
     const avgFare = fares.length > 0 ? fares.reduce((a, b) => a + b, 0) / fares.length : 0;
     const priceDeviations = fares.filter(f => Math.abs(f - avgFare) > avgFare * 0.5).length;
 
-    // Abnormal negotiation patterns
-    const negotiationAmounts = negotiations.map(n => n.amount);
-    const hasLowballOffers = negotiationAmounts.some(a => avgFare > 0 && a < avgFare * 0.3);
-
     // If very few rides, not enough data
     if (totalRides < 3) {
         return { suspicious: false, riskScore: 0, reasons: ['Insufficient ride history for analysis'] };
     }
 
-    const cacheKey = `fraud_${userId}_${totalRides}`;
-
-    const systemPrompt = `You are Safro's fraud detection engine.
-Analyze user behavior patterns and determine if activity is suspicious.
-Return ONLY valid JSON with keys: suspicious (boolean), riskScore (0-100 integer), reasons (array of short strings).`;
-
-    const userPrompt = `User behavior analysis (last 30 days):
-Total rides: ${totalRides}
-Cancelled rides: ${cancelledRides} (${(cancellationRate * 100).toFixed(1)}%)
-Average fare: ₹${Math.round(avgFare)}
-Price deviations (>50% from avg): ${priceDeviations}
-Total negotiation offers: ${negotiations.length}
-Lowball offers (<30% of avg fare): ${hasLowballOffers ? 'Yes' : 'No'}
-
-Is this behavior suspicious?`;
-
-    const result = await callGroq(systemPrompt, userPrompt, cacheKey);
-
-    if (!result) {
-        // Fallback: simple rules
-        const suspicious = cancellationRate > 0.5 || priceDeviations > 3;
-        return {
-            suspicious,
-            riskScore: suspicious ? 70 : 20,
-            reasons: suspicious
-                ? [`High cancellation rate: ${(cancellationRate * 100).toFixed(0)}%`]
-                : ['No anomalies detected']
-        };
-    }
-
-    return result;
+    // Rule-based check
+    const suspicious = cancellationRate > 0.5 || priceDeviations > 3;
+    
+    return {
+        suspicious,
+        riskScore: suspicious ? 70 : 20,
+        reasons: suspicious
+            ? [`High cancellation rate: ${(cancellationRate * 100).toFixed(0)}%`, priceDeviations > 3 ? `${priceDeviations} high price deviations detected` : null].filter(Boolean)
+            : ['No anomalies detected']
+    };
 };
 
 /**

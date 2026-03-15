@@ -1,122 +1,39 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import { FiMapPin, FiTruck, FiUser, FiRefreshCw, FiWifi, FiWifiOff } from 'react-icons/fi';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
+import { FiMapPin, FiTruck, FiUser, FiRefreshCw, FiWifi, FiWifiOff, FiMap, FiLayers, FiActivity } from 'react-icons/fi';
 import { useSocket } from '../context/SocketContext';
 import api from '../services/api';
 import SUB_OFFICES from '../data/subOffices';
-import 'leaflet/dist/leaflet.css';
 
-// ── Color-coded driver icons ─────────────────────────────────────
+const LIBRARIES = ['places'];
+
+// ── Color-coded driver status ───────────────────────────────────
 const DRIVER_COLORS = {
-    available: { ring: '#10b981', bg: '#ecfdf5', label: 'Available' },    // 🟢 Green
-    on_ride: { ring: '#3b82f6', bg: '#eff6ff', label: 'On Ride' },      // 🔵 Blue
-    offline: { ring: '#9ca3af', bg: '#f3f4f6', label: 'Offline' },      // ⚪ Gray
+    available: { ring: '#10b981', label: 'Available' },
+    on_ride: { ring: '#3b82f6', label: 'On Ride' },
+    offline: { ring: '#9ca3af', label: 'Offline' },
 };
 
 const VEHICLE_EMOJIS = {
-    bike: '🏍️',
-    auto: '🛺',
-    sedan: '🚗',
-    car: '🚗',
-    suv: '🚙',
+    bike: '🏍️', auto: '🛺', sedan: '🚗', car: '🚗', suv: '🚙',
 };
 
-const createDriverIcon = (status, vehicleType) => {
-    const color = DRIVER_COLORS[status] || DRIVER_COLORS.available;
-    const emoji = VEHICLE_EMOJIS[vehicleType] || '🚗';
-    const opacity = status === 'offline' ? '0.4' : '1';
-
-    return L.divIcon({
-        html: `<div style="
-            position: relative;
-            width: 36px; height: 36px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px;
-            border-radius: 50%;
-            border: 3px solid ${color.ring};
-            background: ${color.bg};
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            opacity: ${opacity};
-            transition: opacity 0.5s ease, border-color 0.3s ease;
-        ">${emoji}</div>`,
-        className: 'driver-icon-marker',
-        iconSize: [36, 36],
-        iconAnchor: [18, 18],
-        popupAnchor: [0, -20]
-    });
-};
-
-const createRiderIcon = () => L.divIcon({
-    html: `<div style="
-        color: #3b82f6;
-        filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
-    ">
-        <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+// ── SVG marker builder ──────────────────────────────────────────
+const buildMarkerIcon = (emoji, borderColor, opacity = 1) => ({
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+            <circle cx="20" cy="20" r="18" fill="white" stroke="${borderColor}" stroke-width="3" opacity="${opacity}"/>
+            <text x="20" y="26" text-anchor="middle" font-size="18" opacity="${opacity}">${emoji}</text>
         </svg>
-    </div>`,
-    className: 'rider-map-icon',
-    iconSize: [30, 30],
-    iconAnchor: [15, 30]
+    `)}`,
+    scaledSize: { width: 40, height: 40 },
+    anchor: { x: 20, y: 20 },
 });
 
-// ── Sub-office icon ─────────────────────────────────────────────
-const createSubOfficeIcon = () => L.divIcon({
-    html: `<div style="
-        position: relative;
-        width: 32px; height: 32px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 16px;
-        border-radius: 8px;
-        border: 2px solid #f97316;
-        background: #fff7ed;
-        box-shadow: 0 2px 8px rgba(249,115,22,0.25);
-    ">🏢</div>`,
-    className: 'suboffice-icon-marker',
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-    popupAnchor: [0, -18]
-});
+const SUB_OFFICE_ICON = buildMarkerIcon('🏢', '#f97316');
+const RIDER_ICON = buildMarkerIcon('👤', '#10b981');
 
-// ── Smooth marker position animation ────────────────────────────
-const animateMarker = (marker, newLat, newLng, duration = 1000) => {
-    const start = marker.getLatLng();
-    const startTime = performance.now();
-
-    const animate = (currentTime) => {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        // Ease-out cubic
-        const eased = 1 - Math.pow(1 - progress, 3);
-
-        const lat = start.lat + (newLat - start.lat) * eased;
-        const lng = start.lng + (newLng - start.lng) * eased;
-        marker.setLatLng([lat, lng]);
-
-        if (progress < 1) {
-            requestAnimationFrame(animate);
-        }
-    };
-
-    requestAnimationFrame(animate);
-};
-
-// ── Auto-fit map to markers ─────────────────────────────────────
-const FitBounds = ({ markers }) => {
-    const map = useMap();
-    const hasFitted = useRef(false);
-
-    useEffect(() => {
-        if (markers.length > 0 && !hasFitted.current) {
-            const bounds = L.latLngBounds(markers.map(m => [m.lat, m.lng]));
-            map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
-            hasFitted.current = true;
-        }
-    }, [markers, map]);
-
-    return null;
-};
+const containerStyle = { width: '100%', height: '100%' };
 
 // ── Main Component ──────────────────────────────────────────────
 const DriverTrackingMap = () => {
@@ -124,18 +41,33 @@ const DriverTrackingMap = () => {
     const [riders, setRiders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [socketFailed, setSocketFailed] = useState(false);
-    const driverMarkersRef = useRef({}); // { driverId: L.Marker instance }
+    const [activeInfo, setActiveInfo] = useState(null);
+    const [mapType, setMapType] = useState('roadmap');
+    const [trafficEnabled, setTrafficEnabled] = useState(false);
     const mapRef = useRef(null);
-    const offlineTimersRef = useRef({}); // { driverId: timeoutId }
+    const trafficLayerRef = useRef(null);
+    const offlineTimersRef = useRef({});
     const { socket, isConnected } = useSocket();
+
+    const [authError, setAuthError] = useState(false);
+    const { isLoaded, loadError } = useJsApiLoader({
+        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAP_KEY || '',
+        libraries: LIBRARIES,
+    });
+
+    useEffect(() => {
+        window.gm_authFailure = () => {
+            console.error('Safro: Google Maps Authentication Failed.');
+            setAuthError(true);
+        };
+        return () => { delete window.gm_authFailure; };
+    }, []);
 
     // ── REST Fallback ────────────────────────────────────────────
     const fetchViaREST = useCallback(async () => {
         try {
-            console.log('🔄 REST fallback: fetching driver locations...');
             const res = await api.get('/admin/driver-locations');
-            const driverData = res.data.drivers || [];
-            setDrivers(driverData);
+            setDrivers(res.data.drivers || []);
             setLoading(false);
         } catch (err) {
             console.error('REST fallback failed:', err);
@@ -147,30 +79,22 @@ const DriverTrackingMap = () => {
     useEffect(() => {
         if (!socket) return;
 
-        const requestData = () => {
-            console.log('📡 Requesting initial locations via socket...');
-            socket.emit('requestInitialLocations');
-        };
+        const requestData = () => socket.emit('requestInitialLocations');
 
         const handleInitialLocations = (data) => {
-            console.log('🏁 Initial locations received:', data.drivers?.length, 'drivers,', data.riders?.length, 'riders');
             setDrivers(data.drivers || []);
             setRiders(data.riders || []);
             setLoading(false);
             setSocketFailed(false);
         };
 
-        if (socket.connected) {
-            requestData();
-        }
+        if (socket.connected) requestData();
 
         socket.on('connect', requestData);
         socket.on('initialLocations', handleInitialLocations);
 
-        // Fallback: if socket doesn't deliver within 10s, try REST
         const fallbackTimer = setTimeout(() => {
             if (loading) {
-                console.warn('⚠️ Socket timeout — falling back to REST');
                 setSocketFailed(true);
                 fetchViaREST();
             }
@@ -189,7 +113,6 @@ const DriverTrackingMap = () => {
 
         const handleDriverUpdate = ({ driverId, location, status, heading, speed }) => {
             if (!driverId || !location) return;
-
             setDrivers(prev => {
                 const existing = prev.find(d => d._id === driverId);
                 if (existing) {
@@ -198,27 +121,10 @@ const DriverTrackingMap = () => {
                             ? { ...d, lat: location.lat, lng: location.lng, status: status || d.status, heading, speed, lastUpdate: Date.now() }
                             : d
                     );
-                } else {
-                    // New driver appeared — add them
-                    return [...prev, {
-                        _id: driverId,
-                        lat: location.lat,
-                        lng: location.lng,
-                        status: status || 'available',
-                        heading, speed,
-                        name: 'Driver',
-                        lastUpdate: Date.now()
-                    }];
                 }
+                return [...prev, { _id: driverId, lat: location.lat, lng: location.lng, status: status || 'available', heading, speed, name: 'Driver', lastUpdate: Date.now() }];
             });
 
-            // Animate the Leaflet marker directly (ref-based, no re-render)
-            const marker = driverMarkersRef.current[driverId];
-            if (marker) {
-                animateMarker(marker, location.lat, location.lng, 1000);
-            }
-
-            // Clear any offline timer for this driver
             if (offlineTimersRef.current[driverId]) {
                 clearTimeout(offlineTimersRef.current[driverId]);
                 delete offlineTimersRef.current[driverId];
@@ -227,45 +133,25 @@ const DriverTrackingMap = () => {
 
         const handleDriverOnline = ({ driverId, driver }) => {
             if (!driverId || !driver) return;
-            console.log(`🟢 Driver online: ${driver.name}`);
-
             setDrivers(prev => {
                 const exists = prev.find(d => d._id === driverId);
-                if (exists) {
-                    return prev.map(d => d._id === driverId ? { ...d, ...driver, status: 'available' } : d);
-                }
+                if (exists) return prev.map(d => d._id === driverId ? { ...d, ...driver, status: 'available' } : d);
                 return [...prev, { ...driver, _id: driverId, status: 'available' }];
             });
         };
 
-        const handleDriverOffline = ({ driverId, name }) => {
+        const handleDriverOffline = ({ driverId }) => {
             if (!driverId) return;
-            console.log(`🔴 Driver offline: ${name}`);
-
-            // Mark as offline immediately
-            setDrivers(prev => prev.map(d =>
-                d._id === driverId ? { ...d, status: 'offline' } : d
-            ));
-
-            // Update marker icon to gray
-            const marker = driverMarkersRef.current[driverId];
-            if (marker) {
-                marker.setIcon(createDriverIcon('offline', 'sedan'));
-            }
-
-            // Remove marker after 30s
+            setDrivers(prev => prev.map(d => d._id === driverId ? { ...d, status: 'offline' } : d));
             offlineTimersRef.current[driverId] = setTimeout(() => {
                 setDrivers(prev => prev.filter(d => d._id !== driverId));
-                delete driverMarkersRef.current[driverId];
                 delete offlineTimersRef.current[driverId];
             }, 30000);
         };
 
         const handleRiderUpdate = ({ riderId, location }) => {
             if (!riderId || !location) return;
-            setRiders(prev => prev.map(r =>
-                r._id === riderId ? { ...r, lat: location.lat, lng: location.lng } : r
-            ));
+            setRiders(prev => prev.map(r => r._id === riderId ? { ...r, lat: location.lat, lng: location.lng } : r));
         };
 
         socket.on('adminDriverLocationUpdate', handleDriverUpdate);
@@ -281,24 +167,29 @@ const DriverTrackingMap = () => {
         };
     }, [socket]);
 
-    // ── REST Polling Fallback (only when socket is disconnected) ─
+    // ── REST Polling Fallback ─────────────────────────────────────
     useEffect(() => {
         if (isConnected || !socketFailed) return;
-
-        console.log('📡 Starting REST polling fallback (10s interval)');
         const pollInterval = setInterval(fetchViaREST, 10000);
-
         return () => clearInterval(pollInterval);
     }, [isConnected, socketFailed, fetchViaREST]);
+
+    // ── Traffic layer ────────────────────────────────────────────
+    useEffect(() => {
+        if (!mapRef.current || !isLoaded) return;
+        if (trafficEnabled) {
+            if (!trafficLayerRef.current) trafficLayerRef.current = new window.google.maps.TrafficLayer();
+            trafficLayerRef.current.setMap(mapRef.current);
+        } else {
+            if (trafficLayerRef.current) trafficLayerRef.current.setMap(null);
+        }
+    }, [trafficEnabled, isLoaded]);
 
     // ── Manual Refresh ───────────────────────────────────────────
     const handleRefresh = () => {
         setLoading(true);
-        if (socket?.connected) {
-            socket.emit('requestInitialLocations');
-        } else {
-            fetchViaREST();
-        }
+        if (socket?.connected) socket.emit('requestInitialLocations');
+        else fetchViaREST();
     };
 
     // ── Stats ────────────────────────────────────────────────────
@@ -306,11 +197,25 @@ const DriverTrackingMap = () => {
     const onRideCount = drivers.filter(d => d.status === 'on_ride').length;
     const offlineCount = drivers.filter(d => d.status === 'offline').length;
     const activeRiderCount = riders.length;
-    const allMarkers = [...drivers.filter(d => d.lat && d.lng), ...riders.filter(r => r.lat && r.lng)];
+
+    const allMarkers = useMemo(() =>
+        [...drivers.filter(d => d.lat && d.lng), ...riders.filter(r => r.lat && r.lng)],
+        [drivers, riders]
+    );
 
     const center = allMarkers.length > 0
-        ? [allMarkers[0].lat, allMarkers[0].lng]
-        : [12.9716, 77.5946]; // Bengaluru default
+        ? { lat: allMarkers[0].lat, lng: allMarkers[0].lng }
+        : { lat: 11.0168, lng: 76.9558 };
+
+    // ── Auto-fit bounds ──────────────────────────────────────────
+    const hasFittedRef = useRef(false);
+    useEffect(() => {
+        if (!mapRef.current || allMarkers.length === 0 || hasFittedRef.current) return;
+        const bounds = new window.google.maps.LatLngBounds();
+        allMarkers.forEach(m => bounds.extend({ lat: m.lat, lng: m.lng }));
+        mapRef.current.fitBounds(bounds, { top: 40, bottom: 40, left: 40, right: 40 });
+        hasFittedRef.current = true;
+    }, [allMarkers]);
 
     return (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
@@ -376,74 +281,87 @@ const DriverTrackingMap = () => {
                             <span className="text-xs text-gray-400">Connecting to live feed...</span>
                         </div>
                     </div>
+                ) : (loadError || authError) ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                        <div className="text-center p-6 border border-gray-100 rounded-2xl bg-white/50 backdrop-blur-sm shadow-sm m-4">
+                            <div className="text-2xl mb-2">🗺️</div>
+                            <p className="text-sm font-semibold text-gray-700">Map unavailable</p>
+                            <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
+                                {authError ? "Authentication failed. Check API restrictions or billing." : "Check API key and network connection."}
+                            </p>
+                        </div>
+                    </div>
+                ) : !isLoaded ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                        <div className="flex flex-col items-center gap-2">
+                            <div className="w-6 h-6 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+                            <span className="text-xs text-gray-400">Loading map...</span>
+                        </div>
+                    </div>
                 ) : (
-                    <MapContainer
+                    <GoogleMap
+                        mapContainerStyle={containerStyle}
                         center={center}
                         zoom={12}
-                        style={{ height: '100%', width: '100%' }}
-                        scrollWheelZoom={true}
-                        ref={mapRef}
+                        mapTypeId={mapType}
+                        onLoad={(map) => { mapRef.current = map; }}
+                        options={{
+                            disableDefaultUI: true,
+                            zoomControl: true,
+                            gestureHandling: 'greedy',
+                            clickableIcons: false,
+                        }}
                     >
-                        <TileLayer
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                        />
-
-                        {drivers.filter(d => d.lat && d.lng).map(driver => (
-                            <Marker
-                                key={`driver-${driver._id}`}
-                                position={[driver.lat, driver.lng]}
-                                icon={createDriverIcon(driver.status || (driver.isAvailable ? 'available' : 'offline'), driver.vehicleType)}
-                                ref={(ref) => {
-                                    if (ref) driverMarkersRef.current[driver._id] = ref;
-                                }}
-                            >
-                                <Popup>
-                                    <div className="min-w-[180px]">
-                                        <p className="font-bold text-gray-900 text-sm">{driver.name || 'Unknown'}</p>
-                                        <p className="text-xs text-gray-500 capitalize">{driver.vehicleType} • {driver.vehicleNumber}</p>
-                                        <div className="flex items-center gap-2 mt-1.5">
-                                            <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${driver.status === 'on_ride'
-                                                ? 'bg-blue-100 text-blue-700'
-                                                : driver.status === 'offline'
-                                                    ? 'bg-gray-100 text-gray-500'
+                        {/* Driver Markers */}
+                        {drivers.filter(d => d.lat && d.lng).map(driver => {
+                            const color = DRIVER_COLORS[driver.status] || DRIVER_COLORS.available;
+                            const emoji = VEHICLE_EMOJIS[driver.vehicleType] || '🚗';
+                            const opacity = driver.status === 'offline' ? 0.4 : 1;
+                            return (
+                                <Marker
+                                    key={`driver-${driver._id}`}
+                                    position={{ lat: driver.lat, lng: driver.lng }}
+                                    icon={buildMarkerIcon(emoji, color.ring, opacity)}
+                                    onClick={() => setActiveInfo(`driver-${driver._id}`)}
+                                >
+                                    {activeInfo === `driver-${driver._id}` && (
+                                        <InfoWindow onCloseClick={() => setActiveInfo(null)}>
+                                            <div className="min-w-[180px]">
+                                                <p className="font-bold text-gray-900 text-sm">{driver.name || 'Unknown'}</p>
+                                                <p className="text-xs text-gray-500 capitalize">{driver.vehicleType} • {driver.vehicleNumber}</p>
+                                                <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 ${
+                                                    driver.status === 'on_ride' ? 'bg-blue-100 text-blue-700'
+                                                    : driver.status === 'offline' ? 'bg-gray-100 text-gray-500'
                                                     : 'bg-emerald-100 text-emerald-700'
-                                                }`}>
-                                                {DRIVER_COLORS[driver.status]?.label || 'Available'}
-                                            </span>
-                                        </div>
-                                        {driver.phone && (
-                                            <p className="text-[10px] text-gray-400 mt-1">📞 {driver.phone}</p>
-                                        )}
-                                        {driver.lastUpdate && (
-                                            <p className="text-[10px] text-gray-300 mt-0.5">
-                                                ⏱ {new Date(driver.lastUpdate).toLocaleTimeString()}
-                                            </p>
-                                        )}
-                                    </div>
-                                </Popup>
-                            </Marker>
-                        ))}
+                                                }`}>{color.label}</span>
+                                                {driver.phone && <p className="text-[10px] text-gray-400 mt-1">📞 {driver.phone}</p>}
+                                                {driver.lastUpdate && <p className="text-[10px] text-gray-300 mt-0.5">⏱ {new Date(driver.lastUpdate).toLocaleTimeString()}</p>}
+                                            </div>
+                                        </InfoWindow>
+                                    )}
+                                </Marker>
+                            );
+                        })}
 
+                        {/* Rider Markers */}
                         {riders.filter(r => r.lat && r.lng).map(rider => (
                             <Marker
                                 key={`rider-${rider._id}`}
-                                position={[rider.lat, rider.lng]}
-                                icon={createRiderIcon()}
+                                position={{ lat: rider.lat, lng: rider.lng }}
+                                icon={RIDER_ICON}
+                                onClick={() => setActiveInfo(`rider-${rider._id}`)}
                             >
-                                <Popup>
-                                    <div className="min-w-[160px]">
-                                        <p className="font-bold flex items-center gap-1 text-blue-900 text-sm"><FiUser size={14} /> {rider.name}</p>
-                                        <p className="text-xs mt-1">
-                                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-widest">
+                                {activeInfo === `rider-${rider._id}` && (
+                                    <InfoWindow onCloseClick={() => setActiveInfo(null)}>
+                                        <div className="min-w-[160px]">
+                                            <p className="font-bold text-blue-900 text-sm flex items-center gap-1"><FiUser size={14} /> {rider.name}</p>
+                                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-widest mt-1">
                                                 {rider.status?.replace('_', ' ')}
                                             </span>
-                                        </p>
-                                        {rider.phone && (
-                                            <p className="text-[10px] text-gray-400 mt-1">📞 {rider.phone}</p>
-                                        )}
-                                    </div>
-                                </Popup>
+                                            {rider.phone && <p className="text-[10px] text-gray-400 mt-1">📞 {rider.phone}</p>}
+                                        </div>
+                                    </InfoWindow>
+                                )}
                             </Marker>
                         ))}
 
@@ -451,25 +369,46 @@ const DriverTrackingMap = () => {
                         {SUB_OFFICES.map(office => (
                             <Marker
                                 key={`office-${office.taluk}`}
-                                position={[office.lat, office.lng]}
-                                icon={createSubOfficeIcon()}
+                                position={{ lat: office.lat, lng: office.lng }}
+                                icon={SUB_OFFICE_ICON}
+                                onClick={() => setActiveInfo(`office-${office.taluk}`)}
                             >
-                                <Popup>
-                                    <div className="min-w-[160px]">
-                                        <p className="font-bold text-orange-700 text-sm flex items-center gap-1">🏢 {office.name}</p>
-                                        <p className="text-xs text-gray-500 mt-1">{office.taluk} Taluk</p>
-                                        <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700">Sub-Office</span>
-                                    </div>
-                                </Popup>
+                                {activeInfo === `office-${office.taluk}` && (
+                                    <InfoWindow onCloseClick={() => setActiveInfo(null)}>
+                                        <div className="min-w-[160px]">
+                                            <p className="font-bold text-orange-700 text-sm">🏢 {office.name}</p>
+                                            <p className="text-xs text-gray-500 mt-1">{office.taluk} Taluk</p>
+                                            <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700">Sub-Office</span>
+                                        </div>
+                                    </InfoWindow>
+                                )}
                             </Marker>
                         ))}
-
-                        {allMarkers.length > 0 && <FitBounds markers={allMarkers} />}
-                    </MapContainer>
+                    </GoogleMap>
                 )}
 
-                {/* Legend + Stats Badge */}
-                <div className="absolute bottom-3 left-3 z-[1000] bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
+                {/* Map Controls */}
+                {isLoaded && !loadError && (
+                    <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
+                        <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 flex overflow-hidden">
+                            <button onClick={() => setMapType('roadmap')} className={`px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 ${mapType === 'roadmap' ? 'bg-teal-600 text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                                <FiMap size={10} /> Map
+                            </button>
+                            <button onClick={() => setMapType('satellite')} className={`px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 ${mapType === 'satellite' ? 'bg-teal-600 text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                                <FiLayers size={10} /> Satellite
+                            </button>
+                        </div>
+                        <button
+                            onClick={() => setTrafficEnabled(prev => !prev)}
+                            className={`px-2.5 py-1.5 rounded-lg shadow-md border text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 backdrop-blur-sm ${trafficEnabled ? 'bg-teal-600 text-white border-teal-600' : 'bg-white/95 text-gray-500 border-gray-200 hover:bg-gray-50'}`}
+                        >
+                            <FiActivity size={10} /> {trafficEnabled ? 'Traffic On' : 'Traffic'}
+                        </button>
+                    </div>
+                )}
+
+                {/* Legend */}
+                <div className="absolute bottom-3 left-3 z-10 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
                     <div className="flex items-center gap-3">
                         <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 border border-emerald-600"></span> Available
@@ -480,7 +419,6 @@ const DriverTrackingMap = () => {
                         <span className="flex items-center gap-1 text-[10px] font-bold text-gray-400">
                             <span className="w-2 h-2 rounded-full bg-gray-300 border border-gray-400"></span> Offline
                         </span>
-
                     </div>
                     <p className="text-[10px] text-gray-500 mt-1">
                         {drivers.length} Driver{drivers.length !== 1 ? 's' : ''} • {riders.length} Rider{riders.length !== 1 ? 's' : ''}

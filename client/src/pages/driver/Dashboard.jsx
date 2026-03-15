@@ -549,7 +549,7 @@ const DriverDashboard = () => {
                                         {/* Live Overlay */}
                                         {(activeRide.status === 'confirmed' || activeRide.status === 'ongoing') && (
                                             <div className="absolute top-4 left-4 z-[1000]">
-                                                <div className="bg-gray-900/90 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2 shadow-lg border border-white/10 text-white">
+                                                <div className="bg-teal-600/90 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2 shadow-lg border border-white/10 text-white">
                                                     <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse" />
                                                     <span className="text-[10px] font-bold uppercase tracking-widest leading-none">
                                                         Trip Active

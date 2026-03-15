@@ -13,7 +13,6 @@ const adminRoutes = require('./routes/adminRoutes');
 const otpRoutes = require('./routes/otpRoutes');
 const negotiationRoutes = require('./routes/negotiationRoutes');
 const aiRoutes = require('./routes/aiRoutes');
-const chatRoutes = require('./routes/chatRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const mapRoutes = require('./routes/mapRoutes');
 
@@ -93,11 +92,10 @@ app.use('/api/drivers', driverRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/ai', aiRoutes);
-app.use('/api/chat', chatRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/map', mapRoutes);
 app.use('/api/test/email', require('./routes/testEmailRoute'));
-app.use('/api/test/whatsapp', require('./routes/testWhatsAppRoute'));
+app.use('/api/test/email', require('./routes/testEmailRoute'));
 
 // ─── Health Check ───────────────────────────────────────────────
 app.get('/api/health', (req, res) => {

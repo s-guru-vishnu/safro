@@ -4,7 +4,6 @@ const DriverApplication = require('../models/DriverApplication');
 const Ride = require('../models/Ride');
 const Payment = require('../models/Payment');
 const { sendApplicationApprovedEmail, sendApplicationRejectedEmail, sendMeetingScheduledEmail } = require('../services/notificationService');
-const { sendWhatsAppMessage } = require('../services/whatsappService');
 
 // ──────────────────────────────────────────────────────────────
 // DRIVER APPLICATION MANAGEMENT
@@ -137,23 +136,13 @@ const scheduleMeeting = async (req, res, next) => {
             });
         }
 
-        // Send SMS notification
-        try {
-            const user = await User.findById(application.userId);
-            if (user && user.phone) {
-                const message = `Hi ${user.name}, your Safro driver application is under review. Please visit ${location} on ${new Date(scheduledDate).toLocaleDateString()} for offline document verification. Notes: ${notes || 'Bring all original documents.'}`;
-                await sendWhatsAppMessage(user.phone, message);
-            }
-            // 📧 Email: Meeting Scheduled (non-blocking)
-            if (user) {
-                sendMeetingScheduledEmail(
-                    { name: user.name, email: user.email },
-                    { scheduledDate, location, notes }
-                );
-            }
-        } catch (smsError) {
-            console.error('Failed to send verification SMS:', smsError.message);
-            // Don't fail the whole request just because SMS failed
+        const user = await User.findById(application.userId);
+        // 📧 Email: Meeting Scheduled (non-blocking)
+        if (user) {
+            sendMeetingScheduledEmail(
+                { name: user.name, email: user.email },
+                { scheduledDate, location, notes }
+            );
         }
 
         res.json({

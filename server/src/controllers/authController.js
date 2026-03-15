@@ -379,11 +379,8 @@ const forgotPassword = async (req, res, next) => {
             // Send via Email
             sendOTPEmail(user, otp, 'Password Reset');
         } else {
-            // Send via WhatsApp
-            const { sendWhatsAppMessage } = require('../services/whatsappService');
-            const OTP_EXPIRY_MINUTES = process.env.OTP_EXPIRY_MINUTES || 5;
-            const whatsappMessage = `🔐 Safro OTP Verification\n\nYour OTP is: ${otp}\n\nValid for ${OTP_EXPIRY_MINUTES} minutes.\nDo not share this code with anyone.`;
-            sendWhatsAppMessage(emailOrPhone, whatsappMessage).catch(console.error);
+            // WhatsApp integration removed. OTP logged for internal tracking.
+            console.log(`[PASSWORD RESET OTP] To: ${emailOrPhone} | Code: ${otp}`);
         }
 
         res.json({ message: 'OTP sent successfully', emailOrPhone, otp });

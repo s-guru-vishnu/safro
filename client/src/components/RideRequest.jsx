@@ -3,7 +3,6 @@ import { FiMapPin, FiNavigation } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import api from '../services/api';
 import toast from 'react-hot-toast';
-import mapService from '../services/mapService';
 import { reverseGeocode } from '../services/locationService';
 import { calculateDistance } from '../utils/distanceCalculator';
 import MapView from './map/MapView';
@@ -209,7 +208,7 @@ const RideRequest = ({ onRideCreated }) => {
 
                 <button
                     type="submit"
-                    className="w-full bg-gray-900 text-white py-3 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-all shadow-sm hover:shadow-md flex justify-center items-center gap-2"
+                    className="w-full bg-teal-600 text-white py-3 rounded-xl text-sm font-semibold hover:bg-teal-700 transition-all shadow-sm hover:shadow-md flex justify-center items-center gap-2"
                     disabled={loading}
                 >
                     {loading ? (

@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 .env
+*.txt
+build_errors.txt
+build_output.txt
+server_error.txt
+server_full_log.txt
 sample document
 
 # Editor directories and files

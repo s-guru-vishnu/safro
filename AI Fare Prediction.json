@@ -1,0 +1,85 @@
+{
+  "name": "AI Fare Prediction",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/safro-ai/fare",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        32,
+        0
+      ],
+      "id": "b139fc5f-da3a-4e6c-99c0-3fcf9d18c924",
+      "name": "Webhook",
+      "webhookId": "8122eb7f-3fa1-41aa-bb5b-d43310548121"
+    },
+    {
+      "parameters": {
+        "jsCode": "const baseFare = 30\nconst ratePerKm = 10\nconst ratePerMin = 1.5\n\nconst distance = $json.distance\nconst time = $json.time\nconst drivers = $json.driversNearby\nconst hour = $json.hour\n\nlet fare =\nbaseFare +\n(distance * ratePerKm) +\n(time * ratePerMin)\n\nlet trafficMultiplier = 1\n\nif(hour >= 18 && hour <= 21){\n trafficMultiplier = 1.2\n}\n\nlet demandMultiplier = drivers < 3 ? 1.3 : 1.0\n\nfare = fare * trafficMultiplier * demandMultiplier\n\nreturn [{estimatedFare: Math.round(fare)}]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "id": "96ee7db2-9f83-43f8-bee0-37af6f68c8e9",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n \"estimatedFare\": 301\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        0
+      ],
+      "id": "ac10c6e7-f6b3-41ad-93bd-9078155f103d",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ae61512d-fef2-426d-94a9-2106c30001c5",
+  "meta": {
+    "instanceId": "2e6f5e94cc307d3c124f661138f4c82a21b503b72762d556b6b717428e788d10"
+  },
+  "id": "DM2w5Gmp3cRVimwh",
+  "tags": []
+}

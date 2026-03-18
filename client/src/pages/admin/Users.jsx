@@ -192,7 +192,7 @@ const Users = () => {
                                                                     <div>
                                                                         <p className="text-xs text-gray-500">Availability</p>
                                                                         <p className={`text-sm font-semibold ${user.driverProfile?.isAvailable ? 'text-green-600' : 'text-red-500'}`}>
-                                                                            {user.driverProfile?.isAvailable ? '🟢 Available' : '🔴 Offline'}
+                                                                            {user.driverProfile?.isAvailable ? 'Available' : 'Offline'}
                                                                         </p>
                                                                     </div>
                                                                     <div>

@@ -1,0 +1,85 @@
+{
+  "name": "Fraud Detection",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/safro-ai/fraud-check",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6ffd4dc5-7428-4fdf-876e-4e85fc77a0df",
+      "name": "Webhook",
+      "webhookId": "323df810-3c6f-470a-b0e7-fbff146347ca"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fare = $json.fare\nconst avgFare = $json.avgFare\n\nif(fare > avgFare * 3){\n return [{fraud:true}]\n}\n\nreturn [{fraud:false}]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        0
+      ],
+      "id": "b318349b-23d2-466e-9527-d5a82ee8f81e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        400,
+        0
+      ],
+      "id": "1c8e9aca-ad80-4214-8237-935e4cb79b9f",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "840c399e-fc69-4bae-bf29-b15143e4c1a5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2e6f5e94cc307d3c124f661138f4c82a21b503b72762d556b6b717428e788d10"
+  },
+  "id": "yLPdBmRnVITVCRvi",
+  "tags": []
+}

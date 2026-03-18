@@ -16,10 +16,9 @@ const RatingModal = ({ ride, isOpen, onClose, onSubmitted }) => {
 
         setSubmitting(true);
         try {
-            await api.post('/api/reviews', {
-                rideId: ride._id,
+            await api.post(`/rides/${ride._id}/rate`, {
                 rating,
-                comment
+                review: comment
             });
             setStatus('success');
             if (onSubmitted) onSubmitted();

@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiMapPin, FiNavigation, FiMessageCircle, FiXCircle, FiCheckCircle, FiDollarSign, FiTruck, FiStar } from 'react-icons/fi';
 import { Banknote } from 'lucide-react';
 import MapView from '../../components/map/MapView';
+import LocationAutocomplete from '../../components/map/LocationAutocomplete';
 
 const DriverDashboard = () => {
     const { user } = useAuth();
@@ -18,6 +19,7 @@ const DriverDashboard = () => {
     const [driverLocation, setDriverLocation] = useState(null);
     const [isNegotiating, setIsNegotiating] = useState(false);
     const [riderLocation, setRiderLocation] = useState(null);
+    const [searchLocation, setSearchLocation] = useState(null);
     const [stats, setStats] = useState(null);
 
     // Get driver's current location for geo-filtered rides + register with tracking system
@@ -120,15 +122,16 @@ const DriverDashboard = () => {
     const fetchAvailableRides = useCallback(async () => {
         try {
             let url = '/rides/available';
-            if (driverLocation) {
-                url += `?lat=${driverLocation.lat}&lng=${driverLocation.lng}`;
+            const targetLoc = searchLocation || driverLocation;
+            if (targetLoc) {
+                url += `?lat=${targetLoc.lat}&lng=${targetLoc.lng}`;
             }
             const res = await api.get(url);
             setAvailableRides(res.data);
         } catch (err) {
             console.error('Error fetching rides:', err);
         }
-    }, [driverLocation]);
+    }, [driverLocation, searchLocation]);
 
     useEffect(() => {
         fetchAvailableRides();
@@ -193,7 +196,23 @@ const DriverDashboard = () => {
             socket.on('riderLocationUpdate', (data) => {
                 setRiderLocation(data.location);
             });
-
+            socket.on('paymentInitiated', (data) => {
+                setActiveRide(prev => prev ? ({ ...prev, paymentStatus: 'Driver Confirmation', paymentMethod: data.method }) : prev);
+                if (data.method === 'cash') toast('Rider is paying with cash. Confirm after receiving.', { icon: '💰' });
+            });
+            socket.on('paymentSuccess', (data) => {
+                setActiveRide(prev => prev ? ({ ...prev, paymentStatus: 'Paid' }) : prev);
+                toast.success('Payment Received!');
+                // Auto-close after a delay if it was an online payment
+                setTimeout(() => {
+                    localStorage.removeItem('activeRideId');
+                    setActiveRide(null);
+                    setShowChat(false);
+                    setIsNegotiating(false);
+                    fetchAvailableRides();
+                    api.get('/drivers/stats').then(res => setStats(res.data)).catch(console.error);
+                }, 3000);
+            });
             return () => {
                 socket.off('newRideRequest');
                 socket.off('rideConfirmed');
@@ -202,6 +221,8 @@ const DriverDashboard = () => {
                 socket.off('rideStatusChanged');
                 socket.off('negotiationFailed');
                 socket.off('riderLocationUpdate');
+                socket.off('paymentInitiated');
+                socket.off('paymentSuccess');
             };
         }
     }, [socket, user._id, fetchAvailableRides]);
@@ -276,6 +297,7 @@ const DriverDashboard = () => {
 
     const handleConfirmCash = async () => {
         try {
+            await api.post('/payment/confirm-cash', { rideId: activeRide._id });
             localStorage.removeItem('activeRideId');
             setActiveRide(null);
             setShowChat(false);
@@ -283,6 +305,9 @@ const DriverDashboard = () => {
             setRiderLocation(null);
             toast.success('Cash payment confirmed! Earnings updated.');
             fetchAvailableRides();
+            // Refresh stats
+            const res = await api.get('/drivers/stats');
+            setStats(res.data);
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to confirm cash');
         }
@@ -377,10 +402,22 @@ const DriverDashboard = () => {
                     <div className="lg:col-span-1 space-y-3">
                         <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider flex items-center gap-2">
                             <FiNavigation className="text-teal-600" size={14} /> Available Rides
-                            {driverLocation && (
-                                <span className="text-xs font-normal text-gray-400">(within 10km)</span>
+                            {(searchLocation || driverLocation) && (
+                                <span className="text-xs font-normal text-gray-400">
+                                    {searchLocation ? `(near ${searchLocation.name})` : '(within 10km)'}
+                                </span>
                             )}
                         </h2>
+
+                        <div className="bg-white p-3 rounded-xl border border-gray-200">
+                            <LocationAutocomplete
+                                placeholder="Search rides in another area..."
+                                value={searchLocation?.name || ''}
+                                onSelect={(loc) => setSearchLocation(loc)}
+                                onChange={(val) => !val && setSearchLocation(null)}
+                                activeColor="teal"
+                            />
+                        </div>
 
                         {availableRides.length === 0 ? (
                             <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">

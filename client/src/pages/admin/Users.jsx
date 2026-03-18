@@ -189,16 +189,6 @@ const Users = () => {
                                                                         <p className="text-xs text-gray-500">Total Rides</p>
                                                                         <p className="text-sm font-semibold text-gray-900">{user.driverProfile?.totalRides || 0}</p>
                                                                     </div>
-                                                                    <div>
-                                                                        <p className="text-xs text-gray-500">Availability</p>
-                                                                        <p className={`text-sm font-semibold ${user.driverProfile?.isAvailable ? 'text-green-600' : 'text-red-500'}`}>
-                                                                            {user.driverProfile?.isAvailable ? '🟢 Available' : '🔴 Offline'}
-                                                                        </p>
-                                                                    </div>
-                                                                    <div>
-                                                                        <p className="text-xs text-gray-500">Driver Status</p>
-                                                                        <p className="text-sm font-semibold text-gray-900 capitalize">{user.driverProfile?.status || '—'}</p>
-                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </motion.div>

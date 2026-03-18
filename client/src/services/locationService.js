@@ -27,72 +27,82 @@ const waitForGoogle = () =>
     });
 
 /**
- * Searches locations using Google Places Autocomplete Service
+ * Searches locations using Google Places API (New) Autocomplete
+ * Optimized for speed: Returns only predictions without coordinates.
  * @param {string} query - The search string
- * @returns {Promise<Array>} List of location results { id, name, address, lat, lng }
+ * @returns {Promise<Array>} List of location predictions { id, name, address }
  */
 export const searchLocations = async (query) => {
-    if (!query || query.length < 3) return [];
+    if (!query || query.trim().length === 0) return [];
     if (searchCache.has(query)) return searchCache.get(query);
 
     try {
-        await waitForGoogle();
-
-        const service = new window.google.maps.places.AutocompleteService();
-        const predictions = await new Promise((resolve, reject) => {
-            service.getPlacePredictions(
-                {
-                    input: query,
-                    componentRestrictions: { country: 'in' },
-                    // Bias towards Coimbatore
-                    locationBias: {
-                        center: { lat: 11.0168, lng: 76.9558 },
-                        radius: 50000, // 50 km
-                    },
-                },
-                (results, status) => {
-                    if (status === 'OK' && results) resolve(results);
-                    else if (status === 'ZERO_RESULTS') resolve([]);
-                    else reject(new Error(status));
+        const response = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Goog-Api-Key': import.meta.env.VITE_GOOGLE_MAP_KEY
+            },
+            body: JSON.stringify({
+                input: query,
+                locationBias: {
+                    circle: {
+                        center: { latitude: 11.0168, longitude: 76.9558 },
+                        radius: 50000 // 50 km
+                    }
                 }
-            );
+            })
         });
 
-        // Fetch details (lat/lng) for each prediction
-        const placesService = new window.google.maps.places.PlacesService(
-            document.createElement('div')
-        );
+        const data = await response.json();
+        if (!data.suggestions) return [];
 
-        const results = await Promise.all(
-            predictions.slice(0, 5).map(
-                (p) =>
-                    new Promise((resolve) => {
-                        placesService.getDetails(
-                            { placeId: p.place_id, fields: ['geometry', 'name', 'formatted_address'] },
-                            (place, status) => {
-                                if (status === 'OK' && place?.geometry?.location) {
-                                    resolve({
-                                        id: p.place_id,
-                                        name: place.name || p.structured_formatting?.main_text || p.description.split(',')[0],
-                                        address: place.formatted_address || p.description,
-                                        lat: place.geometry.location.lat(),
-                                        lng: place.geometry.location.lng(),
-                                    });
-                                } else {
-                                    resolve(null);
-                                }
-                            }
-                        );
-                    })
-            )
-        );
+        const results = data.suggestions.slice(0, 7).map(s => {
+            const pred = s.placePrediction;
+            const fullText = pred.text.text;
+            const parts = fullText.split(',');
+            return {
+                id: pred.placeId,
+                name: parts[0],
+                address: parts.slice(1).join(',').trim() || fullText,
+                description: fullText
+            };
+        });
 
-        const filtered = results.filter(Boolean);
-        searchCache.set(query, filtered);
-        return filtered;
+        searchCache.set(query, results);
+        return results;
     } catch (error) {
-        console.error('Google Places search failed:', error);
+        console.error('Google Places (New) autocomplete failed:', error);
         return [];
+    }
+};
+
+/**
+ * Fetches full coordinates and formatted address for a place ID using Places API (New)
+ * @param {string} placeId
+ * @returns {Promise<Object|null>} { name, address, lat, lng }
+ */
+export const getPlaceDetails = async (placeId) => {
+    try {
+        const response = await fetch(`https://places.googleapis.com/v1/places/${placeId}?fields=location,displayName,formattedAddress`, {
+            headers: {
+                'X-Goog-Api-Key': import.meta.env.VITE_GOOGLE_MAP_KEY,
+                'X-Goog-FieldMask': 'location,displayName,formattedAddress'
+            }
+        });
+        
+        const place = await response.json();
+        if (!place.location) return null;
+
+        return {
+            name: place.displayName?.text || place.formattedAddress?.split(',')[0] || 'Selected Location',
+            address: place.formattedAddress,
+            lat: place.location.latitude,
+            lng: place.location.longitude,
+        };
+    } catch (error) {
+        console.error('Failed to get place details (New API):', error);
+        return null;
     }
 };
 
@@ -134,18 +144,67 @@ export const reverseGeocode = async (lat, lng) => {
 };
 
 /**
+ * Gets nearby places based on coordinates using Places API (New) Autocomplete workaround
+ */
+export const getNearbyPlaces = async (lat, lng) => {
+    try {
+        const response = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Goog-Api-Key': import.meta.env.VITE_GOOGLE_MAP_KEY
+            },
+            body: JSON.stringify({
+                input: "",
+                locationBias: {
+                    circle: {
+                        center: { latitude: lat, longitude: lng },
+                        radius: 2000
+                    }
+                }
+            })
+        });
+
+        const data = await response.json();
+        if (!data.suggestions) return [];
+
+        return data.suggestions.slice(0, 6).map(s => {
+            const pred = s.placePrediction;
+            const fullText = pred.text.text;
+            const parts = fullText.split(',');
+            return {
+                id: pred.placeId,
+                name: parts[0],
+                address: parts.slice(1).join(',').trim() || fullText,
+                description: fullText
+            };
+        });
+    } catch (error) {
+        console.error('Nearby search (New API) failed:', error);
+        return [];
+    }
+};
+
+/**
  * Gets nearby places based on coordinates (current location suggestion)
  */
 export const getNearbyLocations = async (lat, lng) => {
     try {
-        const result = await reverseGeocode(lat, lng);
-        if (!result) return [];
+        const [currentLoc, nearby] = await Promise.all([
+            reverseGeocode(lat, lng),
+            getNearbyPlaces(lat, lng)
+        ]);
 
-        return [{
-            ...result,
-            name: 'Current Location',
-            isCurrentLocation: true,
-        }];
+        const suggestions = [];
+        if (currentLoc) {
+            suggestions.push({
+                ...currentLoc,
+                name: 'Current Location',
+                isCurrentLocation: true,
+            });
+        }
+
+        return [...suggestions, ...nearby];
     } catch (error) {
         console.error('Nearby locations fetch failed:', error);
         return [];

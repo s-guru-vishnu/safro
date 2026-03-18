@@ -67,7 +67,7 @@ const Navbar = () => {
             socket.on('sosAlert', (data) => {
                 addNotification({
                     type: 'sos',
-                    title: '🚨 EMERGENCY SOS',
+                    title: 'EMERGENCY SOS',
                     message: `${data.userName} triggered an alert!`,
                     icon: <FiAlertCircle className="text-red-500" />,
                     link: '/admin/alerts'

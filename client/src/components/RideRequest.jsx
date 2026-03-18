@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { reverseGeocode } from '../services/locationService';
 import { calculateDistance } from '../utils/distanceCalculator';
 import MapView from './map/MapView';
-import LocationInput from './map/LocationInput';
+import LocationAutocomplete from './map/LocationAutocomplete';
 
 const RideRequest = ({ onRideCreated }) => {
     const [pickup, setPickup] = useState('');
@@ -23,6 +23,7 @@ const RideRequest = ({ onRideCreated }) => {
     const handlePickupSelect = async (loc) => {
         if (!loc) return;
         setPickupCoords({ lat: loc.lat, lng: loc.lng });
+        setPickup(loc.name || loc.address);
         try {
             const czRes = await api.get(`/map/check-crowd-zones?lat=${loc.lat}&lng=${loc.lng}`);
             if (czRes.data.inZone) {
@@ -38,6 +39,7 @@ const RideRequest = ({ onRideCreated }) => {
     const handleDropSelect = (loc) => {
         if (!loc) return;
         setDropCoords({ lat: loc.lat, lng: loc.lng });
+        setDrop(loc.name || loc.address);
     };
 
     const handleMapClick = async (latlng) => {
@@ -163,9 +165,9 @@ const RideRequest = ({ onRideCreated }) => {
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="relative" onClick={() => setActiveInput('pickup')}>
-                    <LocationInput
+                    <LocationAutocomplete
                         placeholder="Pickup Location"
-                        icon={<FiMapPin size={16} />}
+                        icon={<FiMapPin size={18} className="text-teal-600" />}
                         value={pickup}
                         onChange={setPickup}
                         onSelect={handlePickupSelect}
@@ -174,9 +176,9 @@ const RideRequest = ({ onRideCreated }) => {
                 </div>
 
                 <div className="relative" onClick={() => setActiveInput('drop')}>
-                    <LocationInput
+                    <LocationAutocomplete
                         placeholder="Drop Location"
-                        icon={<FiMapPin size={16} />}
+                        icon={<FiMapPin size={18} className="text-red-500" />}
                         value={drop}
                         onChange={setDrop}
                         onSelect={handleDropSelect}

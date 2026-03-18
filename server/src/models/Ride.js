@@ -83,8 +83,20 @@ const rideSchema = new mongoose.Schema({
     },
     paymentStatus: {
         type: String,
-        enum: ['Pending', 'Paid', 'Failed'],
+        enum: ['Pending', 'Driver Confirmation', 'Paid', 'Failed'],
         default: 'Pending'
+    },
+    driverConfirmed: {
+        type: Boolean,
+        default: false
+    },
+    rating: {
+        type: Number,
+        min: 1,
+        max: 5
+    },
+    review: {
+        type: String
     },
     razorpayOrderId: {
         type: String,

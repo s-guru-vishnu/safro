@@ -12,7 +12,8 @@ const {
     getRideHistory,
     getAIFare,
     getActiveRide,
-    getFareEstimate
+    getFareEstimate,
+    rateRide
 } = require('../controllers/rideController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -28,5 +29,6 @@ router.put('/:id/start', protect, startRide);
 router.put('/:id/complete', protect, completeRide);
 router.put('/:id/cancel', protect, cancelRide);
 router.put('/:id/fail-negotiation', protect, failNegotiation);
+router.post('/:id/rate', protect, rateRide);
 
 module.exports = router;

@@ -15,369 +15,221 @@ const razorpay = new Razorpay({
 });
 
 /**
+ * Helper to check if an error is related to missing replica set / transactions
+ */
+const isTransactionError = (error) => {
+    const msg = error.message || '';
+    return msg.includes('replica set') || 
+           msg.includes('Transaction') || 
+           msg.includes('session') ||
+           error.code === 20 || 
+           error.code === 251 ||
+           error.name === 'MongoServerError';
+};
+
+/**
  * 1️⃣ Create Razorpay Order
- * Validate ride, status, and paymentStatus before creation.
  */
 const createRazorpayOrder = async (req, res, next) => {
     try {
         const { rideId, amount } = req.body;
-        console.log(`💳 [Order] Initiating: rideId=${rideId}, amount=${amount}`);
-
         let finalAmount;
 
         if (rideId) {
             const ride = await Ride.findById(rideId);
-            if (!ride) {
-                console.warn(`⚠️ [Order] Ride not found: ${rideId}`);
-                return res.status(404).json({ message: 'Ride not found' });
-            }
-
-            // PRODUCTION SECURE: Strictly allow only completed rides to be paid
-            if (ride.status !== 'completed') {
-                console.warn(`⚠️ [Order] Attempted payment for incomplete ride ${rideId} (Status: ${ride.status})`);
-                return res.status(400).json({ message: 'Ride is not yet completed' });
-            }
-
-            // IDEMPOTENCY: Prevent multiple orders for already paid rides
-            if (ride.paymentStatus === 'Paid') {
-                console.warn(`⚠️ [Order] Attempted payment for already paid ride ${rideId}`);
-                return res.status(400).json({ message: 'Ride already paid' });
-            }
-
+            if (!ride) return res.status(404).json({ message: 'Ride not found' });
+            if (ride.status !== 'completed') return res.status(400).json({ message: 'Ride is not yet completed' });
+            if (ride.paymentStatus === 'Paid') return res.status(400).json({ message: 'Ride already paid' });
             finalAmount = ride.negotiatedFare || ride.fare.final || ride.fare.proposed;
         } else {
-            // Wallet Top-up flow
             finalAmount = amount;
         }
 
-        if (!finalAmount || finalAmount <= 0) {
-            return res.status(400).json({ message: 'Invalid amount' });
-        }
+        if (!finalAmount || finalAmount <= 0) return res.status(400).json({ message: 'Invalid amount' });
 
         const options = {
-            amount: Math.round(finalAmount * 100), // convert to paise
+            amount: Math.round(finalAmount * 100),
             currency: 'INR',
-            receipt: `receipt_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`
+            receipt: `receipt_${Date.now()}`
         };
 
         const order = await razorpay.orders.create(options);
-        console.log(`✅ [Order] Created for ride ${rideId || 'Wallet'}: ${order.id}`);
+        if (rideId) await Ride.findByIdAndUpdate(rideId, { razorpayOrderId: order.id });
 
-        if (rideId) {
-            await Ride.findByIdAndUpdate(rideId, { razorpayOrderId: order.id });
-        }
-
-        res.status(201).json({
-            id: order.id,
-            amount: order.amount,
-            currency: order.currency
-        });
+        res.status(201).json({ id: order.id, amount: order.amount, currency: order.currency });
     } catch (error) {
-        console.error('🔥 [Order Error Detail]:', error);
-        res.status(500).json({
-            message: error.message || 'Internal server error during order creation',
-            error: error.message,
-            code: error.code,
-            metadata: error.metadata
-        });
+        next(error);
     }
 };
 
 /**
- * 2️⃣ Verify Razorpay Payment (Direct from Frontend)
- * Secure signature verification using Key Secret.
+ * 2️⃣ Verify Razorpay Payment
  */
 const verifyRazorpayPayment = async (req, res, next) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    let session;
     try {
-        const {
-            razorpay_order_id,
-            razorpay_payment_id,
-            razorpay_signature,
-            rideId,
-            isWalletTopup
-        } = req.body;
+        session = await mongoose.startSession();
+        session.startTransaction();
 
-        // PRODUCTION SECURE: Strict Signature Verification
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, rideId, isWalletTopup } = req.body;
+
         const generatedSignature = crypto
             .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
             .update(razorpay_order_id + "|" + razorpay_payment_id)
             .digest("hex");
 
         if (generatedSignature !== razorpay_signature) {
-            console.error('❌ [Verify] Signature Mismatch');
-            await session.abortTransaction();
+            if (session.inTransaction()) await session.abortTransaction();
             session.endSession();
             return res.status(400).json({ status: "failure", message: "Invalid payment signature" });
         }
 
-        console.log(`✅ [Verify] Signature Verified for Order ${razorpay_order_id}`);
-
         if (isWalletTopup) {
             const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
             const topupAmount = orderDetails.amount / 100;
-
             const user = await User.findById(req.user._id).session(session);
-            if (!user) {
-                console.error(`❌ [Verify] User ${req.user._id} not found for top-up`);
-                await session.abortTransaction();
-                session.endSession();
-                return res.status(404).json({ status: "failure", message: "User not found" });
-            }
-
             user.walletBalance += topupAmount;
             await user.save({ session });
-
             await WalletTransaction.create([{
-                userId: req.user._id,
-                amount: topupAmount,
-                type: 'credit',
-                source: 'razorpay',
-                status: 'completed',
-                referenceId: razorpay_payment_id,
-                description: 'Wallet Top-up via Razorpay'
+                userId: req.user._id, amount: topupAmount, type: 'credit', source: 'razorpay',
+                status: 'completed', referenceId: razorpay_payment_id, description: 'Wallet Top-up'
             }], { session });
 
             await session.commitTransaction();
             session.endSession();
-            console.log(`💰 [Verify] Wallet Top-up Successful: ₹${topupAmount}`);
-
-            // 📧 Email: Wallet Top-up (non-blocking)
             sendWalletTopupEmail({ name: user.name, email: user.email }, topupAmount, user.walletBalance);
-
-            return res.json({ status: "success", message: "Wallet topped up", balance: user.walletBalance });
+            return res.json({ status: "success", balance: user.walletBalance });
         }
 
         const ride = await Ride.findById(rideId).session(session);
         if (!ride) {
-            await session.abortTransaction();
-            session.endSession();
+            await session.abortTransaction(); session.endSession();
             return res.status(404).json({ message: 'Ride not found' });
         }
-
-        // IDEMPOTENCY: Already processed?
         if (ride.paymentStatus === 'Paid') {
-            console.log(`✅ [Verify] Duplicate skipped - Ride ${rideId} already Paid`);
-            await session.commitTransaction();
-            session.endSession();
+            await session.commitTransaction(); session.endSession();
             return res.json({ status: "success", message: "Already processed" });
         }
 
         const fare = ride.negotiatedFare || ride.fare.final || ride.fare.proposed;
         const { platformCommission, driverAmount } = calculateCommission(fare);
-
-        ride.paymentMethod = 'razorpay';
-        ride.paymentStatus = 'Paid';
-        ride.platformCommission = platformCommission;
-        ride.driverAmount = driverAmount;
-        ride.paidAt = new Date();
+        ride.paymentMethod = 'razorpay'; ride.paymentStatus = 'Paid';
+        ride.platformCommission = platformCommission; ride.driverAmount = driverAmount; ride.paidAt = new Date();
         await ride.save({ session });
 
         if (ride.driverId) {
-            await Driver.findOneAndUpdate(
-                { userId: ride.driverId },
-                { $inc: { payoutBalance: driverAmount } },
-                { session }
-            );
+            await Driver.findOneAndUpdate({ userId: ride.driverId }, { $inc: { payoutBalance: driverAmount } }, { session });
         }
 
-        // 2% Cashback for digital flow
         const cashback = Math.round(fare * 0.02);
         if (cashback > 0) {
             const user = await User.findById(req.user._id).session(session);
-            user.walletBalance += cashback;
-            await user.save({ session });
+            user.walletBalance += cashback; await user.save({ session });
             await WalletTransaction.create([{
-                userId: req.user._id,
-                amount: cashback,
-                type: 'credit',
-                source: 'ride',
-                status: 'completed',
-                referenceId: ride._id.toString(),
-                description: `2% Cashback for ride ${ride._id}`
+                userId: req.user._id, amount: cashback, type: 'credit', source: 'ride',
+                status: 'completed', referenceId: ride._id.toString(), description: 'Cashback'
             }], { session });
         }
 
         await Payment.create([{
-            rideId: ride._id,
-            riderId: ride.riderId,
-            driverId: ride.driverId,
-            amount: fare,
-            method: 'razorpay',
-            status: 'completed',
-            cashback
+            rideId: ride._id, riderId: ride.riderId, driverId: ride.driverId,
+            amount: fare, method: 'razorpay', status: 'completed', cashback
         }], { session });
 
         await session.commitTransaction();
         session.endSession();
 
         const io = req.app.get('io');
-        if (io) {
-            io.to(`ride_${ride._id}`).emit('paymentSuccess', {
-                rideId: ride._id,
-                method: 'razorpay',
-                cashback,
-                driverAmount
-            });
-        }
-
-        console.log(`💰 [Verify] Payment SUCCESS for Ride ${rideId}`);
-
-        // 📧 Email + 📱 WhatsApp: Payment Receipt (non-blocking)
-        try {
-            const riderUser = await User.findById(ride.riderId);
-            if (riderUser) {
-                sendPaymentReceiptEmail(
-                    { name: riderUser.name, email: riderUser.email },
-                    { _id: ride._id, paymentMethod: 'razorpay', agreedFare: fare, platformFee: platformCommission, totalPaid: fare }
-                );
-                sendPaymentReceiptWhatsApp(
-                    { phone: riderUser.phone },
-                    { agreedFare: fare, paymentMethod: 'razorpay' }
-                );
-            }
-        } catch (e) { /* non-blocking */ }
+        if (io) io.to(`ride_${ride._id}`).emit('paymentSuccess', { rideId: ride._id, method: 'razorpay' });
 
         res.json({ status: "success", ride, cashback });
     } catch (error) {
-        if (session.inTransaction()) await session.abortTransaction();
-        session.endSession();
-        console.error('🔥 [Verify Error]:', error);
-        res.status(500).json({ message: 'Internal verification error', error: error.message });
+        if (session && session.inTransaction()) await session.abortTransaction();
+        if (session) session.endSession();
+
+        if (isTransactionError(error)) {
+            console.warn('⚠️ [Verify] Fallback (No Replica Set)');
+            try {
+                const { razorpay_order_id, razorpay_payment_id, rideId, isWalletTopup } = req.body;
+                if (isWalletTopup) {
+                    const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
+                    const topupAmount = orderDetails.amount / 100;
+                    const user = await User.findById(req.user._id);
+                    user.walletBalance += topupAmount; await user.save();
+                    await WalletTransaction.create({ userId: req.user._id, amount: topupAmount, type: 'credit', source: 'razorpay', status: 'completed', referenceId: razorpay_payment_id });
+                    return res.json({ status: "success", balance: user.walletBalance });
+                }
+                const ride = await Ride.findById(rideId);
+                if (ride.paymentStatus === 'Paid') return res.json({ status: "success" });
+                const fare = ride.negotiatedFare || ride.fare.final || ride.fare.proposed;
+                const { platformCommission, driverAmount } = calculateCommission(fare);
+                ride.paymentMethod = 'razorpay'; ride.paymentStatus = 'Paid';
+                ride.platformCommission = platformCommission; ride.driverAmount = driverAmount; ride.paidAt = new Date();
+                await ride.save();
+                if (ride.driverId) await Driver.findOneAndUpdate({ userId: ride.driverId }, { $inc: { payoutBalance: driverAmount } });
+                const cashback = Math.round(fare * 0.02);
+                if (cashback > 0) {
+                    const user = await User.findById(req.user._id);
+                    user.walletBalance += cashback; await user.save();
+                }
+                await Payment.create({ rideId: ride._id, riderId: ride.riderId, driverId: ride.driverId, amount: fare, method: 'razorpay', status: 'completed', cashback });
+                const io = req.app.get('io');
+                if (io) io.to(`ride_${ride._id}`).emit('paymentSuccess', { rideId: ride._id, method: 'razorpay' });
+                return res.json({ status: "success", ride, cashback });
+            } catch (e) { return next(e); }
+        }
+        next(error);
     }
 };
 
 /**
- * 3️⃣ Razorpay Webhook Handler
- * PRODUCTION SECURE: Raw body verification + Idempotency
+ * 3️⃣ Webhook Handler
  */
-const handleRazorpayWebhook = async (req, res, next) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+const handleRazorpayWebhook = async (req, res) => {
     try {
         const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
         const signature = req.headers['x-razorpay-signature'];
-
-        // RAW BODY VERIFICATION
-        const expectedSignature = crypto
-            .createHmac('sha256', secret)
-            .update(req.body)
-            .digest('hex');
-
-        if (signature !== expectedSignature) {
-            console.error('❌ [Webhook] Signature Verification Failed');
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(400).json({ message: 'Invalid signature' });
-        }
+        const expectedSignature = crypto.createHmac('sha256', secret).update(req.body).digest('hex');
+        if (signature !== expectedSignature) return res.status(400).json({ message: 'Invalid signature' });
 
         const data = JSON.parse(req.body.toString());
-        const { event, payload } = data;
-
-        console.log(`📡 [Webhook] Processing: ${event}`);
-
-        if (event === 'payment.captured') {
-            const { order_id, amount } = payload.payment.entity;
-
-            // Find ride by razorpayOrderId
-            const ride = await Ride.findOne({ razorpayOrderId: order_id }).session(session);
-
-            if (!ride) {
-                console.log(`ℹ️ [Webhook] Ride not found for Order ID ${order_id}`);
-                await session.abortTransaction();
-                session.endSession();
-                return res.json({ status: 'ok', message: 'Ride not tracked' });
-            }
-
-            // IDEMPOTENCY: Already processed?
-            if (ride.paymentStatus === 'Paid') {
-                console.log(`✅ [Webhook] Duplicate skipped - Ride ${ride._id} already Paid`);
-                await session.abortTransaction();
-                session.endSession();
-                return res.json({ status: 'ok', message: 'Already processed' });
-            }
-
-            const fare = ride.negotiatedFare || ride.fare.final || ride.fare.proposed;
-            const { platformCommission, driverAmount } = calculateCommission(fare);
-
-            ride.paymentStatus = 'Paid';
-            ride.paymentMethod = 'razorpay';
-            ride.platformCommission = platformCommission;
-            ride.driverAmount = driverAmount;
-            ride.paidAt = new Date();
-            await ride.save({ session });
-
-            if (ride.driverId) {
-                await Driver.findOneAndUpdate(
-                    { userId: ride.driverId },
-                    { $inc: { payoutBalance: driverAmount } },
-                    { session }
-                );
-            }
-
-            const cashback = Math.round(fare * 0.02);
-            if (cashback > 0) {
-                await User.findByIdAndUpdate(ride.riderId, { $inc: { walletBalance: cashback } }, { session });
-            }
-
-            await Payment.create([{
-                rideId: ride._id,
-                riderId: ride.riderId,
-                driverId: ride.driverId,
-                amount: fare,
-                method: 'razorpay',
-                status: 'completed',
-                cashback
-            }], { session });
-
-            await session.commitTransaction();
-            session.endSession();
-            console.log(`💰 [Webhook] Payment SUCCESS for Ride ${ride._id}`);
-
-            const io = req.app.get('io');
-            if (io) io.to(`ride_${ride._id}`).emit('paymentSuccess', { rideId: ride._id, method: 'razorpay', via: 'webhook' });
-        } else if (event === 'payment.failed') {
-            const { order_id } = payload.payment.entity;
-            const ride = await Ride.findOne({ razorpayOrderId: order_id }).session(session);
-            if (ride) {
-                ride.paymentStatus = 'Failed';
-                await ride.save({ session });
+        if (data.event === 'payment.captured') {
+            const { order_id } = data.payload.payment.entity;
+            const ride = await Ride.findOne({ razorpayOrderId: order_id });
+            if (ride && ride.paymentStatus !== 'Paid') {
+                const fare = ride.negotiatedFare || ride.fare.final || ride.fare.proposed;
+                const { platformCommission, driverAmount } = calculateCommission(fare);
+                ride.paymentStatus = 'Paid'; ride.paymentMethod = 'razorpay';
+                ride.platformCommission = platformCommission; ride.driverAmount = driverAmount;
+                await ride.save();
+                if (ride.driverId) await Driver.findOneAndUpdate({ userId: ride.driverId }, { $inc: { payoutBalance: driverAmount } });
+                await Payment.create({ rideId: ride._id, riderId: ride.riderId, driverId: ride.driverId, amount: fare, method: 'razorpay', status: 'completed' });
                 const io = req.app.get('io');
-                if (io) io.to(`ride_${ride._id}`).emit('paymentFailed', { rideId: ride._id });
+                if (io) io.to(`ride_${ride._id}`).emit('paymentSuccess', { rideId: ride._id, method: 'razorpay' });
             }
-            await session.commitTransaction();
-            session.endSession();
-            console.log(`❌ [Webhook] Payment FAILED for Ride ${ride?._id}`);
-        } else {
-            await session.commitTransaction();
-            session.endSession();
         }
-
         res.json({ status: 'ok' });
     } catch (error) {
-        console.error('🔥 [Webhook Error]:', error);
-        if (session.inTransaction()) await session.abortTransaction();
-        session.endSession();
-        res.status(500).json({ status: 'error', message: error.message });
+        res.status(500).json({ error: error.message });
     }
 };
 
-// Wallet Flow
+/**
+ * 4️⃣ Pay with Wallet
+ */
 const payWithWallet = async (req, res, next) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    let session;
     try {
+        session = await mongoose.startSession();
+        session.startTransaction();
         const { rideId } = req.body;
         const ride = await Ride.findById(rideId).session(session);
         if (!ride || ride.paymentStatus === 'Paid') {
             await session.abortTransaction(); session.endSession();
-            return res.status(400).json({ message: 'Ride invalid or already paid' });
+            return res.status(400).json({ message: 'Ride invalid' });
         }
-
         const fare = ride.negotiatedFare || ride.fare.final || ride.fare.proposed;
         const user = await User.findById(req.user._id).session(session);
-
         if (user.walletBalance < fare) {
             await session.abortTransaction(); session.endSession();
             return res.status(400).json({ message: 'Insufficient balance' });
@@ -385,117 +237,134 @@ const payWithWallet = async (req, res, next) => {
 
         const { platformCommission, driverAmount } = calculateCommission(fare);
         user.walletBalance -= fare;
-        await user.save({ session });
-
         const cashback = Math.round(fare * 0.02);
         user.walletBalance += cashback;
         await user.save({ session });
 
-        ride.paymentMethod = 'wallet';
-        ride.paymentStatus = 'Paid';
-        ride.platformCommission = platformCommission;
-        ride.driverAmount = driverAmount;
-        ride.paidAt = new Date();
+        ride.paymentMethod = 'wallet'; ride.paymentStatus = 'Paid';
+        ride.platformCommission = platformCommission; ride.driverAmount = driverAmount; ride.paidAt = new Date();
         await ride.save({ session });
 
-        if (ride.driverId) {
-            await Driver.findOneAndUpdate({ userId: ride.driverId }, { $inc: { payoutBalance: driverAmount } }, { session });
-        }
-
-        await Payment.create([{
-            rideId: ride._id,
-            riderId: ride.riderId,
-            driverId: ride.driverId,
-            amount: fare,
-            method: 'wallet',
-            status: 'completed',
-            cashback
-        }], { session });
+        if (ride.driverId) await Driver.findOneAndUpdate({ userId: ride.driverId }, { $inc: { payoutBalance: driverAmount } }, { session });
+        await Payment.create([{ rideId: ride._id, riderId: ride.riderId, driverId: ride.driverId, amount: fare, method: 'wallet', status: 'completed', cashback }], { session });
 
         await session.commitTransaction();
         session.endSession();
         const io = req.app.get('io');
-        if (io) io.to(`ride_${ride._id}`).emit('paymentSuccess', { rideId: ride._id, method: 'wallet', cashback });
-
-        // 📧 Email + 📱 WhatsApp: Payment Receipt (non-blocking)
-        sendPaymentReceiptEmail(
-            { name: user.name, email: user.email },
-            { _id: ride._id, paymentMethod: 'wallet', agreedFare: fare, platformFee: platformCommission, totalPaid: fare }
-        );
-        sendPaymentReceiptWhatsApp(
-            { phone: user.phone },
-            { agreedFare: fare, paymentMethod: 'wallet' }
-        );
-
+        if (io) io.to(`ride_${ride._id}`).emit('paymentSuccess', { rideId: ride._id, method: 'wallet' });
         res.json({ status: "success", ride, newBalance: user.walletBalance, cashback });
     } catch (error) {
-        if (session.inTransaction()) await session.abortTransaction();
-        session.endSession();
+        if (session && session.inTransaction()) await session.abortTransaction();
+        if (session) session.endSession();
+        if (isTransactionError(error)) {
+            try {
+                const { rideId } = req.body;
+                const ride = await Ride.findById(rideId);
+                const fare = ride.negotiatedFare || ride.fare.final || ride.fare.proposed;
+                const user = await User.findById(req.user._id);
+                if (user.walletBalance < fare) return res.status(400).json({ message: 'Insufficient balance' });
+                const { platformCommission, driverAmount } = calculateCommission(fare);
+                user.walletBalance -= fare; user.walletBalance += Math.round(fare * 0.02);
+                await user.save();
+                ride.paymentMethod = 'wallet'; ride.paymentStatus = 'Paid';
+                ride.platformCommission = platformCommission; ride.driverAmount = driverAmount;
+                await ride.save();
+                if (ride.driverId) await Driver.findOneAndUpdate({ userId: ride.driverId }, { $inc: { payoutBalance: driverAmount } });
+                await Payment.create({ rideId: ride._id, riderId: ride.riderId, driverId: ride.driverId, amount: fare, method: 'wallet', status: 'completed' });
+                const io = req.app.get('io');
+                if (io) io.to(`ride_${ride._id}`).emit('paymentSuccess', { rideId: ride._id, method: 'wallet' });
+                return res.json({ status: "success", ride, newBalance: user.walletBalance });
+            } catch (e) { return next(e); }
+        }
         next(error);
     }
 };
 
-// Confirm Cash Payment (Driver)
-const confirmCashPayment = async (req, res, next) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+/**
+ * 5️⃣ Initiate Cash Payment (Rider)
+ */
+const initiateCashPayment = async (req, res, next) => {
+    let session;
     try {
+        session = await mongoose.startSession();
+        session.startTransaction();
         const { rideId } = req.body;
         const ride = await Ride.findById(rideId).session(session);
-        if (!ride || ride.paymentStatus === 'Paid' || ride.driverId.toString() !== req.user._id.toString()) {
+        if (!ride || ride.paymentStatus === 'Paid') {
             await session.abortTransaction(); session.endSession();
             return res.status(400).json({ message: 'Invalid request' });
         }
+        ride.paymentMethod = 'cash'; ride.paymentStatus = 'Driver Confirmation';
+        await ride.save({ session });
+        await session.commitTransaction();
+        session.endSession();
+        const io = req.app.get('io');
+        if (io) io.to(`ride_${ride._id}`).emit('paymentInitiated', { rideId: ride._id, method: 'cash' });
+        res.json({ status: "success", message: "Waiting for driver confirmation", ride });
+    } catch (error) {
+        if (session && session.inTransaction()) await session.abortTransaction();
+        if (session) session.endSession();
+        if (isTransactionError(error)) {
+            console.warn('⚠️ [Cash Initiate] Fallback');
+            try {
+                const { rideId } = req.body;
+                const ride = await Ride.findById(rideId);
+                ride.paymentMethod = 'cash'; ride.paymentStatus = 'Driver Confirmation';
+                await ride.save();
+                const io = req.app.get('io');
+                if (io) io.to(`ride_${ride._id}`).emit('paymentInitiated', { rideId: ride._id, method: 'cash' });
+                return res.json({ status: "success", message: "Waiting for driver confirmation", ride });
+            } catch (e) { return next(e); }
+        }
+        next(error);
+    }
+};
 
+/**
+ * 6️⃣ Confirm Cash Payment (Driver)
+ */
+const confirmCashPayment = async (req, res, next) => {
+    let session;
+    try {
+        session = await mongoose.startSession();
+        session.startTransaction();
+        const { rideId } = req.body;
+        const ride = await Ride.findById(rideId).session(session);
+        if (!ride || ride.paymentStatus === 'Paid') {
+            await session.abortTransaction(); session.endSession();
+            return res.status(400).json({ message: 'Invalid request' });
+        }
         const fare = ride.negotiatedFare || ride.fare.final || ride.fare.proposed;
         const { platformCommission, driverAmount } = calculateCommission(fare);
-
-        ride.paymentMethod = 'cash';
-        ride.paymentStatus = 'Paid';
-        ride.platformCommission = platformCommission;
-        ride.driverAmount = driverAmount;
-        ride.paidAt = new Date();
+        ride.paymentMethod = 'cash'; ride.paymentStatus = 'Paid';
+        ride.platformCommission = platformCommission; ride.driverAmount = driverAmount; ride.paidAt = new Date();
         await ride.save({ session });
-
-        await Driver.findOneAndUpdate(
-            { userId: req.user._id },
-            { $inc: { payoutBalance: -platformCommission } },
-            { session }
-        );
-
-        await Payment.create([{
-            rideId: ride._id,
-            riderId: ride.riderId,
-            driverId: ride.driverId,
-            amount: fare,
-            method: 'cash',
-            status: 'completed'
-        }], { session });
-
+        await Driver.findOneAndUpdate({ userId: req.user._id }, { $inc: { payoutBalance: -platformCommission } }, { session });
+        await Payment.create([{ rideId: ride._id, riderId: ride.riderId, driverId: ride.driverId, amount: fare, method: 'cash', status: 'completed' }], { session });
         await session.commitTransaction();
         session.endSession();
         const io = req.app.get('io');
         if (io) io.to(`ride_${ride._id}`).emit('paymentSuccess', { rideId: ride._id, method: 'cash' });
-
-        // 📧 Email + 📱 WhatsApp: Payment Receipt (non-blocking)
-        try {
-            const riderUser = await User.findById(ride.riderId);
-            if (riderUser) {
-                sendPaymentReceiptEmail(
-                    { name: riderUser.name, email: riderUser.email },
-                    { _id: ride._id, paymentMethod: 'cash', agreedFare: fare, platformFee: platformCommission, totalPaid: fare }
-                );
-                sendPaymentReceiptWhatsApp(
-                    { phone: riderUser.phone },
-                    { agreedFare: fare, paymentMethod: 'cash' }
-                );
-            }
-        } catch (e) { /* non-blocking */ }
-
         res.json({ status: "success", ride });
     } catch (error) {
-        if (session.inTransaction()) await session.abortTransaction();
-        session.endSession();
+        if (session && session.inTransaction()) await session.abortTransaction();
+        if (session) session.endSession();
+        if (isTransactionError(error)) {
+            try {
+                const { rideId } = req.body;
+                const ride = await Ride.findById(rideId);
+                const fare = ride.negotiatedFare || ride.fare.final || ride.fare.proposed;
+                const { platformCommission, driverAmount } = calculateCommission(fare);
+                ride.paymentMethod = 'cash'; ride.paymentStatus = 'Paid';
+                ride.platformCommission = platformCommission; ride.driverAmount = driverAmount;
+                await ride.save();
+                await Driver.findOneAndUpdate({ userId: req.user._id }, { $inc: { payoutBalance: -platformCommission } });
+                await Payment.create({ rideId: ride._id, riderId: ride.riderId, driverId: ride.driverId, amount: fare, method: 'cash', status: 'completed' });
+                const io = req.app.get('io');
+                if (io) io.to(`ride_${ride._id}`).emit('paymentSuccess', { rideId: ride._id, method: 'cash' });
+                return res.json({ status: "success", ride });
+            } catch (e) { return next(e); }
+        }
         next(error);
     }
 };
@@ -514,6 +383,7 @@ module.exports = {
     createRazorpayOrder,
     verifyRazorpayPayment,
     payWithWallet,
+    initiateCashPayment,
     confirmCashPayment,
     getPaymentHistory,
     handleRazorpayWebhook

@@ -9,6 +9,8 @@ import StatusBadge from '../../components/StatusBadge';
 import api from '../../services/api';
 import MapView from '../../components/map/MapView';
 import ConfirmModal from '../../components/ConfirmModal';
+import PaymentScreen from '../../components/PaymentScreen';
+import RatingModal from '../../components/RatingModal';
 
 const statusMessages = {
     requested: 'Finding your driver...',
@@ -33,6 +35,7 @@ const Tracking = () => {
     const [riderLocation, setRiderLocation] = useState(null);
     const [cancelLoading, setCancelLoading] = useState(false);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+    const [showRatingModal, setShowRatingModal] = useState(false);
 
     // Get rider's current location for initial map view
     useEffect(() => {
@@ -65,11 +68,17 @@ const Tracking = () => {
             });
             socket.on('rideStatusChanged', (data) => {
                 setRide(prev => ({ ...prev, status: data.status }));
-                if (data.status === 'completed' || data.status === 'cancelled') {
-                    setTimeout(() => {
-                        navigate('/rider/home');
-                    }, 2000);
+                if (data.status === 'cancelled') {
+                    setTimeout(() => navigate('/rider/home'), 2000);
                 }
+            });
+            socket.on('paymentInitiated', (data) => {
+                setRide(prev => ({ ...prev, paymentStatus: 'Driver Confirmation', paymentMethod: data.method }));
+            });
+            socket.on('paymentSuccess', (data) => {
+                setRide(prev => ({ ...prev, paymentStatus: 'Paid' }));
+                toast.success('Payment confirmed!');
+                setShowRatingModal(true);
             });
             socket.on('rideAccepted', (data) => {
                 if (data.rideId === ride._id) setRide(prev => ({ ...prev, status: 'accepted', driverId: data.driverId }));
@@ -77,6 +86,8 @@ const Tracking = () => {
             return () => {
                 socket.off('driverLocationUpdate');
                 socket.off('rideStatusChanged');
+                socket.off('paymentInitiated');
+                socket.off('paymentSuccess');
                 socket.off('rideAccepted');
             };
         }
@@ -266,11 +277,37 @@ const Tracking = () => {
                             to="/rider/sos"
                             className="block w-full mt-4 py-3 rounded-xl text-center text-sm font-semibold bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-colors"
                         >
-                            🚨 Emergency SOS
+                            Emergency SOS
                         </Link>
                     </div>
                 </div>
             </div>
+
+            {/* Payment & Rating Layer */}
+            {ride.status === 'completed' && ride.paymentStatus !== 'Paid' && (
+                <div className="fixed inset-0 z-[60] flex flex-col justify-end pointer-events-none">
+                    <div className="pointer-events-auto">
+                        <PaymentScreen 
+                            ride={ride} 
+                            user={user} 
+                            onPaymentSuccess={() => {
+                                setRide(prev => ({ ...prev, paymentStatus: 'Paid' }));
+                                setShowRatingModal(true);
+                            }} 
+                        />
+                    </div>
+                </div>
+            )}
+
+            <RatingModal 
+                ride={ride}
+                isOpen={showRatingModal}
+                onClose={() => navigate('/rider/home')}
+                onSubmitted={() => {
+                    toast.success('Thank you for your feedback!');
+                    navigate('/rider/home');
+                }}
+            />
 
             <ConfirmModal
                 isOpen={showCancelConfirm}

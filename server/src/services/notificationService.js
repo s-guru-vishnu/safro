@@ -110,6 +110,16 @@ const sendOTPEmail = (user, otp, purpose = 'Verification') => {
     sendEmail(user.email, subject, html).catch(console.error);
 };
 
+// ══════════════════════════════════════════════════════════════════
+//  WHATSAPP NOTIFICATIONS (MOCKS FOR NOW)
+// ══════════════════════════════════════════════════════════════════
+
+const sendRideBookedWhatsApp = (user, ride) => { console.log(`[WhatsApp Mock] Ride Booked for ${user?.phone}`); };
+const sendDriverAssignedWhatsApp = (user, driver) => { console.log(`[WhatsApp Mock] Driver Assigned for ${user?.phone}`); };
+const sendRideStartedWhatsApp = (user, driver) => { console.log(`[WhatsApp Mock] Ride Started for ${user?.phone}`); };
+const sendRideCompletedWhatsApp = (user, fareData) => { console.log(`[WhatsApp Mock] Ride Completed for ${user?.phone}`); };
+const sendPaymentReceiptWhatsApp = (user, receiptInfo) => { console.log(`[WhatsApp Mock] Payment Receipt for ${user?.phone}`); };
+
 module.exports = {
     // Email — Auth
     sendWelcomeEmail,
@@ -128,4 +138,10 @@ module.exports = {
     sendMeetingScheduledEmail,
     // Email — OTP
     sendOTPEmail,
+    // WhatsApp — Mocks
+    sendRideBookedWhatsApp,
+    sendDriverAssignedWhatsApp,
+    sendRideStartedWhatsApp,
+    sendRideCompletedWhatsApp,
+    sendPaymentReceiptWhatsApp,
 };

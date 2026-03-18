@@ -741,17 +741,81 @@ const getActiveRide = async (req, res, next) => {
     }
 };
 
+// @desc    Rate a completed ride
+// @route   POST /api/rides/:id/rate
+const rateRide = async (req, res, next) => {
+    try {
+        const { rating, review } = req.body;
+        const rideId = req.params.id;
+
+        if (!rating || rating < 1 || rating > 5) {
+            return res.status(400).json({ message: 'Valid rating between 1 and 5 is required' });
+        }
+
+        const ride = await Ride.findById(rideId);
+        if (!ride || ride.riderId.toString() !== req.user._id.toString()) {
+            return res.status(404).json({ message: 'Ride not found' });
+        }
+
+        if (ride.status !== 'completed' || ride.paymentStatus !== 'Paid') {
+            return res.status(400).json({ message: 'Can only rate paid completed rides' });
+        }
+
+        if (ride.rating) {
+            return res.status(400).json({ message: 'Ride already rated' });
+        }
+
+        ride.rating = rating;
+        ride.review = review;
+        await ride.save();
+
+        // Create Review entry for stats consistency
+        if (ride.driverId) {
+            const Review = require('../models/Review');
+            try {
+                await Review.create({
+                    riderId: ride.riderId,
+                    driverId: ride.driverId,
+                    rideId: ride._id,
+                    rating,
+                    comment: review
+                });
+            } catch (err) {
+                console.error('Failed to create review record (non-blocking):', err.message);
+            }
+
+            const driver = await Driver.findOne({ userId: ride.driverId });
+            if (driver) {
+                const totalRatings = driver.totalRatings || 0;
+                const currentRating = driver.rating || 0;
+                
+                const newTotal = totalRatings + 1;
+                const newRating = ((currentRating * totalRatings) + rating) / newTotal;
+
+                driver.totalRatings = newTotal;
+                driver.rating = parseFloat(newRating.toFixed(1));
+                await driver.save();
+            }
+        }
+
+        res.json({ status: 'success', message: 'Ride rated successfully', ride });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
+    getFareEstimate,
     requestRide,
     getAvailableRides,
     getRide,
     confirmRide,
+    getRideHistory,
+    getAIFare,
     startRide,
     completeRide,
     cancelRide,
     failNegotiation,
-    getRideHistory,
-    getAIFare,
     getActiveRide,
-    getFareEstimate
+    rateRide
 };

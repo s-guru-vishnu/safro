@@ -18,6 +18,7 @@ build_output.txt
 server_error.txt
 server_full_log.txt
 sample document
+n8n
 
 # Editor directories and files
 .vscode/*

@@ -5,6 +5,7 @@ const {
     createRazorpayOrder,
     verifyRazorpayPayment,
     payWithWallet,
+    initiateCashPayment,
     confirmCashPayment,
     getPaymentHistory,
     handleRazorpayWebhook
@@ -27,6 +28,7 @@ router.post('/verify', verifyRazorpayPayment);
 router.post('/pay-wallet', payWithWallet);
 
 // Cash Flow
+router.post('/initiate-cash', initiateCashPayment);
 router.post('/confirm-cash', confirmCashPayment);
 
 // history

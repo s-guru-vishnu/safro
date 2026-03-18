@@ -243,46 +243,6 @@ const MapView = ({ pickupCoordinates, dropCoordinates, driverCoordinates, riderC
                     />
                 )}
             </GoogleMap>
-
-            {/* ── Map Controls (top-right) ───────────────────────── */}
-            <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
-                {/* Map Type Toggle */}
-                <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 flex overflow-hidden">
-                    <button
-                        onClick={() => setMapType('roadmap')}
-                        className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 ${
-                            mapType === 'roadmap'
-                                ? 'bg-teal-600 text-white'
-                                : 'text-gray-500 hover:bg-gray-50'
-                        }`}
-                    >
-                        <FiMap size={10} /> Map
-                    </button>
-                    <button
-                        onClick={() => setMapType('satellite')}
-                        className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 ${
-                            mapType === 'satellite'
-                                ? 'bg-teal-600 text-white'
-                                : 'text-gray-500 hover:bg-gray-50'
-                        }`}
-                    >
-                        <FiLayers size={10} /> Satellite
-                    </button>
-                </div>
-
-                {/* Traffic Toggle */}
-                <button
-                    onClick={() => setTrafficEnabled(prev => !prev)}
-                    className={`px-3 py-1.5 rounded-lg shadow-md border text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 backdrop-blur-sm ${
-                        trafficEnabled
-                            ? 'bg-teal-600 text-white border-teal-600'
-                            : 'bg-white/95 text-gray-500 border-gray-200 hover:bg-gray-50'
-                    }`}
-                >
-                    <FiActivity size={10} />
-                    {trafficEnabled ? 'Traffic On' : 'Traffic'}
-                </button>
-            </div>
         </div>
     );
 };

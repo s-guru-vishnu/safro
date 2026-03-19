@@ -33,49 +33,40 @@ const Wallet = () => {
 
     const fetchWalletData = async () => {
         try {
-            const [profileRes, transRes] = await Promise.all([
-                api.get('/auth/profile'),
-                api.get('/payment/transactions')
-            ]);
+            // Fetch profile separately to ensure it loads even if transactions fail
+            try {
+                const profileRes = await api.get('/auth/profile');
+                setUser(profileRes.data.user);
+            } catch (err) {
+                console.error('Error fetching profile:', err);
+                toast.error('Failed to load user profile');
+            }
 
-            setUser(profileRes.data.user);
-            setTransactions(transRes.data.transactions || []);
+            // Fetch transactions separately
+            try {
+                const transRes = await api.get('/payment/transactions');
+                const transactionsData = transRes.data.transactions || [];
+                setTransactions(transactionsData);
 
-            const currentStats = (transRes.data.transactions || []).reduce((acc, t) => {
-                if (t.type === 'credit') acc.added += t.amount;
-                if (t.type === 'debit') acc.spent += Math.abs(t.amount);
-                return acc;
-            }, { spent: 0, added: 0 });
-            setStats(currentStats);
+                const currentStats = transactionsData.reduce((acc, t) => {
+                    const amt = Number(t.amount) || 0;
+                    if (t.type === 'credit') acc.added += amt;
+                    if (t.type === 'debit') acc.spent += Math.abs(amt);
+                    return acc;
+                }, { spent: 0, added: 0 });
+                setStats(currentStats);
+            } catch (err) {
+                console.error('Error fetching transactions:', err);
+            }
 
         } catch (err) {
-            console.error('Error fetching wallet:', err);
-            toast.error('Failed to load wallet data');
+            console.error('Unexpected error in fetchWalletData:', err);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleToggleQuickPay = async () => {
-        try {
-            const newStatus = !user.quickPayEnabled;
-            await api.put('/auth/profile', { quickPayEnabled: newStatus });
-            setUser(prev => ({ ...prev, quickPayEnabled: newStatus }));
-            toast.success(`Quick Pay ${newStatus ? 'enabled' : 'disabled'}`);
-        } catch (err) {
-            toast.error('Failed to update settings');
-        }
-    };
-
-    const handleUpdateDefaultMethod = async (method) => {
-        try {
-            await api.put('/auth/profile', { defaultPaymentMethod: method });
-            setUser(prev => ({ ...prev, defaultPaymentMethod: method }));
-            toast.success(`Default payment set to ${method}`);
-        } catch (err) {
-            toast.error('Failed to update default method');
-        }
-    };
+    const [showAllTransactions, setShowAllTransactions] = useState(false);
 
     const handleAddMoney = async () => {
         if (!amount || isNaN(amount) || amount <= 0) {
@@ -84,6 +75,12 @@ const Wallet = () => {
         }
 
         setActionLoading(true);
+        if (!user) {
+            toast.error('User profile not loaded. Please refresh.');
+            setActionLoading(false);
+            return;
+        }
+
         try {
             const { data: order } = await api.post('/payment/create-order', {
                 amount: parseFloat(amount)
@@ -113,9 +110,9 @@ const Wallet = () => {
                     }
                 },
                 prefill: {
-                    name: user.name,
-                    email: user.email,
-                    contact: user.phone
+                    name: user?.name || '',
+                    email: user?.email || '',
+                    contact: user?.phone || ''
                 },
                 theme: { color: "#0d9488" }
             };
@@ -194,71 +191,46 @@ const Wallet = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-                    <div className="space-y-4">
-                        <h3 className="text-lg font-bold text-gray-900">Payment Settings</h3>
-                        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden divide-y divide-gray-100">
-                            <div className="p-5 flex items-center justify-between">
-                                <div>
-                                    <h4 className="text-sm font-semibold text-gray-900">Quick Pay</h4>
-                                    <p className="text-xs text-gray-500">Auto-pay from wallet after ride ends</p>
-                                </div>
-                                <button
-                                    onClick={handleToggleQuickPay}
-                                    className={`w-12 h-6 rounded-full transition-all relative ${user?.quickPayEnabled ? 'bg-teal-600' : 'bg-gray-200'}`}
-                                >
-                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${user?.quickPayEnabled ? 'left-7' : 'left-1'}`} />
-                                </button>
-                            </div>
-                            <div className="p-5 flex items-center justify-between">
-                                <div>
-                                    <h4 className="text-sm font-semibold text-gray-900">Default Method</h4>
-                                    <p className="text-xs text-gray-500">Preferred way to pay for rides</p>
-                                </div>
-                                <select
-                                    value={user?.defaultPaymentMethod || 'cash'}
-                                    onChange={(e) => handleUpdateDefaultMethod(e.target.value)}
-                                    className="text-xs font-semibold bg-gray-50 border-none rounded-lg py-2 px-3 outline-none cursor-pointer"
-                                >
-                                    <option value="cash">Cash</option>
-                                    <option value="wallet">Wallet</option>
-                                    <option value="razorpay">Razorpay</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
+                <div className="space-y-4 mb-10">
+                    <div className="flex items-center justify-between">
                         <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                             <History className="w-5 h-5 text-gray-400" /> Recent Transactions
                         </h3>
-                        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden min-h-[164px]">
-                            {transactions.length === 0 ? (
-                                <div className="p-12 text-center h-full flex flex-col justify-center">
-                                    <p className="text-gray-500 font-medium text-sm">No transactions yet</p>
-                                    <p className="text-xs text-gray-400 mt-1">Your payments will appear here</p>
-                                </div>
-                            ) : (
-                                <div className="divide-y divide-gray-100">
-                                    {transactions.slice(0, 5).map((t) => (
-                                        <div key={t._id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`p-2 rounded-lg ${t.type === 'credit' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                                                    {t.type === 'credit' ? <Plus size={16} /> : <ArrowDownLeft size={16} />}
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-bold text-gray-900">{t.description}</p>
-                                                    <p className="text-[10px] text-gray-500">{new Date(t.createdAt).toLocaleDateString()}</p>
-                                                </div>
+                        {transactions.length > 5 && (
+                            <button 
+                                onClick={() => setShowAllTransactions(!showAllTransactions)}
+                                className="text-sm font-bold text-teal-600 hover:text-teal-700 transition-colors"
+                            >
+                                {showAllTransactions ? 'Show Less' : 'View All'}
+                            </button>
+                        )}
+                    </div>
+                    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden min-h-[164px]">
+                        {transactions.length === 0 ? (
+                            <div className="p-12 text-center h-full flex flex-col justify-center">
+                                <p className="text-gray-500 font-medium text-sm">No transactions yet</p>
+                                <p className="text-xs text-gray-400 mt-1">Your payments will appear here</p>
+                            </div>
+                        ) : (
+                            <div className="divide-y divide-gray-100">
+                                {(showAllTransactions ? transactions : transactions.slice(0, 5)).map((t) => (
+                                    <div key={t._id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-2 rounded-lg ${t.type === 'credit' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                                                {t.type === 'credit' ? <Plus size={16} /> : <ArrowDownLeft size={16} />}
                                             </div>
-                                            <p className={`text-sm font-black ${t.type === 'credit' ? 'text-green-600' : 'text-gray-900'}`}>
-                                                {t.type === 'credit' ? '+' : '-'}₹{Math.abs(t.amount)}
-                                            </p>
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-900">{t.description}</p>
+                                                <p className="text-[10px] text-gray-500">{new Date(t.createdAt).toLocaleDateString()}</p>
+                                            </div>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                                        <p className={`text-sm font-black ${t.type === 'credit' ? 'text-green-600' : 'text-gray-900'}`}>
+                                            {t.type === 'credit' ? '+' : '-'}₹{Math.abs(t.amount)}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

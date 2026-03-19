@@ -50,6 +50,11 @@ const PaymentScreen = () => {
                     toast.success('Paid successfully via Wallet!');
                 }
             } else if (method === 'razorpay') {
+                if (!user) {
+                    toast.error('User profile not loaded. Please refresh.');
+                    setProcessing(false);
+                    return;
+                }
                 // Razorpay Flow
                 const { data: order } = await api.post('/payment/create-order', { rideId });
 
@@ -75,9 +80,9 @@ const PaymentScreen = () => {
                         }
                     },
                     prefill: {
-                        name: user.name,
-                        email: user.email,
-                        contact: user.phone
+                        name: user?.name || '',
+                        email: user?.email || '',
+                        contact: user?.phone || ''
                     },
                     theme: { color: "#0d9488" }
                 };

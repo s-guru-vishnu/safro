@@ -46,13 +46,17 @@ const RiderHome = () => {
             try {
                 const res = await api.get('/rides/active');
                 if (res.data.ride) {
-                    setActiveRide(res.data.ride);
-                    localStorage.setItem('activeRideId', res.data.ride._id);
-                    if (res.data.ride.status === 'completed' && res.data.ride.paymentStatus !== 'Paid') {
-                        setCompletedRide(res.data.ride);
-                        setShowPaymentScreen(true);
-                    } else if (['confirmed', 'accepted', 'driver_arrived', 'otp_verified', 'on_trip'].includes(res.data.ride.status)) {
-                        navigate('/rider/tracking', { state: { ride: res.data.ride } });
+                    const ride = res.data.ride;
+                    setActiveRide(ride);
+                    localStorage.setItem('activeRideId', ride._id);
+                    
+                    // If ride is not cancelled, and is either not completed OR (completed but unfinalized)
+                    // finalize = paid AND rated
+                    const isUnfinalized = ride.status !== 'cancelled' && 
+                        (ride.status !== 'completed' || ride.paymentStatus !== 'Paid' || !ride.rating);
+
+                    if (isUnfinalized) {
+                        navigate('/rider/tracking', { state: { ride } });
                     }
                 }
             } catch (err) {

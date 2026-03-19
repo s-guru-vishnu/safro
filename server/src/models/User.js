@@ -68,11 +68,10 @@ const userSchema = new mongoose.Schema({
         ref: 'Ride',
         default: null
     },
-    // Admin region for geo-based driver verification assignment
     adminRegion: {
         center: {
             type: { type: String, enum: ['Point'], default: 'Point' },
-            coordinates: { type: [Number], default: [0, 0] } // [lng, lat]
+            coordinates: { type: [Number], default: [0, 0] }
         },
         radiusKm: { type: Number, default: 50 }
     },
@@ -80,10 +79,7 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    quickPayEnabled: {
-        type: Boolean,
-        default: false
-    },
+
     defaultPaymentMethod: {
         type: String,
         enum: ['wallet', 'razorpay', 'cash'],

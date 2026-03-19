@@ -53,10 +53,17 @@ const Tracking = () => {
     useEffect(() => {
         if (!ride) {
             api.get('/rides/active').then(res => {
-                if (res.data.ride) setRide(res.data.ride);
+                if (res.data.ride) {
+                    setRide(res.data.ride);
+                    if (res.data.ride.status === 'completed' && res.data.ride.paymentStatus === 'Paid' && !res.data.ride.rating) {
+                        setShowRatingModal(true);
+                    }
+                }
             }).catch(() => { });
+        } else if (ride.status === 'completed' && ride.paymentStatus === 'Paid' && !ride.rating) {
+            setShowRatingModal(true);
         }
-    }, []);
+    }, [ride?._id]);
 
     useEffect(() => {
         if (socket && ride) {
@@ -91,7 +98,7 @@ const Tracking = () => {
                 socket.off('rideAccepted');
             };
         }
-    }, [socket, ride]);
+    }, [socket, ride?._id]);
 
     // Live location sharing — only when ride is confirmed or ongoing
     useEffect(() => {

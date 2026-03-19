@@ -140,7 +140,7 @@ const RideRequest = ({ onRideCreated }) => {
             });
 
             toast.success('Ride requested! Waiting for drivers...');
-            if (onRideCreated) onRideCreated(res.data);
+            if (onRideCreated) onRideCreated(res.data.ride);
 
             setPickup('');
             setDrop('');

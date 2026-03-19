@@ -91,7 +91,7 @@ const PaymentScreen = ({ ride, onPaymentSuccess }) => {
 
         setLoading(true);
         try {
-            const res = await api.post('/payment/wallet', { rideId: ride._id });
+            const res = await api.post('/payment/pay-wallet', { rideId: ride._id });
             if (res.data.status === 'success') {
                 toast.success('Paid via Wallet!');
                 onPaymentSuccess(res.data.ride);
@@ -155,50 +155,52 @@ const PaymentScreen = ({ ride, onPaymentSuccess }) => {
             <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
+                className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
             />
             
             <motion.div
                 initial={{ scale: 0.9, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                 className="w-full max-w-lg relative z-10"
             >
-                <GlassCard className="border-white/10 shadow-2xl overflow-hidden rounded-[2.5rem]">
-                    {/* Header Splash */}
-                    <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-indigo-600/20 via-transparent to-transparent -z-10" />
+                <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100">
+                    {/* Top Accent Bar */}
+                    <div className="h-2 bg-[#148e85] w-full" />
                     
                     <div className="p-8">
                         <div className="flex justify-between items-start mb-8">
                             <div>
-                                <h2 className="text-3xl font-extrabold text-white tracking-tight">Settle Payment</h2>
-                                <p className="text-slate-400 mt-1 flex items-center gap-2">
-                                    <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                                    Secure Transaction
+                                <h2 className="text-3xl font-black text-gray-900 tracking-tight">Settle Payment</h2>
+                                <p className="text-gray-500 text-xs mt-1 flex items-center gap-2 font-medium">
+                                    <ShieldCheck className="w-4 h-4 text-[#148e85]" />
+                                    Secure & Encrypted Transaction
                                 </p>
                             </div>
-                            <div className="bg-white/10 p-3 rounded-2xl border border-white/10">
-                                <Sparkles className="w-6 h-6 text-indigo-400" />
+                            <div className="bg-[#148e85]/5 p-3 rounded-2xl border border-[#148e85]/10">
+                                <Sparkles className="w-6 h-6 text-[#148e85]" />
                             </div>
                         </div>
 
                         {/* Price Display Block */}
-                        <div className="relative mb-8 group">
-                            <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
-                            <div className="relative bg-slate-900/50 border border-white/10 rounded-3xl p-6 flex justify-between items-center backdrop-blur-xl">
-                                <div>
-                                    <span className="text-slate-400 text-sm font-medium uppercase tracking-widest">Total Fare</span>
-                                    <div className="flex items-baseline gap-1 mt-1">
-                                        <span className="text-indigo-400 text-xl font-bold">₹</span>
-                                        <span className="text-4xl font-black text-white">{total}</span>
-                                    </div>
+                        <div className="bg-gray-900 rounded-3xl p-8 flex justify-between items-center relative overflow-hidden mb-8 shadow-xl shadow-gray-200">
+                            {/* Decorative elements */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-[#148e85]/10 rounded-full -mr-16 -mt-16 blur-3xl" />
+                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/10 rounded-full -ml-12 -mb-12 blur-2xl" />
+
+                            <div className="relative">
+                                <span className="text-gray-400 text-[10px] font-black uppercase tracking-widest">Total Fare</span>
+                                <div className="flex items-baseline gap-1 mt-1">
+                                    <span className="text-[#148e85] text-xl font-bold">₹</span>
+                                    <span className="text-5xl font-black text-white">{total}</span>
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-xs text-slate-500 font-medium mb-1 uppercase tracking-tighter">Ride ID</div>
-                                    <code className="text-[10px] text-indigo-300 font-mono bg-indigo-500/10 px-2 py-1 rounded-md border border-indigo-500/20">
-                                        {ride._id.slice(-8).toUpperCase()}
-                                    </code>
-                                </div>
+                            </div>
+                            <div className="text-right relative">
+                                <div className="text-[10px] text-gray-500 font-black mb-1 uppercase tracking-widest">Ride ID</div>
+                                <code className="text-xs text-[#148e85] font-mono bg-[#148e85]/10 px-3 py-1.5 rounded-xl border border-[#148e85]/20">
+                                    {ride._id.slice(-8).toUpperCase()}
+                                </code>
                             </div>
                         </div>
 
@@ -207,34 +209,42 @@ const PaymentScreen = ({ ride, onPaymentSuccess }) => {
                             {methods.map((method) => {
                                 const Icon = method.icon;
                                 const isSelected = selectedMethod === method.id;
+                                const isWallet = method.id === 'wallet';
+                                const lowBalance = isWallet && walletBalance < total;
+
                                 return (
                                     <motion.button
                                         key={method.id}
                                         whileHover={{ x: 4 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => setSelectedMethod(method.id)}
-                                        className={`w-full group relative flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 ${
+                                        className={`w-full group relative flex items-center gap-4 p-4 rounded-3xl border transition-all duration-300 ${
                                             isSelected 
-                                            ? 'bg-indigo-600/10 border-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.1)]' 
-                                            : 'bg-white/5 border-white/5 hover:border-white/20'
+                                            ? 'bg-[#148e85]/5 border-[#148e85] shadow-lg shadow-[#148e85]/10' 
+                                            : 'bg-white border-gray-100 hover:border-gray-200 hover:bg-gray-50/50'
                                         }`}
                                     >
-                                        <div className={`p-3 rounded-xl bg-gradient-to-br ${method.color} shadow-lg shrink-0 group-hover:scale-110 transition-transform`}>
+                                        <div className={`p-3.5 rounded-2xl shadow-sm shrink-0 group-hover:scale-110 transition-transform ${
+                                            method.id === 'wallet' ? 'bg-[#148e85]' : 
+                                            method.id === 'razorpay' ? 'bg-blue-500' : 'bg-amber-500'
+                                        }`}>
                                             <Icon className="w-6 h-6 text-white" />
                                         </div>
                                         
                                         <div className="flex-1 text-left min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-white font-bold tracking-tight">{method.name}</span>
-                                                {isSelected && <motion.div layoutId="check" initial={{ scale: 0 }} animate={{ scale: 1 }}><CheckCircle2 className="w-4 h-4 text-indigo-400" /></motion.div>}
+                                                <span className={`font-black tracking-tight ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>{method.name}</span>
+                                                {isSelected && <motion.div layoutId="check" initial={{ scale: 0 }} animate={{ scale: 1 }}><CheckCircle2 className="w-4 h-4 text-[#148e85]" /></motion.div>}
                                             </div>
-                                            <span className="text-slate-400 text-xs block truncate">{method.desc}</span>
+                                            <span className={`text-xs block truncate font-medium ${lowBalance ? 'text-red-500' : 'text-gray-400'}`}>
+                                                {method.desc}
+                                            </span>
                                         </div>
 
-                                        <div className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-tighter ${
+                                        <div className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest ${
                                             isSelected 
-                                            ? 'bg-indigo-500/20 text-indigo-300' 
-                                            : 'bg-white/5 text-slate-500'
+                                            ? (lowBalance ? 'bg-red-100 text-red-600' : 'bg-[#148e85] text-white')
+                                            : 'bg-gray-100 text-gray-400'
                                         }`}>
                                             {method.badge}
                                         </div>
@@ -243,42 +253,44 @@ const PaymentScreen = ({ ride, onPaymentSuccess }) => {
                             })}
                         </div>
 
-                        {/* Wallet Offer Card (Subtle hint) */}
-                        <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4 mb-8 flex items-center gap-3">
-                            <div className="bg-emerald-500/20 p-2 rounded-lg">
-                                <Coins className="w-4 h-4 text-emerald-400" />
+                        {/* Wallet Offer Card */}
+                        <div className="bg-[#148e85]/5 border border-[#148e85]/10 rounded-3xl p-5 mb-8 flex items-center gap-4">
+                            <div className="bg-[#148e85]/20 p-2.5 rounded-xl">
+                                <Sparkles className="w-5 h-5 text-[#148e85]" />
                             </div>
-                            <p className="text-xs text-emerald-200/70">
-                                Pay via <span className="text-emerald-400 font-bold underline underline-offset-2">Safro Wallet</span> to earn 2% instant cashback on this ride.
+                            <p className="text-[11px] text-[#148e85] font-medium leading-relaxed">
+                                Pay via <span className="text-[#148e85] font-black">Safro Wallet</span> to earn up to <span className="bg-[#148e85]/20 text-[#148e85] px-1.5 py-0.5 rounded font-bold">2% cashback</span> on this ride.
                             </p>
                         </div>
 
                         {/* CTA Button */}
                         <AnimatedButton
                             onClick={handlePayment}
-                            disabled={loading}
-                            className={`w-full py-5 rounded-2xl font-black text-lg tracking-wide shadow-2xl flex items-center justify-center gap-3 transition-all ${
-                                loading ? 'opacity-70 cursor-not-allowed' : ''
-                            } bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white shadow-indigo-500/20`}
+                            disabled={loading || (selectedMethod === 'wallet' && walletBalance < total)}
+                            className={`w-full py-5 rounded-2xl font-black text-lg tracking-wide shadow-xl flex items-center justify-center gap-3 transition-all active:scale-95 ${
+                                loading || (selectedMethod === 'wallet' && walletBalance < total)
+                                ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                                : 'bg-[#148e85] hover:opacity-90 text-white shadow-[#148e85]/20'
+                            }`}
                         >
                             {loading ? (
-                                <>
-                                    <Loader2 className="w-6 h-6 animate-spin" />
-                                    <span>Processing...</span>
-                                </>
+                                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : (
                                 <>
-                                    <span>{selectedMethod === 'cash' ? 'Pay directly with Cash' : `Complete Payment of ₹${total}`}</span>
-                                    <ArrowRightLeft className="w-5 h-5 opacity-50" />
+                                    <span>{selectedMethod === 'cash' ? 'Pay directly with Cash' : `Pay ₹${total}`}</span>
+                                    <ArrowRightLeft className="w-5 h-5" />
                                 </>
                             )}
                         </AnimatedButton>
                         
-                        <p className="text-center text-slate-500 text-[10px] mt-6 font-medium uppercase tracking-[0.2em]">
-                            End-to-end encrypted • Licensed SafePay Partner
-                        </p>
+                        <div className="flex flex-col items-center mt-8 space-y-1">
+                            <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest">
+                                End-to-end encrypted • Licensed SafePay Partner
+                            </p>
+                            <div className="w-12 h-1 bg-gray-100 rounded-full" />
+                        </div>
                     </div>
-                </GlassCard>
+                </div>
             </motion.div>
         </div>
     );

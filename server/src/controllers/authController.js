@@ -32,8 +32,6 @@ const register = async (req, res, next) => {
             return res.status(400).json({ message: 'User already exists with this email' });
         }
 
-        // Users can only self-register as 'rider'
-        // Drivers are appointed by admin only
         const user = await User.create({
             name,
             email,
@@ -46,7 +44,6 @@ const register = async (req, res, next) => {
 
         const token = generateToken(user._id);
 
-        // 📧 Welcome email (non-blocking)
         sendWelcomeEmail({ name, email });
 
         res.status(201).json({
@@ -140,7 +137,6 @@ const getProfile = async (req, res, next) => {
                 guardianEmail: user.guardianEmail,
                 profileImage: user.profileImage,
                 walletBalance: user.walletBalance,
-                quickPayEnabled: user.quickPayEnabled,
                 defaultPaymentMethod: user.defaultPaymentMethod,
                 createdAt: user.createdAt,
                 driverApplicationStatus: latestApplication ? latestApplication.status : null
@@ -158,7 +154,7 @@ const getProfile = async (req, res, next) => {
 const updateProfile = async (req, res, next) => {
     try {
         const updateData = {};
-        const allowedUpdates = ['name', 'phone', 'guardianPhone', 'guardianEmail', 'quickPayEnabled', 'defaultPaymentMethod', 'profileImage', 'taluk'];
+        const allowedUpdates = ['name', 'phone', 'guardianPhone', 'guardianEmail', 'defaultPaymentMethod', 'profileImage', 'taluk'];
 
         allowedUpdates.forEach(field => {
             if (req.body[field] !== undefined) {
@@ -183,7 +179,6 @@ const updateProfile = async (req, res, next) => {
                 guardianEmail: user.guardianEmail,
                 profileImage: user.profileImage,
                 walletBalance: user.walletBalance,
-                quickPayEnabled: user.quickPayEnabled,
                 defaultPaymentMethod: user.defaultPaymentMethod,
                 createdAt: user.createdAt
             }

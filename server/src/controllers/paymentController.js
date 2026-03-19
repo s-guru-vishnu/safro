@@ -28,6 +28,21 @@ const isTransactionError = (error) => {
 };
 
 /**
+ * Helper to calculate cashback based on fare
+ * if ride >= 500: ₹1 to ₹2
+ * else: 10 to 99 paise
+ */
+const calculateCashback = (fare) => {
+    if (fare >= 500) {
+        // Random between 1.00 and 2.00
+        return parseFloat((Math.random() * (2.0 - 1.0) + 1.0).toFixed(2));
+    } else {
+        // Random between 0.10 and 0.99
+        return parseFloat((Math.random() * (0.99 - 0.10) + 0.10).toFixed(2));
+    }
+};
+
+/**
  * 1️⃣ Create Razorpay Order
  */
 const createRazorpayOrder = async (req, res, next) => {
@@ -88,16 +103,20 @@ const verifyRazorpayPayment = async (req, res, next) => {
             const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
             const topupAmount = orderDetails.amount / 100;
             const user = await User.findById(req.user._id).session(session);
+            if (!user) {
+                await session.abortTransaction(); session.endSession();
+                return res.status(404).json({ message: 'User not found' });
+            }
             user.walletBalance += topupAmount;
             await user.save({ session });
             await WalletTransaction.create([{
                 userId: req.user._id, amount: topupAmount, type: 'credit', source: 'razorpay',
-                status: 'completed', referenceId: razorpay_payment_id, description: 'Wallet Top-up'
+                status: 'completed', referenceId: razorpay_payment_id, description: `Wallet Payment - ${razorpay_payment_id.slice(-6)}`
             }], { session });
 
             await session.commitTransaction();
             session.endSession();
-            sendWalletTopupEmail({ name: user.name, email: user.email }, topupAmount, user.walletBalance);
+            sendWalletTopupEmail({ name: user.name || 'User', email: user.email }, topupAmount, user.walletBalance);
             return res.json({ status: "success", balance: user.walletBalance });
         }
 
@@ -121,7 +140,7 @@ const verifyRazorpayPayment = async (req, res, next) => {
             await Driver.findOneAndUpdate({ userId: ride.driverId }, { $inc: { payoutBalance: driverAmount } }, { session });
         }
 
-        const cashback = Math.round(fare * 0.02);
+        const cashback = calculateCashback(fare);
         if (cashback > 0) {
             const user = await User.findById(req.user._id).session(session);
             user.walletBalance += cashback; await user.save({ session });
@@ -155,8 +174,13 @@ const verifyRazorpayPayment = async (req, res, next) => {
                     const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
                     const topupAmount = orderDetails.amount / 100;
                     const user = await User.findById(req.user._id);
+                    if (!user) return res.status(404).json({ message: 'User not found' });
                     user.walletBalance += topupAmount; await user.save();
-                    await WalletTransaction.create({ userId: req.user._id, amount: topupAmount, type: 'credit', source: 'razorpay', status: 'completed', referenceId: razorpay_payment_id });
+                    await WalletTransaction.create({
+                        userId: req.user._id, amount: topupAmount, type: 'credit', source: 'razorpay',
+                        status: 'completed', referenceId: razorpay_payment_id,
+                        description: `Wallet Added - ${razorpay_payment_id.slice(-6)}`
+                    });
                     return res.json({ status: "success", balance: user.walletBalance });
                 }
                 const ride = await Ride.findById(rideId);
@@ -167,10 +191,17 @@ const verifyRazorpayPayment = async (req, res, next) => {
                 ride.platformCommission = platformCommission; ride.driverAmount = driverAmount; ride.paidAt = new Date();
                 await ride.save();
                 if (ride.driverId) await Driver.findOneAndUpdate({ userId: ride.driverId }, { $inc: { payoutBalance: driverAmount } });
-                const cashback = Math.round(fare * 0.02);
+                const cashback = calculateCashback(fare);
                 if (cashback > 0) {
                     const user = await User.findById(req.user._id);
-                    user.walletBalance += cashback; await user.save();
+                    if (user) {
+                        user.walletBalance += cashback;
+                        await user.save();
+                        await WalletTransaction.create({
+                            userId: req.user._id, amount: cashback, type: 'credit', source: 'ride',
+                            status: 'completed', referenceId: ride._id.toString(), description: 'Cashback'
+                        });
+                    }
                 }
                 await Payment.create({ rideId: ride._id, riderId: ride.riderId, driverId: ride.driverId, amount: fare, method: 'razorpay', status: 'completed', cashback });
                 const io = req.app.get('io');
@@ -230,6 +261,10 @@ const payWithWallet = async (req, res, next) => {
         }
         const fare = ride.negotiatedFare || ride.fare.final || ride.fare.proposed;
         const user = await User.findById(req.user._id).session(session);
+        if (!user) {
+            await session.abortTransaction(); session.endSession();
+            return res.status(404).json({ message: 'User not found' });
+        }
         if (user.walletBalance < fare) {
             await session.abortTransaction(); session.endSession();
             return res.status(400).json({ message: 'Insufficient balance' });
@@ -237,8 +272,19 @@ const payWithWallet = async (req, res, next) => {
 
         const { platformCommission, driverAmount } = calculateCommission(fare);
         user.walletBalance -= fare;
-        const cashback = Math.round(fare * 0.02);
-        user.walletBalance += cashback;
+        await WalletTransaction.create([{
+            userId: user._id, amount: fare, type: 'debit', source: 'ride',
+            status: 'completed', referenceId: ride._id.toString(), description: `Ride Payment - ${ride._id.toString().slice(-6)}`
+        }], { session });
+
+        const cashback = calculateCashback(fare);
+        if (cashback > 0) {
+            user.walletBalance += cashback;
+            await WalletTransaction.create([{
+                userId: user._id, amount: cashback, type: 'credit', source: 'ride',
+                status: 'completed', referenceId: ride._id.toString(), description: 'Cashback'
+            }], { session });
+        }
         await user.save({ session });
 
         ride.paymentMethod = 'wallet'; ride.paymentStatus = 'Paid';
@@ -262,9 +308,23 @@ const payWithWallet = async (req, res, next) => {
                 const ride = await Ride.findById(rideId);
                 const fare = ride.negotiatedFare || ride.fare.final || ride.fare.proposed;
                 const user = await User.findById(req.user._id);
+                if (!user) return res.status(404).json({ message: 'User not found' });
                 if (user.walletBalance < fare) return res.status(400).json({ message: 'Insufficient balance' });
                 const { platformCommission, driverAmount } = calculateCommission(fare);
-                user.walletBalance -= fare; user.walletBalance += Math.round(fare * 0.02);
+                user.walletBalance -= fare;
+                await WalletTransaction.create({
+                    userId: user._id, amount: fare, type: 'debit', source: 'ride',
+                    status: 'completed', referenceId: ride._id.toString(), description: `Ride Payment - ${ride._id.toString().slice(-6)}`
+                });
+
+                const cashback = calculateCashback(fare);
+                if (cashback > 0) {
+                    user.walletBalance += cashback;
+                    await WalletTransaction.create({
+                        userId: user._id, amount: cashback, type: 'credit', source: 'ride',
+                        status: 'completed', referenceId: ride._id.toString(), description: 'Cashback'
+                    });
+                }
                 await user.save();
                 ride.paymentMethod = 'wallet'; ride.paymentStatus = 'Paid';
                 ride.platformCommission = platformCommission; ride.driverAmount = driverAmount;
@@ -336,10 +396,14 @@ const confirmCashPayment = async (req, res, next) => {
         }
         const fare = ride.negotiatedFare || ride.fare.final || ride.fare.proposed;
         const { platformCommission, driverAmount } = calculateCommission(fare);
-        ride.paymentMethod = 'cash'; ride.paymentStatus = 'Paid';
+        ride.paymentMethod = 'cash'; ride.paymentStatus = 'Paid'; ride.driverConfirmed = true;
         ride.platformCommission = platformCommission; ride.driverAmount = driverAmount; ride.paidAt = new Date();
         await ride.save({ session });
-        await Driver.findOneAndUpdate({ userId: req.user._id }, { $inc: { payoutBalance: -platformCommission } }, { session });
+        const driver = await Driver.findOneAndUpdate({ userId: req.user._id }, { $inc: { payoutBalance: -platformCommission } }, { session });
+        if (!driver) {
+            await session.abortTransaction(); session.endSession();
+            return res.status(404).json({ message: 'Driver profile not found' });
+        }
         await Payment.create([{ rideId: ride._id, riderId: ride.riderId, driverId: ride.driverId, amount: fare, method: 'cash', status: 'completed' }], { session });
         await session.commitTransaction();
         session.endSession();
@@ -355,7 +419,7 @@ const confirmCashPayment = async (req, res, next) => {
                 const ride = await Ride.findById(rideId);
                 const fare = ride.negotiatedFare || ride.fare.final || ride.fare.proposed;
                 const { platformCommission, driverAmount } = calculateCommission(fare);
-                ride.paymentMethod = 'cash'; ride.paymentStatus = 'Paid';
+                ride.paymentMethod = 'cash'; ride.paymentStatus = 'Paid'; ride.driverConfirmed = true;
                 ride.platformCommission = platformCommission; ride.driverAmount = driverAmount;
                 await ride.save();
                 await Driver.findOneAndUpdate({ userId: req.user._id }, { $inc: { payoutBalance: -platformCommission } });
@@ -365,6 +429,31 @@ const confirmCashPayment = async (req, res, next) => {
                 return res.json({ status: "success", ride });
             } catch (e) { return next(e); }
         }
+        next(error);
+    }
+};
+
+/**
+ * 7️⃣ Generic Payment Confirmation (Driver - for Wallet/Online)
+ */
+const confirmPayment = async (req, res, next) => {
+    try {
+        const { rideId } = req.body;
+        const ride = await Ride.findById(rideId);
+        
+        if (!ride || ride.driverId.toString() !== req.user._id.toString()) {
+            return res.status(404).json({ message: 'Ride not found' });
+        }
+
+        if (ride.paymentStatus !== 'Paid') {
+            return res.status(400).json({ message: 'Payment must be completed before confirmation' });
+        }
+
+        ride.driverConfirmed = true;
+        await ride.save();
+
+        res.json({ status: 'success', message: 'Payment acknowledged', ride });
+    } catch (error) {
         next(error);
     }
 };
@@ -379,12 +468,23 @@ const getPaymentHistory = async (req, res, next) => {
     }
 };
 
+const getWalletTransactions = async (req, res, next) => {
+    try {
+        const transactions = await WalletTransaction.find({ userId: req.user._id }).sort({ createdAt: -1 });
+        res.json({ transactions });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     createRazorpayOrder,
     verifyRazorpayPayment,
     payWithWallet,
     initiateCashPayment,
     confirmCashPayment,
+    confirmPayment,
     getPaymentHistory,
+    getWalletTransactions,
     handleRazorpayWebhook
 };

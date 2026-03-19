@@ -12,7 +12,7 @@ const NegotiationChat = ({ ride: initialRide, onRideUpdate }) => {
     const { socket } = useSocket();
     const [messages, setMessages] = useState([]);
     const [activeRide, setActiveRide] = useState(initialRide);
-    const [offerAmount, setOfferAmount] = useState('');
+    const [offerAmount, setOfferAmount] = useState(initialRide?.fare?.proposed || initialRide?.proposedFare || '');
     const [textMessage, setTextMessage] = useState('');
     const [inputMode, setInputMode] = useState('message'); // Default to message (Chat-First)
     const [timer, setTimer] = useState(300);

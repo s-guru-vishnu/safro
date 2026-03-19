@@ -12,6 +12,7 @@ const Step1Personal = ({ formData, updateField, nextStep }) => {
         if (!formData.phone.trim()) e.phone = 'Phone number is required';
         else if (formData.phone.length < 10) e.phone = 'Enter a valid phone number';
         if (!formData.taluk?.trim()) e.taluk = 'Taluk is required';
+        if (!formData.profilePhoto) e.photo = 'Profile photo is required';
         setErrors(e);
         return Object.keys(e).length === 0;
     };
@@ -32,7 +33,7 @@ const Step1Personal = ({ formData, updateField, nextStep }) => {
         reader.readAsDataURL(file);
     };
 
-    const isValid = formData.fullName.trim() && formData.email.trim() && formData.phone.trim() && formData.taluk?.trim();
+    const isValid = formData.fullName.trim() && formData.email.trim() && formData.phone.trim() && formData.taluk?.trim() && formData.profilePhoto;
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
@@ -62,7 +63,7 @@ const Step1Personal = ({ formData, updateField, nextStep }) => {
                         </label>
                     )}
                 </div>
-                <p className="text-xs text-gray-400 mt-2">Profile photo (optional)</p>
+                <p className="text-sm font-medium text-gray-700 mt-2">Profile photo *</p>
                 {errors.photo && <p className="text-xs text-red-500 mt-1">{errors.photo}</p>}
             </div>
 

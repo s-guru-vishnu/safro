@@ -1,11 +1,16 @@
 const Ride = require('../models/Ride');
 const User = require('../models/User');
 const Driver = require('../models/Driver');
+const Negotiation = require('../models/Negotiation');
 const Payment = require('../models/Payment');
+const WalletTransaction = require('../models/WalletTransaction');
 const { predictFare } = require('../services/farePredictionService');
 const { calculateEstimatedFare } = require('../services/fareService');
 const { checkRide } = require('../services/fraudDetectionService');
 const { sendRideBookedEmail, sendDriverAssignedEmail, sendRideCompletedEmail, sendPaymentReceiptEmail, sendRideCancelledEmail, sendRideBookedWhatsApp, sendDriverAssignedWhatsApp, sendRideStartedWhatsApp, sendRideCompletedWhatsApp, sendPaymentReceiptWhatsApp } = require('../services/notificationService');
+
+// Helper: random number in range
+const random = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
 // Helper: parse distance string to km number
 const parseDistanceKm = (distStr) => {
@@ -125,6 +130,16 @@ const requestRide = async (req, res, next) => {
         // Set active ride on user
         await User.findByIdAndUpdate(req.user._id, { activeRideId: ride._id });
 
+        // Create initial negotiation entry (Rider's first offer)
+        await Negotiation.create({
+            rideId: ride._id,
+            sender: req.user._id,
+            role: 'rider',
+            amount: proposedFare,
+            type: 'offer',
+            status: 'active'
+        });
+
         // AI Fare Prediction (non-blocking)
         try {
             const now = new Date();
@@ -172,7 +187,7 @@ const requestRide = async (req, res, next) => {
             { pickupAddress: pickupLocation?.address }
         );
 
-        res.status(201).json(ride);
+        res.status(201).json({ ride });
     } catch (error) {
         next(error);
     }
@@ -301,7 +316,7 @@ const confirmRide = async (req, res, next) => {
             }
         } catch (notifErr) { console.error('[NOTIFY] confirmRide notification error:', notifErr.message); }
 
-        res.json(updated);
+        res.json({ ride: updated });
     } catch (error) {
         next(error);
     }
@@ -429,7 +444,7 @@ const startRide = async (req, res, next) => {
             }
         } catch (smsErr) { console.error('[WhatsApp] startRide notification error:', smsErr.message); }
 
-        res.json(ride);
+        res.json({ ride });
     } catch (error) {
         next(error);
     }
@@ -455,54 +470,7 @@ const completeRide = async (req, res, next) => {
 
         ride.status = 'completed';
 
-        // Quick Pay Logic
-        const rider = await User.findById(ride.riderId);
-        const fare = ride.negotiatedFare || ride.fare.final || ride.fare.proposed;
 
-        if (rider.quickPayEnabled && rider.walletBalance >= fare && ride.paymentStatus !== 'Paid') {
-            const commissionPercentage = 0.15;
-            const platformCommission = Math.round(fare * commissionPercentage);
-            const driverAmount = fare - platformCommission;
-            const cashback = Math.round(fare * 0.02);
-
-            // Process payment
-            rider.walletBalance -= (fare - cashback); // Net deduction
-            await rider.save();
-
-            ride.paymentStatus = 'Paid';
-            ride.paymentMethod = 'wallet';
-            ride.platformCommission = platformCommission;
-            ride.driverAmount = driverAmount;
-            ride.paidAt = new Date();
-
-            // Notify driver payout
-            await Driver.findOneAndUpdate(
-                { userId: ride.driverId },
-                { $inc: { payoutBalance: driverAmount } }
-            );
-
-            // Create Payment record
-            await Payment.create({
-                rideId: ride._id,
-                riderId: ride.riderId,
-                driverId: ride.driverId,
-                amount: fare,
-                method: 'wallet',
-                status: 'completed',
-                cashback
-            });
-
-
-            const io = req.app.get('io');
-            if (io) {
-                io.to(`ride_${ride._id}`).emit('paymentSuccess', {
-                    rideId: ride._id,
-                    method: 'wallet',
-                    quickPay: true,
-                    cashback
-                });
-            }
-        }
 
         await ride.save();
 
@@ -554,8 +522,9 @@ const completeRide = async (req, res, next) => {
             }
         }
 
-        res.json(ride);
+        res.json({ ride });
     } catch (error) {
+        console.error('Error in completeRide:', error);
         next(error);
     }
 };
@@ -640,7 +609,7 @@ const cancelRide = async (req, res, next) => {
             }
         } catch (e) { /* non-blocking */ }
 
-        res.json(ride);
+        res.json({ ride });
     } catch (error) {
         next(error);
     }
@@ -701,7 +670,7 @@ const failNegotiation = async (req, res, next) => {
             io.to('driver').emit('rideBackInPool', ride);
         }
 
-        res.json(ride);
+        res.json({ ride });
     } catch (error) {
         next(error);
     }
@@ -715,18 +684,32 @@ const getActiveRide = async (req, res, next) => {
 
         if (req.user.role === 'driver') {
             // Driver: check for rides where they are driver or negotiating driver
+            // Include completed rides that hasn't been confirmed by driver yet
             query = {
                 $or: [
                     { driverId: req.user._id },
                     { negotiatingDriverId: req.user._id }
                 ],
-                status: { $nin: ['completed', 'cancelled'] }
+                $or: [
+                    { status: { $nin: ['completed', 'cancelled'] } },
+                    { status: 'completed', driverConfirmed: false }
+                ]
             };
         } else {
             // Rider: check for their active ride
+            // Include completed rides that are unpaid or unrated
             query = {
                 riderId: req.user._id,
-                status: { $nin: ['completed', 'cancelled'] }
+                $or: [
+                    { status: { $nin: ['completed', 'cancelled'] } },
+                    { 
+                        status: 'completed', 
+                        $or: [
+                            { paymentStatus: { $ne: 'Paid' } },
+                            { rating: { $exists: false } }
+                        ]
+                    }
+                ]
             };
         }
 
@@ -788,7 +771,7 @@ const rateRide = async (req, res, next) => {
             if (driver) {
                 const totalRatings = driver.totalRatings || 0;
                 const currentRating = driver.rating || 0;
-                
+
                 const newTotal = totalRatings + 1;
                 const newRating = ((currentRating * totalRatings) + rating) / newTotal;
 

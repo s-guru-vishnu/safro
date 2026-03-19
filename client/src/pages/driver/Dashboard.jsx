@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import NegotiationChat from '../../components/NegotiationChat';
@@ -9,6 +9,7 @@ import { FiMapPin, FiNavigation, FiMessageCircle, FiXCircle, FiCheckCircle, FiDo
 import { Banknote } from 'lucide-react';
 import MapView from '../../components/map/MapView';
 import LocationAutocomplete from '../../components/map/LocationAutocomplete';
+import PostRideModal from '../../components/PostRideModal';
 
 const DriverDashboard = () => {
     const { user } = useAuth();
@@ -21,6 +22,12 @@ const DriverDashboard = () => {
     const [riderLocation, setRiderLocation] = useState(null);
     const [searchLocation, setSearchLocation] = useState(null);
     const [stats, setStats] = useState(null);
+    const [isPostRideModalOpen, setIsPostRideModalOpen] = useState(false);
+    const activeRideRef = useRef(activeRide);
+
+    useEffect(() => {
+        activeRideRef.current = activeRide;
+    }, [activeRide]);
 
     // Get driver's current location for geo-filtered rides + register with tracking system
     useEffect(() => {
@@ -68,12 +75,18 @@ const DriverDashboard = () => {
             try {
                 const res = await api.get('/rides/active');
                 if (res.data.ride) {
-                    setActiveRide(res.data.ride);
-                    localStorage.setItem('activeRideId', res.data.ride._id);
-                    const status = res.data.ride.status;
+                    const ride = res.data.ride;
+                    setActiveRide(ride);
+                    localStorage.setItem('activeRideId', ride._id);
+                    const status = ride.status;
                     if (status === 'negotiating') {
                         setIsNegotiating(true);
                         setShowChat(true);
+                    }
+
+                    // Auto-open modal if ride is completed
+                    if (status === 'completed' && !ride.driverConfirmed) {
+                        setIsPostRideModalOpen(true);
                     }
                 }
             } catch (err) {
@@ -137,11 +150,16 @@ const DriverDashboard = () => {
         fetchAvailableRides();
     }, [fetchAvailableRides]);
 
-    // Socket events
+    // Initial socket join
     useEffect(() => {
         if (socket) {
             socket.emit('joinRoom', { userId: user._id, role: 'driver' });
+        }
+    }, [socket, user._id]);
 
+    // Persistent Socket Event Listeners (Independent of location)
+    useEffect(() => {
+        if (socket) {
             socket.on('newRideRequest', (ride) => {
                 toast.success('New Ride Request!');
                 setAvailableRides(prev => [ride, ...prev]);
@@ -169,16 +187,15 @@ const DriverDashboard = () => {
             });
 
             socket.on('rideStatusChanged', (data) => {
-                setActiveRide(prev => prev ? ({ ...prev, status: data.status }) : prev);
+                if (data.rideId && activeRideRef.current?._id === data.rideId) {
+                    setActiveRide(prev => prev ? ({ ...prev, status: data.status }) : prev);
+                    if (data.status === 'completed') setIsPostRideModalOpen(true);
+                }
                 if (data.status === 'completed') {
-                    localStorage.removeItem('activeRideId');
-                    setActiveRide(null);
-                    setShowChat(false);
-                    setIsNegotiating(false);
-                    fetchAvailableRides();
-
                     // Re-fetch stats on ride completion
-                    api.get('/drivers/stats').then(res => setStats(res.data)).catch(console.error);
+                    api.get('/drivers/stats')
+                        .then(res => setStats(res.data))
+                        .catch(console.error);
                 }
             });
 
@@ -192,27 +209,28 @@ const DriverDashboard = () => {
                 fetchAvailableRides();
             });
 
-            // Listen for rider's live location (only active after confirmation)
             socket.on('riderLocationUpdate', (data) => {
                 setRiderLocation(data.location);
             });
+
             socket.on('paymentInitiated', (data) => {
-                setActiveRide(prev => prev ? ({ ...prev, paymentStatus: 'Driver Confirmation', paymentMethod: data.method }) : prev);
-                if (data.method === 'cash') toast('Rider is paying with cash. Confirm after receiving.', { icon: '💰' });
+                if (data.rideId && activeRideRef.current?._id === data.rideId) {
+                    setActiveRide(prev => prev ? ({ ...prev, paymentStatus: 'Driver Confirmation', paymentMethod: data.method }) : prev);
+                    if (data.method === 'cash') toast('Rider is paying with cash. Confirm after receiving.', { icon: '💰' });
+                    setIsPostRideModalOpen(true);
+                }
             });
+
             socket.on('paymentSuccess', (data) => {
-                setActiveRide(prev => prev ? ({ ...prev, paymentStatus: 'Paid' }) : prev);
-                toast.success('Payment Received!');
-                // Auto-close after a delay if it was an online payment
-                setTimeout(() => {
-                    localStorage.removeItem('activeRideId');
-                    setActiveRide(null);
-                    setShowChat(false);
-                    setIsNegotiating(false);
-                    fetchAvailableRides();
+                if (data.rideId && activeRideRef.current?._id === data.rideId) {
+                    setActiveRide(prev => prev ? ({ ...prev, paymentStatus: 'Paid' }) : prev);
+                    toast.success('Payment Received!');
+                    setIsPostRideModalOpen(true);
+                    // Stats refresh
                     api.get('/drivers/stats').then(res => setStats(res.data)).catch(console.error);
-                }, 3000);
+                }
             });
+
             return () => {
                 socket.off('newRideRequest');
                 socket.off('rideConfirmed');
@@ -278,7 +296,7 @@ const DriverDashboard = () => {
         if (!otp) return toast.error('Please enter OTP');
         try {
             const res = await api.put(`/rides/${activeRide._id}/start`, { otp });
-            setActiveRide(res.data);
+            setActiveRide(res.data.ride);
             toast.success('Ride started! Drive safely.');
         } catch (err) {
             toast.error(err.response?.data?.message || 'Verification failed');
@@ -288,39 +306,35 @@ const DriverDashboard = () => {
     const handleCompleteRide = async () => {
         try {
             const res = await api.put(`/rides/${activeRide._id}/complete`);
-            setActiveRide(res.data.ride);
+            const updatedRide = res.data.ride;
+            setActiveRide(updatedRide);
+            localStorage.setItem('activeRideId', updatedRide._id);
+            setIsPostRideModalOpen(true);
             toast.success('Ride completed! Waiting for payment.');
         } catch (err) {
-            toast.error('Failed to complete ride');
+            const errorMsg = err.response?.data?.message || 'Failed to complete ride';
+            toast.error(errorMsg);
         }
     };
 
     const handleConfirmCash = async () => {
-        try {
-            await api.post('/payment/confirm-cash', { rideId: activeRide._id });
-            localStorage.removeItem('activeRideId');
-            setActiveRide(null);
-            setShowChat(false);
-            setIsNegotiating(false);
-            setRiderLocation(null);
-            toast.success('Cash payment confirmed! Earnings updated.');
-            fetchAvailableRides();
-            // Refresh stats
-            const res = await api.get('/drivers/stats');
-            setStats(res.data);
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to confirm cash');
-        }
+        // Redundant here, now handled in PostRideModal
     };
+
+    // Stable Socket Room Membership — join on mount/id change, leave only on id change/unmount
+    useEffect(() => {
+        if (!socket || !activeRide?._id) return;
+        socket.emit('joinRide', { rideId: activeRide._id });
+        return () => {
+            socket.emit('leaveRide', { rideId: activeRide._id });
+        };
+    }, [socket, activeRide?._id]);
 
     // Live location sharing — only when ride is confirmed or ongoing
     useEffect(() => {
         if (!socket || !activeRide) return;
         const isLive = activeRide.status === 'confirmed' || activeRide.status === 'ongoing';
         if (!isLive) return;
-
-        // Join ride room so we receive rider location updates
-        socket.emit('joinRide', { rideId: activeRide._id });
 
         // Watch our own position and emit to rider
         let watchId = null;
@@ -342,7 +356,6 @@ const DriverDashboard = () => {
 
         return () => {
             if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-            socket.emit('leaveRide', { rideId: activeRide._id });
         };
     }, [socket, activeRide?._id, activeRide?.status, user._id]);
 
@@ -541,16 +554,10 @@ const DriverDashboard = () => {
                                                 </div>
                                             )}
 
-                                            {activeRide.status === 'completed' && activeRide.paymentStatus !== 'Paid' && (
-                                                <div className="pt-4 border-t border-gray-100 mt-2 bg-amber-50 p-4 rounded-xl border border-amber-100">
-                                                    <p className="text-xs font-bold text-amber-800 mb-2 uppercase tracking-wider text-center">Payment Pending</p>
-                                                    <button
-                                                        onClick={handleConfirmCash}
-                                                        className="w-full bg-amber-600 text-white py-3 rounded-lg text-sm font-bold hover:bg-amber-700 transition-all shadow-md shadow-amber-100 flex items-center justify-center gap-2 mb-2"
-                                                    >
-                                                        <Banknote className="w-5 h-5" /> Confirm Cash
-                                                    </button>
-                                                    <p className="text-[10px] text-amber-600 text-center italic">Confirm after receiving ₹{activeRide.negotiatedFare || activeRide.fare?.final}</p>
+                                            {activeRide.status === 'completed' && (
+                                                <div className="pt-4 border-t border-gray-100 mt-2 bg-green-50 p-4 rounded-xl border border-green-100">
+                                                    <p className="text-xs font-bold text-green-800 mb-1 uppercase tracking-wider text-center">Trip Completed</p>
+                                                    <p className="text-[10px] text-green-600 text-center">Waiting for finalization in popup...</p>
                                                 </div>
                                             )}
 
@@ -626,6 +633,19 @@ const DriverDashboard = () => {
                     </div>
                 </div>
             </div>
+            <PostRideModal 
+                isOpen={isPostRideModalOpen}
+                ride={activeRide}
+                onClose={() => {
+                    setIsPostRideModalOpen(false);
+                    setActiveRide(null);
+                    localStorage.removeItem('activeRideId');
+                    fetchAvailableRides();
+                }}
+                onRefreshStats={() => {
+                    api.get('/drivers/stats').then(res => setStats(res.data)).catch(console.error);
+                }}
+            />
         </div>
     );
 };

@@ -7,7 +7,9 @@ const {
     payWithWallet,
     initiateCashPayment,
     confirmCashPayment,
+    confirmPayment,
     getPaymentHistory,
+    getWalletTransactions,
     handleRazorpayWebhook
 } = require('../controllers/paymentController');
 
@@ -30,8 +32,10 @@ router.post('/pay-wallet', payWithWallet);
 // Cash Flow
 router.post('/initiate-cash', initiateCashPayment);
 router.post('/confirm-cash', confirmCashPayment);
+router.post('/confirm-payment', confirmPayment);
 
 // history
 router.get('/history', getPaymentHistory);
+router.get('/transactions', getWalletTransactions);
 
 module.exports = router;

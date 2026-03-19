@@ -102,6 +102,16 @@ const rideSchema = new mongoose.Schema({
         type: String,
         index: true
     },
+    district: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    taluk: {
+        type: String,
+        trim: true,
+        default: ''
+    },
     createdAt: {
         type: Date,
         default: Date.now

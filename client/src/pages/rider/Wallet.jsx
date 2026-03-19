@@ -258,7 +258,7 @@ const Wallet = () => {
                             />
                         </div>
                         <div className="grid grid-cols-3 gap-3 mb-8">
-                            {[500, 1000, 2000].map(val => (
+                            {[100, 500, 1000].map(val => (
                                 <button
                                     key={val}
                                     onClick={() => setAmount(val.toString())}

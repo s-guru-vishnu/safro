@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
-import { FiMapPin, FiTruck, FiUser, FiRefreshCw, FiWifi, FiWifiOff, FiMap, FiLayers, FiActivity } from 'react-icons/fi';
+import { MapPin, Truck, User, RefreshCw, Wifi, WifiOff, Map, Layers, Activity, Building, User as UserIcon } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import api from '../services/api';
 import SUB_OFFICES from '../data/subOffices';
@@ -14,29 +15,37 @@ const DRIVER_COLORS = {
     offline: { ring: '#9ca3af', label: 'Offline' },
 };
 
-const VEHICLE_EMOJIS = {
-    bike: '🏍️', auto: '🛺', sedan: '🚗', car: '🚗', suv: '🚙',
-};
-
 // ── SVG marker builder ──────────────────────────────────────────
-const buildMarkerIcon = (emoji, borderColor, opacity = 1) => ({
+const buildMarkerIcon = (path, borderColor, opacity = 1) => ({
     url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
-            <circle cx="20" cy="20" r="18" fill="white" stroke="${borderColor}" stroke-width="3" opacity="${opacity}"/>
-            <text x="20" y="26" text-anchor="middle" font-size="18" opacity="${opacity}">${emoji}</text>
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="${borderColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" fill="white" stroke-width="1.5" opacity="${opacity}"/>
+            <g transform="translate(6, 6) scale(0.5)">
+                ${path}
+            </g>
         </svg>
     `)}`,
     scaledSize: { width: 40, height: 40 },
     anchor: { x: 20, y: 20 },
 });
 
-const SUB_OFFICE_ICON = buildMarkerIcon('🏢', '#f97316');
-const RIDER_ICON = buildMarkerIcon('👤', '#10b981');
+// Paths for Lucide-like icons (simplified)
+const PATHS = {
+    car: '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.5C1.4 11.1 1 12 1 13v3c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>',
+    bike: '<circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/>',
+    auto: '<path d="M3 11V9a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M9 17h6"/><path d="M12 5v12"/>', // Using a generic 3-wheel style
+    building: '<rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M16 14h.01"/>',
+    user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'
+};
+
+const SUB_OFFICE_ICON = buildMarkerIcon(PATHS.building, '#f97316');
+const RIDER_ICON = buildMarkerIcon(PATHS.user, '#10b981');
 
 const containerStyle = { width: '100%', height: '100%' };
 
 // ── Main Component ──────────────────────────────────────────────
 const DriverTrackingMap = () => {
+    const { user } = useAuth();
     const [drivers, setDrivers] = useState([]);
     const [riders, setRiders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -185,6 +194,34 @@ const DriverTrackingMap = () => {
         }
     }, [trafficEnabled, isLoaded]);
 
+    // ── Taluk GeoJSON ─────────────────────────────────────────────
+    const [talukGeoJson, setTalukGeoJson] = useState(null);
+    useEffect(() => {
+        if (!mapRef.current || !isLoaded) return;
+        
+        const loadTaluks = async () => {
+            try {
+                const map = mapRef.current;
+                map.data.loadGeoJson('/maps/tamilnadu-taluks.geojson');
+                
+                map.data.setStyle((feature) => {
+                    const isSelected = feature.getProperty('taluk') === user?.taluk;
+                    return {
+                        fillColor: isSelected ? '#10b981' : '#00b894',
+                        fillOpacity: isSelected ? 0.3 : 0.05,
+                        strokeColor: '#00b894',
+                        strokeWeight: isSelected ? 2 : 1,
+                        clickable: false
+                    };
+                });
+            } catch (err) {
+                console.error('Failed to load taluk boundaries:', err);
+            }
+        };
+
+        loadTaluks();
+    }, [isLoaded, user?.taluk]);
+
     // ── Manual Refresh ───────────────────────────────────────────
     const handleRefresh = () => {
         setLoading(true);
@@ -223,18 +260,18 @@ const DriverTrackingMap = () => {
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <div className="flex items-center gap-3">
                     <div className="w-9 h-9 bg-teal-50 text-teal-600 rounded-lg flex items-center justify-center">
-                        <FiMapPin size={18} />
+                        <MapPin size={18} />
                     </div>
                     <div>
                         <div className="flex items-center gap-2">
                             <h3 className="text-sm font-bold text-gray-900">Live Active Map</h3>
                             {isConnected ? (
                                 <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                                    <FiWifi size={10} /> LIVE
+                                    <Wifi size={10} /> LIVE
                                 </span>
                             ) : (
                                 <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
-                                    <FiWifiOff size={10} /> OFFLINE
+                                    <WifiOff size={10} /> OFFLINE
                                 </span>
                             )}
                         </div>
@@ -256,7 +293,7 @@ const DriverTrackingMap = () => {
                                 </span>
                             )}
                             <span className="text-[10px] font-semibold text-blue-600 flex items-center gap-1 ml-2">
-                                <FiUser size={10} />
+                                <UserIcon size={10} />
                                 {activeRiderCount} Active Riders
                             </span>
                         </div>
@@ -268,7 +305,7 @@ const DriverTrackingMap = () => {
                     className="p-2 text-gray-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all disabled:opacity-50"
                     title="Refresh locations"
                 >
-                    <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                    <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
                 </button>
             </div>
 
@@ -284,7 +321,7 @@ const DriverTrackingMap = () => {
                 ) : (loadError || authError) ? (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
                         <div className="text-center p-6 border border-gray-100 rounded-2xl bg-white/50 backdrop-blur-sm shadow-sm m-4">
-                            <div className="text-2xl mb-2">🗺️</div>
+                            <div className="text-2xl mb-2 text-gray-400 flex justify-center"><Map size={32} /></div>
                             <p className="text-sm font-semibold text-gray-700">Map unavailable</p>
                             <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
                                 {authError ? "Authentication failed. Check API restrictions or billing." : "Check API key and network connection."}
@@ -315,13 +352,13 @@ const DriverTrackingMap = () => {
                         {/* Driver Markers */}
                         {drivers.filter(d => d.lat && d.lng).map(driver => {
                             const color = DRIVER_COLORS[driver.status] || DRIVER_COLORS.available;
-                            const emoji = VEHICLE_EMOJIS[driver.vehicleType] || '🚗';
+                            const path = PATHS[driver.vehicleType] || PATHS.car;
                             const opacity = driver.status === 'offline' ? 0.4 : 1;
                             return (
                                 <Marker
                                     key={`driver-${driver._id}`}
                                     position={{ lat: driver.lat, lng: driver.lng }}
-                                    icon={buildMarkerIcon(emoji, color.ring, opacity)}
+                                    icon={buildMarkerIcon(path, color.ring, opacity)}
                                     onClick={() => setActiveInfo(`driver-${driver._id}`)}
                                 >
                                     {activeInfo === `driver-${driver._id}` && (
@@ -334,8 +371,8 @@ const DriverTrackingMap = () => {
                                                     : driver.status === 'offline' ? 'bg-gray-100 text-gray-500'
                                                     : 'bg-emerald-100 text-emerald-700'
                                                 }`}>{color.label}</span>
-                                                {driver.phone && <p className="text-[10px] text-gray-400 mt-1">📞 {driver.phone}</p>}
-                                                {driver.lastUpdate && <p className="text-[10px] text-gray-300 mt-0.5">⏱ {new Date(driver.lastUpdate).toLocaleTimeString()}</p>}
+                                                {driver.phone && <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1"><Phone size={10} /> {driver.phone}</p>}
+                                                {driver.lastUpdate && <p className="text-[10px] text-gray-300 mt-0.5 flex items-center gap-1"><Clock size={10} /> {new Date(driver.lastUpdate).toLocaleTimeString()}</p>}
                                             </div>
                                         </InfoWindow>
                                     )}
@@ -354,11 +391,11 @@ const DriverTrackingMap = () => {
                                 {activeInfo === `rider-${rider._id}` && (
                                     <InfoWindow onCloseClick={() => setActiveInfo(null)}>
                                         <div className="min-w-[160px]">
-                                            <p className="font-bold text-blue-900 text-sm flex items-center gap-1"><FiUser size={14} /> {rider.name}</p>
+                                            <p className="font-bold text-blue-900 text-sm flex items-center gap-1"><UserIcon size={14} /> {rider.name}</p>
                                             <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-widest mt-1">
                                                 {rider.status?.replace('_', ' ')}
                                             </span>
-                                            {rider.phone && <p className="text-[10px] text-gray-400 mt-1">📞 {rider.phone}</p>}
+                                            {rider.phone && <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1"><Phone size={10} /> {rider.phone}</p>}
                                         </div>
                                     </InfoWindow>
                                 )}
@@ -376,7 +413,7 @@ const DriverTrackingMap = () => {
                                 {activeInfo === `office-${office.taluk}` && (
                                     <InfoWindow onCloseClick={() => setActiveInfo(null)}>
                                         <div className="min-w-[160px]">
-                                            <p className="font-bold text-orange-700 text-sm">🏢 {office.name}</p>
+                                            <p className="font-bold text-orange-700 text-sm flex items-center gap-1"><Building size={14} /> {office.name}</p>
                                             <p className="text-xs text-gray-500 mt-1">{office.taluk} Taluk</p>
                                             <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700">Sub-Office</span>
                                         </div>
@@ -392,17 +429,17 @@ const DriverTrackingMap = () => {
                     <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
                         <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 flex overflow-hidden">
                             <button onClick={() => setMapType('roadmap')} className={`px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 ${mapType === 'roadmap' ? 'bg-teal-600 text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
-                                <FiMap size={10} /> Map
+                                <Map size={10} /> Map
                             </button>
                             <button onClick={() => setMapType('satellite')} className={`px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 ${mapType === 'satellite' ? 'bg-teal-600 text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
-                                <FiLayers size={10} /> Satellite
+                                <Layers size={10} /> Satellite
                             </button>
                         </div>
                         <button
                             onClick={() => setTrafficEnabled(prev => !prev)}
                             className={`px-2.5 py-1.5 rounded-lg shadow-md border text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 backdrop-blur-sm ${trafficEnabled ? 'bg-teal-600 text-white border-teal-600' : 'bg-white/95 text-gray-500 border-gray-200 hover:bg-gray-50'}`}
                         >
-                            <FiActivity size={10} /> {trafficEnabled ? 'Traffic On' : 'Traffic'}
+                            <Activity size={10} /> {trafficEnabled ? 'Traffic On' : 'Traffic'}
                         </button>
                     </div>
                 )}

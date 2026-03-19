@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { FiArrowRight, FiArrowLeft } from 'react-icons/fi';
+import { Car, Bike, Zap, ArrowRight, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const vehicleTypes = [
-    { value: 'car', label: 'Car', emoji: '🚗', desc: 'Sedan, SUV, Hatchback' },
-    { value: 'bike', label: 'Bike', emoji: '🏍️', desc: 'Two-wheeler' },
-    { value: 'auto', label: 'Auto', emoji: '🛺', desc: 'Three-wheeler' },
+    { value: 'car', label: 'Car', icon: <Car size={24} />, desc: 'Sedan, SUV, Hatchback' },
+    { value: 'bike', label: 'Bike', icon: <Bike size={24} />, desc: 'Two-wheeler' },
+    { value: 'auto', label: 'Auto', icon: <Zap size={24} />, desc: 'Three-wheeler' },
 ];
 
 const currentYear = new Date().getFullYear();
@@ -51,7 +51,7 @@ const Step4Vehicle = ({ formData, updateField, nextStep, prevStep }) => {
                                         : 'border-gray-200 bg-gray-50 hover:border-gray-300'
                                     }`}
                             >
-                                <span className="text-3xl block mb-1">{type.emoji}</span>
+                                <span className="mb-2 block flex justify-center text-teal-600">{type.icon}</span>
                                 <span className={`text-sm font-semibold block ${formData.vehicleType === type.value ? 'text-teal-700' : 'text-gray-700'}`}>
                                     {type.label}
                                 </span>
@@ -126,7 +126,7 @@ const Step4Vehicle = ({ formData, updateField, nextStep, prevStep }) => {
                     onClick={prevStep}
                     className="flex-1 py-3.5 rounded-xl font-semibold text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center justify-center gap-2 transition-all"
                 >
-                    <FiArrowLeft size={14} /> Back
+                    <ArrowLeft size={14} /> Back
                 </button>
                 <button
                     onClick={handleContinue}
@@ -136,7 +136,7 @@ const Step4Vehicle = ({ formData, updateField, nextStep, prevStep }) => {
                             : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         }`}
                 >
-                    Continue <FiArrowRight size={14} />
+                    Continue <ArrowRight size={14} />
                 </button>
             </div>
         </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
-import { FiMapPin, FiNavigation, FiCheck } from 'react-icons/fi';
+import { MapPin, Navigation as NavIcon, Check, Map, CheckCircle } from 'lucide-react';
 import StatusBadge from '../../components/StatusBadge';
 import api from '../../services/api';
 import { useSocket } from '../../context/SocketContext';
@@ -10,19 +10,26 @@ const LIBRARIES = ['places'];
 
 const containerStyle = { height: '100%', width: '100%', borderRadius: '16px' };
 
-const buildIcon = (emoji, borderColor) => ({
+const buildIcon = (path, borderColor) => ({
     url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
-            <circle cx="20" cy="20" r="18" fill="white" stroke="${borderColor}" stroke-width="3"/>
-            <text x="20" y="26" text-anchor="middle" font-size="18">${emoji}</text>
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="${borderColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" fill="white" stroke-width="1.5"/>
+            <g transform="translate(6, 6) scale(0.5)">
+                ${path}
+            </g>
         </svg>
     `)}`,
     scaledSize: { width: 40, height: 40 },
     anchor: { x: 20, y: 20 },
 });
 
-const PICKUP_ICON = buildIcon('📍', '#10b981');
-const DROP_ICON = buildIcon('🏁', '#ef4444');
+const PATHS = {
+    pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+    flag: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1V22"/>'
+};
+
+const PICKUP_ICON = buildIcon(PATHS.pin, '#10b981');
+const DROP_ICON = buildIcon(PATHS.flag, '#ef4444');
 
 const Navigation = () => {
     const [ride, setRide] = useState(null);
@@ -131,7 +138,7 @@ const Navigation = () => {
         return (
             <div className="driver-nav">
                 <div className="empty-state">
-                    <div className="empty-state-icon">🗺️</div>
+                    <div className="empty-state-icon text-gray-400 flex justify-center mb-2"><Map size={48} /></div>
                     <h3>No Active Ride</h3>
                     <p>Accept a ride to see navigation</p>
                 </div>
@@ -150,7 +157,7 @@ const Navigation = () => {
                 {loadError || authError ? (
                     <div className="flex items-center justify-center h-full bg-gray-50 rounded-2xl border border-gray-100">
                         <div className="text-center p-4">
-                            <span className="text-xl mb-1 block">🗺️</span>
+                            <span className="text-gray-400 flex justify-center mb-1"><Map size={24} /></span>
                             <p className="text-xs font-semibold text-gray-700">Map unavailable</p>
                             <p className="text-[10px] text-gray-400 mt-1">
                                 {authError ? "Auth failed (Check API restrictions/billing)" : "Check API key and network"}
@@ -178,14 +185,14 @@ const Navigation = () => {
             <div className="tracking-info">
                 <div className="tracking-details">
                     <div className="tracking-detail">
-                        <div className="tracking-detail-icon"><FiMapPin /></div>
+                        <div className="tracking-detail-icon"><MapPin size={18} /></div>
                         <div className="tracking-detail-text">
                             <span className="tracking-detail-label">Pickup</span>
                             <span className="tracking-detail-value">{ride.pickupLocation?.address}</span>
                         </div>
                     </div>
                     <div className="tracking-detail">
-                        <div className="tracking-detail-icon"><FiNavigation /></div>
+                        <div className="tracking-detail-icon"><NavIcon size={18} /></div>
                         <div className="tracking-detail-text">
                             <span className="tracking-detail-label">Drop-off</span>
                             <span className="tracking-detail-value">{ride.dropLocation?.address}</span>
@@ -206,7 +213,7 @@ const Navigation = () => {
                                 placeholder="----"
                             />
                             <button className="otp-verify-btn" onClick={handleStartRide}>
-                                <FiCheck /> Verify & Start
+                                <Check size={18} /> Verify & Start
                             </button>
                         </div>
                         {otpError && <p style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: '0.5rem' }}>{otpError}</p>}
@@ -215,13 +222,13 @@ const Navigation = () => {
 
                 {ride.status === 'on_trip' && (
                     <button className="book-btn" onClick={handleCompleteRide} style={{ marginTop: '1.5rem' }}>
-                        <FiCheck /> Complete Ride
+                        <Check size={18} /> Complete Ride
                     </button>
                 )}
 
                 {ride.status === 'completed' && (
-                    <div className="sos-sent" style={{ marginTop: '1rem', textAlign: 'center' }}>
-                        ✅ Ride completed successfully!
+                    <div className="sos-sent" style={{ marginTop: '1rem', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <CheckCircle className="text-emerald-500" size={20} /> Ride completed successfully!
                     </div>
                 )}
             </div>

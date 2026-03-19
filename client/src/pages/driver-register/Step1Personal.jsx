@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { FiUser, FiMail, FiPhone, FiCamera, FiArrowRight, FiX, FiMapPin } from 'react-icons/fi';
+import { tamilNaduData } from '../../utils/tamilnaduData';
+import CustomDropdown from '../../components/CustomDropdown';
 
 const Step1Personal = ({ formData, updateField, nextStep }) => {
     const [errors, setErrors] = useState({});
@@ -11,6 +13,7 @@ const Step1Personal = ({ formData, updateField, nextStep }) => {
         else if (!/\S+@\S+\.\S+/.test(formData.email)) e.email = 'Invalid email format';
         if (!formData.phone.trim()) e.phone = 'Phone number is required';
         else if (formData.phone.length < 10) e.phone = 'Enter a valid phone number';
+        if (!formData.district?.trim()) e.district = 'District is required';
         if (!formData.taluk?.trim()) e.taluk = 'Taluk is required';
         if (!formData.profilePhoto) e.photo = 'Profile photo is required';
         setErrors(e);
@@ -33,7 +36,8 @@ const Step1Personal = ({ formData, updateField, nextStep }) => {
         reader.readAsDataURL(file);
     };
 
-    const isValid = formData.fullName.trim() && formData.email.trim() && formData.phone.trim() && formData.taluk?.trim() && formData.profilePhoto;
+    const isValid = formData.fullName.trim() && formData.email.trim() && formData.phone.trim() && 
+                    formData.district?.trim() && formData.taluk?.trim() && formData.profilePhoto;
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
@@ -116,21 +120,31 @@ const Step1Personal = ({ formData, updateField, nextStep }) => {
                     {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
                 </div>
 
+                {/* District */}
+                <CustomDropdown
+                    label="District *"
+                    icon={FiMapPin}
+                    options={Object.keys(tamilNaduData).sort()}
+                    value={formData.district || ''}
+                    onChange={(val) => {
+                        updateField('district', val);
+                        updateField('taluk', ''); 
+                    }}
+                    placeholder="Select District"
+                    error={errors.district}
+                />
+
                 {/* Taluk */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Taluk *</label>
-                    <div className="relative">
-                        <FiMapPin className="absolute left-3.5 top-3.5 text-gray-400" size={16} />
-                        <input
-                            type="text"
-                            value={formData.taluk}
-                            onChange={(e) => updateField('taluk', e.target.value)}
-                            placeholder="Enter your taluk Nearby (e.g., Coimbatore North)"
-                            className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white text-gray-900 placeholder-gray-400 text-sm transition-all outline-none ${errors.taluk ? 'border-red-300' : 'border-gray-200'}`}
-                        />
-                    </div>
-                    {errors.taluk && <p className="text-xs text-red-500 mt-1">{errors.taluk}</p>}
-                </div>
+                <CustomDropdown
+                    label="Taluk *"
+                    icon={FiMapPin}
+                    options={formData.district ? tamilNaduData[formData.district]?.sort() : []}
+                    value={formData.taluk || ''}
+                    onChange={(val) => updateField('taluk', val)}
+                    placeholder={formData.district ? "Select Taluk" : "Select District first"}
+                    disabled={!formData.district}
+                    error={errors.taluk}
+                />
             </div>
 
             <button

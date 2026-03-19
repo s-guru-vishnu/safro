@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiMapPin, FiArrowRight, FiExternalLink, FiTrendingUp, FiUsers, FiDollarSign, FiCalendar, FiBriefcase } from 'react-icons/fi';
+import { 
+    MapPin, ArrowRight, ExternalLink, TrendingUp, Users, DollarSign, Calendar, Briefcase,
+    Home, Target, Cpu, Heart, Umbrella
+} from 'lucide-react';
 
 const fadeUp = {
     hidden: { opacity: 0, y: 30 },
@@ -9,19 +12,19 @@ const fadeUp = {
 
 const Careers = () => {
     const perks = [
-        { icon: '🏠', title: 'Remote First', desc: 'Work from anywhere in India. Quarterly team retreats.' },
-        { icon: '📈', title: 'Equity & ESOPs', desc: 'Own a piece of Safro with generous stock options.' },
-        { icon: '🎯', title: 'Real Impact', desc: 'Build products used by millions of riders & drivers daily.' },
-        { icon: '🧠', title: 'Growth Budget', desc: '₹50K/year learning budget, conferences, and mentorship.' },
-        { icon: '🏥', title: 'Health Benefits', desc: 'Full medical insurance for you and your family.' },
-        { icon: '🏖️', title: 'Unlimited PTO', desc: 'We trust you. Take time off when you need it.' },
+        { icon: <Home className="text-teal-600" />, title: 'Remote First', desc: 'Work from anywhere in India. Quarterly team retreats.' },
+        { icon: <TrendingUp className="text-teal-600" />, title: 'Equity & ESOPs', desc: 'Own a piece of Safro with generous stock options.' },
+        { icon: <Target className="text-teal-600" />, title: 'Real Impact', desc: 'Build products used by millions of riders & drivers daily.' },
+        { icon: <Cpu className="text-teal-600" />, title: 'Growth Budget', desc: '₹50K/year learning budget, conferences, and mentorship.' },
+        { icon: <Heart className="text-teal-600" />, title: 'Health Benefits', desc: 'Full medical insurance for you and your family.' },
+        { icon: <Umbrella className="text-teal-600" />, title: 'Unlimited PTO', desc: 'We trust you. Take time off when you need it.' },
     ];
 
     const hiringStats = [
-        { label: 'Team Size', value: '45+', icon: <FiUsers /> },
-        { label: 'Hires in 2025', value: '28', icon: <FiTrendingUp /> },
-        { label: 'Avg. Salary', value: '₹18L', icon: <FiDollarSign /> },
-        { label: 'Open Roles', value: '8', icon: <FiBriefcase /> },
+        { label: 'Team Size', value: '45+', icon: <Users /> },
+        { label: 'Hires in 2025', value: '28', icon: <TrendingUp /> },
+        { label: 'Avg. Salary', value: '₹18L', icon: <DollarSign /> },
+        { label: 'Open Roles', value: '8', icon: <Briefcase /> },
     ];
 
     const openings = [
@@ -191,7 +194,7 @@ const Careers = () => {
                                 <motion.div key={i} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
                                     className="flex gap-6 items-start">
                                     <div className={`relative z-10 shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-xs font-bold border-2 ${item.highlight ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-600 border-gray-300'}`}>
-                                        <FiCalendar size={16} />
+                                        <Calendar size={16} />
                                     </div>
                                     <div className={`flex-1 p-5 rounded-xl border ${item.highlight ? 'bg-teal-50 border-teal-200' : 'bg-white border-gray-200'}`}>
                                         <div className="flex items-center gap-3 mb-1">
@@ -215,7 +218,7 @@ const Careers = () => {
                         {perks.map((p, i) => (
                             <motion.div key={i} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
                                 className="bg-white p-6 rounded-xl border border-gray-200 text-center hover:shadow-md transition-all">
-                                <span className="text-3xl mb-3 block">{p.icon}</span>
+                                <span className="mb-3 block flex justify-center">{p.icon}</span>
                                 <h3 className="font-bold text-gray-900 mb-1">{p.title}</h3>
                                 <p className="text-sm text-gray-500">{p.desc}</p>
                             </motion.div>
@@ -270,9 +273,9 @@ const Careers = () => {
                                         <h3 className="text-lg font-bold text-gray-900 group-hover:text-teal-600 transition-colors mb-1">{job.title}</h3>
                                         <p className="text-sm text-gray-500 mb-3 leading-relaxed">{job.description}</p>
                                         <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 mb-3">
-                                            <span className="flex items-center gap-1"><FiMapPin size={11} /> {job.location}</span>
-                                            <span className="flex items-center gap-1"><FiBriefcase size={11} /> {job.experience}</span>
-                                            <span className="flex items-center gap-1"><FiCalendar size={11} /> Posted {job.posted}</span>
+                                            <span className="flex items-center gap-1"><MapPin size={11} /> {job.location}</span>
+                                            <span className="flex items-center gap-1"><Briefcase size={11} /> {job.experience}</span>
+                                            <span className="flex items-center gap-1"><Calendar size={11} /> Posted {job.posted}</span>
                                         </div>
                                         {/* Skills */}
                                         <div className="flex flex-wrap gap-1.5 mb-3">
@@ -282,17 +285,17 @@ const Careers = () => {
                                         </div>
                                         {/* Salary */}
                                         <div className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-lg text-xs font-bold">
-                                            <FiDollarSign size={12} /> {job.salary} / year + ESOPs
+                                            <DollarSign size={12} /> {job.salary} / year + ESOPs
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-2 shrink-0">
                                         <a href={job.linkedIn} target="_blank" rel="noopener noreferrer"
                                             className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-teal-600 transition-all whitespace-nowrap">
-                                            Apply <FiArrowRight size={14} />
+                                            Apply <ArrowRight size={14} />
                                         </a>
                                         <a href={job.linkedIn} target="_blank" rel="noopener noreferrer"
                                             className="inline-flex items-center justify-center gap-1.5 px-5 py-2 border border-gray-300 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50 transition-all whitespace-nowrap">
-                                            <FiExternalLink size={12} /> View on LinkedIn
+                                            <ExternalLink size={12} /> View on LinkedIn
                                         </a>
                                     </div>
                                 </div>
@@ -309,11 +312,11 @@ const Careers = () => {
                     <p className="text-gray-400 mb-6">Send us your resume and we'll keep you in mind for future openings.</p>
                     <div className="flex flex-wrap justify-center gap-4">
                         <a href="mailto:safro.2026.safro@gmail.com" className="inline-flex items-center gap-2 px-8 py-3.5 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition-all">
-                            safro.2026.safro@gmail.com <FiArrowRight />
+                            safro.2026.safro@gmail.com <ArrowRight />
                         </a>
                         <a href="https://www.linkedin.com/company/safro-rides/" target="_blank" rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 px-8 py-3.5 border border-gray-600 text-gray-300 font-semibold rounded-lg hover:bg-gray-800 transition-all">
-                            <FiExternalLink size={14} /> LinkedIn Page
+                            <ExternalLink size={14} /> LinkedIn Page
                         </a>
                     </div>
                 </div>

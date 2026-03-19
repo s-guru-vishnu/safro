@@ -85,6 +85,11 @@ const userSchema = new mongoose.Schema({
         enum: ['wallet', 'razorpay', 'cash'],
         default: 'cash'
     },
+    district: {
+        type: String,
+        trim: true,
+        default: ''
+    },
     taluk: {
         type: String,
         trim: true,

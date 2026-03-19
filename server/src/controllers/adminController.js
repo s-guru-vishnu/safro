@@ -440,6 +440,22 @@ const getAnalytics = async (req, res, next) => {
             { $sort: { _id: 1 } }
         ]);
 
+        // Regional Analytics: Drivers per Taluk
+        const driversByTaluk = await User.aggregate([
+            { $match: { role: 'driver', taluk: { $exists: true, $ne: '' } } },
+            { $group: { _id: '$taluk', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 10 }
+        ]);
+
+        // Regional Analytics: Rides per District
+        const ridesByDistrict = await Ride.aggregate([
+            { $match: { district: { $exists: true, $ne: '' } } },
+            { $group: { _id: '$district', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 10 }
+        ]);
+
         res.json({
             totalUsers,
             totalRiders,
@@ -450,7 +466,9 @@ const getAnalytics = async (req, res, next) => {
             activeRides,
             pendingApplications,
             totalRevenue,
-            recentRidesByDay
+            recentRidesByDay,
+            driversByTaluk,
+            ridesByDistrict
         });
     } catch (error) {
         console.error('Analytics error:', error);

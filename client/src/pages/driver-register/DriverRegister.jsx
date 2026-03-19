@@ -52,7 +52,10 @@ const DriverRegister = () => {
         insuranceExpiry: '',
         insuranceDocument: '',
         rcNumber: '',
+        insuranceDocument: '',
+        rcNumber: '',
         rcDocument: '',
+        district: '',
         taluk: '',
     });
 
@@ -84,6 +87,7 @@ const DriverRegister = () => {
                 insuranceDocument: formData.insuranceDocument,
                 rcNumber: formData.rcNumber,
                 rcDocument: formData.rcDocument,
+                district: formData.district,
                 taluk: formData.taluk,
             });
             toast.success('Application submitted!');

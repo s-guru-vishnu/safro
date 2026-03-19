@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow, DirectionsRenderer } from '@react-google-maps/api';
-import { FiMap, FiLayers, FiActivity } from 'react-icons/fi';
+import { Map as MapIcon, Flag, Car, User, MapPin } from 'lucide-react';
 
 const LIBRARIES = ['places'];
 
@@ -12,22 +12,32 @@ const containerStyle = { width: '100%', height: '100%' };
 
 
 // ── Marker icon builders ────────────────────────────────────────
-const createSVGMarkerIcon = (emoji, borderColor) => ({
+const createSVGMarkerIcon = (path, borderColor) => ({
     url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
-            <circle cx="20" cy="20" r="18" fill="white" stroke="${borderColor}" stroke-width="3"/>
-            <text x="20" y="26" text-anchor="middle" font-size="18">${emoji}</text>
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="${borderColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" fill="white" stroke-width="1.5"/>
+            <g transform="translate(6, 6) scale(0.5)">
+                ${path}
+            </g>
         </svg>
     `)}`,
     scaledSize: { width: 40, height: 40 },
     anchor: { x: 20, y: 20 },
 });
 
+// Simplified Lucide paths
+const MARKER_PATHS = {
+    car: '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.5C1.4 11.1 1 12 1 13v3c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>',
+    pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+    flag: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1V22"/>',
+    user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'
+};
+
 const MARKER_ICONS = {
-    pickup: createSVGMarkerIcon('📍', '#10b981'),
-    drop: createSVGMarkerIcon('🏁', '#ef4444'),
-    driver: createSVGMarkerIcon('🚗', '#3b82f6'),
-    rider: createSVGMarkerIcon('👤', '#10b981'),
+    pickup: createSVGMarkerIcon(MARKER_PATHS.pin, '#10b981'),
+    drop: createSVGMarkerIcon(MARKER_PATHS.flag, '#ef4444'),
+    driver: createSVGMarkerIcon(MARKER_PATHS.car, '#3b82f6'),
+    rider: createSVGMarkerIcon(MARKER_PATHS.user, '#10b981'),
 };
 
 const MapView = ({ pickupCoordinates, dropCoordinates, driverCoordinates, riderCoordinates, onMapClick }) => {
@@ -163,7 +173,7 @@ const MapView = ({ pickupCoordinates, dropCoordinates, driverCoordinates, riderC
         return (
             <div className="flex items-center justify-center h-full bg-gray-50 rounded-xl">
                 <div className="text-center p-6 max-w-sm">
-                    <div className="text-3xl mb-2">🗺️</div>
+                    <div className="text-3xl mb-2 text-gray-400 flex justify-center"><MapIcon size={32} /></div>
                     <p className="text-sm font-semibold text-gray-700">Map unavailable</p>
                     <p className="text-xs text-gray-400 mt-2 leading-relaxed">
                         {authError 

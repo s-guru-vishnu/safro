@@ -43,12 +43,26 @@ const socketHandler = (io) => {
         });
 
         // Join room based on user role and id
-        socket.on('joinRoom', ({ userId, role }) => {
+        socket.on('joinRoom', async ({ userId, role }) => {
             socket.join(userId);
             socket.join(role);
             userSocketMap.set(userId, socket.id);
             socket.userId = userId;
             socket.userRole = role;
+
+            // If driver, join taluk room
+            if (role === 'driver') {
+                try {
+                    const user = await User.findById(userId);
+                    if (user && user.taluk) {
+                        socket.join(`driver_taluk_${user.taluk}`);
+                        console.log(`🚛 Driver ${userId} joined taluk room: ${user.taluk}`);
+                    }
+                } catch (err) {
+                    console.error('Error joining taluk room:', err.message);
+                }
+            }
+
             console.log(`👤 User ${userId} joined room: ${role}`);
         });
 

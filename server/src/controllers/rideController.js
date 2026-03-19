@@ -7,6 +7,7 @@ const WalletTransaction = require('../models/WalletTransaction');
 const { predictFare } = require('../services/farePredictionService');
 const { calculateEstimatedFare } = require('../services/fareService');
 const { checkRide } = require('../services/fraudDetectionService');
+const { identifyTaluk } = require('../utils/geoUtils');
 const { sendRideBookedEmail, sendDriverAssignedEmail, sendRideCompletedEmail, sendPaymentReceiptEmail, sendRideCancelledEmail, sendRideBookedWhatsApp, sendDriverAssignedWhatsApp, sendRideStartedWhatsApp, sendRideCompletedWhatsApp, sendPaymentReceiptWhatsApp } = require('../services/notificationService');
 
 // Helper: random number in range
@@ -124,7 +125,8 @@ const requestRide = async (req, res, next) => {
             duration,
             distanceKm,
             estimatedDuration,
-            status: 'pending'
+            status: 'pending',
+            taluk: identifyTaluk(pickupLocation?.address) || ''
         });
 
         // Set active ride on user
@@ -174,7 +176,11 @@ const requestRide = async (req, res, next) => {
         // Emit socket event to nearby drivers
         const io = req.app.get('io');
         if (io) {
-            io.to('driver').emit('newRideRequest', ride);
+            if (ride.taluk) {
+                io.to(`driver_taluk_${ride.taluk}`).emit('newRideRequest', ride);
+            } else {
+                io.to('driver').emit('newRideRequest', ride);
+            }
         }
 
         // 📧 Email + 📱 WhatsApp: Ride Booked (non-blocking)
@@ -212,6 +218,14 @@ const getAvailableRides = async (req, res, next) => {
                     $maxDistance: 10000 // 10km in meters
                 }
             };
+        }
+
+        // Apply taluk filter for drivers
+        if (req.user && req.user.role === 'driver') {
+            const driver = await User.findById(req.user._id);
+            if (driver && driver.taluk) {
+                query.taluk = driver.taluk;
+            }
         }
 
         const rides = await Ride.find(query)

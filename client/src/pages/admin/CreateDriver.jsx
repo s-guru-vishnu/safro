@@ -4,13 +4,15 @@ import { motion } from 'framer-motion';
 import { FiUser, FiMail, FiLock, FiPhone, FiTruck, FiFileText, FiShield, FiArrowLeft, FiCheckCircle, FiMapPin } from 'react-icons/fi';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import CustomDropdown from '../../components/CustomDropdown';
+import { tamilNaduData } from '../../utils/tamilnaduData';
 
 const CreateDriver = () => {
     const navigate = useNavigate();
     const [form, setForm] = useState({
         name: '', email: '', password: '', phone: '',
         vehicleType: 'sedan', vehicleNumber: '', licenseNumber: '',
-        aadhaar: '', rc: '', insurance: '', taluk: ''
+        aadhaar: '', rc: '', insurance: '', district: '', taluk: ''
     });
     const [loading, setLoading] = useState(false);
 
@@ -84,23 +86,36 @@ const CreateDriver = () => {
                         <div>
                             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Vehicle Details</h4>
                             <div className="grid sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Vehicle Type</label>
-                                    <select
-                                        name="vehicleType"
-                                        value={form.vehicleType}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white text-gray-900 transition-all outline-none"
-                                    >
-                                        <option value="bike">Bike</option>
-                                        <option value="auto">Auto</option>
-                                        <option value="sedan">Sedan</option>
-                                        <option value="suv">SUV</option>
-                                    </select>
-                                </div>
+                                <CustomDropdown
+                                    label="Vehicle Type"
+                                    icon={FiTruck}
+                                    options={['bike', 'auto', 'sedan', 'suv']}
+                                    value={form.vehicleType}
+                                    onChange={(val) => setForm({ ...form, vehicleType: val })}
+                                    searchable={false}
+                                />
                                 <InputField icon={FiTruck} label="Vehicle Number" type="text" name="vehicleNumber" placeholder="e.g. KA-01-AB-1234" value={form.vehicleNumber} required />
                                 <InputField icon={FiFileText} label="License Number" type="text" name="licenseNumber" placeholder="License number" value={form.licenseNumber} required />
-                                <InputField icon={FiMapPin} label="Taluk" type="text" name="taluk" placeholder="Enter taluk" value={form.taluk} required />
+                                
+                                <div className="sm:col-span-2 grid sm:grid-cols-2 gap-4">
+                                    <CustomDropdown
+                                        label="District"
+                                        icon={FiMapPin}
+                                        options={Object.keys(tamilNaduData).sort()}
+                                        value={form.district}
+                                        onChange={(val) => setForm({ ...form, district: val, taluk: '' })}
+                                        placeholder="Select District"
+                                    />
+                                    <CustomDropdown
+                                        label="Taluk"
+                                        icon={FiMapPin}
+                                        options={form.district ? tamilNaduData[form.district]?.sort() : []}
+                                        value={form.taluk}
+                                        onChange={(val) => setForm({ ...form, taluk: val })}
+                                        placeholder={form.district ? "Select Taluk" : "Select District first"}
+                                        disabled={!form.district}
+                                    />
+                                </div>
                             </div>
                         </div>
 

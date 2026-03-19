@@ -192,6 +192,63 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
+                {/* Regional Analytics */}
+                <div className="grid lg:grid-cols-2 gap-6 mb-6">
+                    {/* Drivers per Taluk */}
+                    <div className="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <FiUsers className="text-teal-600" /> Drivers per Taluk
+                        </h3>
+                        <div className="space-y-4">
+                            {analytics?.driversByTaluk?.length > 0 ? (
+                                analytics.driversByTaluk.map((taluk, idx) => (
+                                    <div key={idx}>
+                                        <div className="flex justify-between text-xs mb-1.5">
+                                            <span className="text-gray-500">{taluk._id}</span>
+                                            <span className="font-bold text-gray-900">{taluk.count}</span>
+                                        </div>
+                                        <div className="w-full bg-gray-50 rounded-full h-1.5">
+                                            <div 
+                                                className="bg-teal-500 h-1.5 rounded-full transition-all" 
+                                                style={{ width: `${(taluk.count / analytics.totalDrivers) * 100}%` }} 
+                                            />
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-xs text-gray-400 text-center py-4">No regional data available</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Activity per District */}
+                    <div className="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <FiActivity className="text-blue-600" /> Activity per District
+                        </h3>
+                        <div className="space-y-4">
+                            {analytics?.ridesByDistrict?.length > 0 ? (
+                                analytics.ridesByDistrict.map((district, idx) => (
+                                    <div key={idx}>
+                                        <div className="flex justify-between text-xs mb-1.5">
+                                            <span className="text-gray-500">{district._id}</span>
+                                            <span className="font-bold text-gray-900">{district.count} rides</span>
+                                        </div>
+                                        <div className="w-full bg-gray-50 rounded-full h-1.5">
+                                            <div 
+                                                className="bg-blue-500 h-1.5 rounded-full transition-all" 
+                                                style={{ width: `${(district.count / analytics.totalRides) * 100}%` }} 
+                                            />
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-xs text-gray-400 text-center py-4">No activity data available</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
                 {/* Recent Rides Table */}
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
                     <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">

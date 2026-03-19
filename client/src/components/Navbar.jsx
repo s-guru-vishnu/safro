@@ -80,7 +80,7 @@ const Navbar = () => {
             socket.on('newRideRequest', (ride) => {
                 addNotification({
                     type: 'request',
-                    title: '🚕 New Ride Request',
+                    title: 'New Ride Request',
                     message: `From: ${ride.pickupLocation?.address?.substring(0, 25)}...`,
                     icon: <FiTruck className="text-teal-500" />,
                     link: '/driver/dashboard'
@@ -92,7 +92,7 @@ const Navbar = () => {
         socket.on('rideAccepted', (data) => {
             addNotification({
                 type: 'status',
-                title: '📈 Ride Accepted',
+                title: 'Ride Accepted',
                 message: 'A driver has accepted the ride!',
                 icon: <FiCheckCircle className="text-emerald-500" />,
                 link: user.role === 'rider' ? '/rider/tracking' : '/driver/dashboard'
@@ -102,7 +102,7 @@ const Navbar = () => {
         socket.on('rideStarted', (data) => {
             addNotification({
                 type: 'status',
-                title: '🚗 Ride Started',
+                title: 'Ride Started',
                 message: 'The trip has officially begun.',
                 icon: <FiTruck className="text-blue-500" />,
                 link: user.role === 'rider' ? '/rider/tracking' : '/driver/dashboard'
@@ -112,7 +112,7 @@ const Navbar = () => {
         socket.on('rideCompleted', (data) => {
             addNotification({
                 type: 'status',
-                title: '✨ Ride Completed',
+                title: 'Ride Completed',
                 message: 'You have reached your destination.',
                 icon: <FiCheckCircle className="text-teal-500" />,
                 link: user.role === 'rider' ? '/rider/history' : '/driver/earnings'
@@ -122,7 +122,7 @@ const Navbar = () => {
         socket.on('rideCancelled', (data) => {
             addNotification({
                 type: 'status',
-                title: '❌ Ride Cancelled',
+                title: 'Ride Cancelled',
                 message: 'The ride has been cancelled.',
                 icon: <FiAlertCircle className="text-red-500" />,
                 link: user.role === 'rider' ? '/rider/home' : '/driver/dashboard'

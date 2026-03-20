@@ -20,8 +20,8 @@ Safro is a premium, production-ready ride-sharing platform designed with a focus
 - **Easy Payouts**: Instant balance updates and secure transaction history.
 
 ### 🧠 Intelligent Backend
-- **AI Fare Prediction**: Suggested fares based on distance, time, and historical data (via Gemini AI).
-- **Multi-channel Notifications**: Automated Email and WhatsApp alerts for booking, assignment, and completion.
+- **AI Fare Prediction**: Suggested fares based on distance, time, and historical data (N8N).
+- **Multi-channel Notifications**: Automated Email alerts for booking, assignment, and completion.
 - **Real-time Sync**: Low-latency updates using Socket.IO for every ride state change.
 
 ---
@@ -41,9 +41,9 @@ Safro is a premium, production-ready ride-sharing platform designed with a focus
 - **Framework**: Express.js
 - **Database**: MongoDB + Mongoose ODM
 - **Real-time**: Socket.IO
-- **AI**: Google Gemini API
+- **AI**: N8N
 - **Payments**: Razorpay Node SDK
-- **Notifications**: Nodemailer + Twilio
+- **Notifications**: Google Apps Email
 
 ---
 
@@ -74,7 +74,7 @@ Safro/
 ### 1. Prerequisites
 - **Node.js**: ≥18.x
 - **MongoDB**: Local instance or [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-- **API Keys**: Razorpay, Google Gemini, and optionally Twilio/SendGrid.
+- **API Keys**: Razorpay, Google Map, Place API and Google Apps (Email).
 
 ### 2. Installation
 

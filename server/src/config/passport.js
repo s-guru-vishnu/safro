@@ -5,12 +5,13 @@ const User = require('../models/User');
 const callbackURL = process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5001/api/auth/google/callback';
 console.log('🔑 Google OAuth callbackURL:', callbackURL);
 
-passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: callbackURL
-}, async (accessToken, refreshToken, profile, done) => {
-    try {
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    passport.use(new GoogleStrategy({
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: callbackURL
+    }, async (accessToken, refreshToken, profile, done) => {
+        try {
         // 1. Check if user exists by googleId
         let user = await User.findOne({ googleId: profile.id });
 
@@ -52,6 +53,9 @@ passport.use(new GoogleStrategy({
         return done(err, false);
     }
 }));
+} else {
+    console.warn('⚠️ Google OAuth credentials missing. Google login will be disabled.');
+}
 
 passport.serializeUser((user, done) => {
     done(null, user.id);

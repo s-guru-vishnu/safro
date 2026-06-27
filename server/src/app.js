@@ -23,29 +23,48 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
-// ─── Security Middleware ────────────────────────────────────────
+// 1. Security Headers
 app.use(helmet());
 
-// ─── Logging ────────────────────────────────────────────────────
+// 2. CORS Configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://safro.vercel.app"
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS blocked: ${origin}`));
+  },
+  credentials: true,
+  methods: [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS"
+  ],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization"
+  ]
+}));
+app.options("*", cors());
+
+// 3. Logging
 if (process.env.NODE_ENV === 'production') {
     app.use(morgan('combined'));
 } else {
     app.use(morgan('dev'));
 }
 
-// ─── CORS Configuration ────────────────────────────────────────
-app.use(cors({
-    origin: process.env.CORS_ORIGIN
-        ? process.env.CORS_ORIGIN.split(',')
-        : ['http://localhost:5173', 'http://localhost:3000'],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
-}));
-
-// ─── Body Parsing ───────────────────────────────────────────────
+// 4 & 5 & 6. Body Parsing
 // Webhook raw body parser MUST come before express.json()
 app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
-
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -60,7 +79,7 @@ console.log('🔑 GOOGLE OAUTH CONFIG:');
 console.log('   Client ID:', process.env.GOOGLE_CLIENT_ID ? '✅ Set' : '❌ MISSING');
 console.log('   Client Secret:', process.env.GOOGLE_CLIENT_SECRET ? '✅ Set' : '❌ MISSING');
 console.log('   Callback URL:', process.env.GOOGLE_CALLBACK_URL || '❌ NOT SET (using fallback)');
-console.log('   Frontend URL:', process.env.FRONTEND_URL || '❌ NOT SET (using fallback)');
+console.log('   Frontend URL:', 'http://localhost:5173' || '❌ NOT SET (using fallback)');
 console.log('══════════════════════════════════════════');
 console.log('📋 GOOGLE CONSOLE MUST HAVE THIS REDIRECT URI:');
 console.log('   →', process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5001/api/auth/google/callback');
@@ -103,10 +122,9 @@ app.use('/api/test/email', require('./routes/testEmailRoute'));
 
 // ─── Health Check ───────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
-    res.json({
-        status: 'OK',
-        message: 'Safro API is running',
-        version: '1.0.0',
+    res.status(200).json({
+        status: "ok",
+        message: "Backend is running",
         timestamp: new Date().toISOString()
     });
 });
@@ -114,8 +132,8 @@ app.get('/api/health', (req, res) => {
 // ─── Root Route ─────────────────────────────────────────────────
 app.get('/', (req, res) => {
     res.json({
-        message: 'Welcome to Safro API',
-        docs: '/api/health'
+        success: true,
+        message: "Safro Backend API is running"
     });
 });
 

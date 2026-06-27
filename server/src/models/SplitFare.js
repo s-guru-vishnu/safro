@@ -99,7 +99,6 @@ const splitFareSchema = new mongoose.Schema({
     timestamps: true
 });
 
-splitFareSchema.index({ inviteCode: 1 });
 splitFareSchema.index({ createdBy: 1 });
 splitFareSchema.index({ 'passengers.userId': 1 });
 

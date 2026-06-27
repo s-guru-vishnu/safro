@@ -29,7 +29,8 @@ app.use(helmet());
 // 2. CORS Configuration
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://safro.vercel.app"
+  "https://safro.vercel.app",
+  "https://safro-ride.vercel.app"
 ];
 
 app.use(cors({

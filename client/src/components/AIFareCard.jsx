@@ -30,18 +30,18 @@ const AIFareCard = ({ prediction, loading }) => {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="bg-white border border-teal-100/50 rounded-2xl p-5 mt-4 relative overflow-hidden shadow-sm ring-1 ring-black/5"
+            className="bg-white dark:bg-gray-900 border border-teal-100/50 rounded-2xl p-5 mt-4 relative overflow-hidden shadow-sm ring-1 ring-black/5"
         >
-            <div className="absolute -top-8 -right-8 w-24 h-24 bg-teal-500/10 rounded-full blur-xl" />
+            <div className="absolute -top-8 -right-8 w-24 h-24 bg-teal-50 dark:bg-teal-900/20 rounded-full blur-xl" />
 
             {/* Header */}
             <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-teal-50 rounded-xl flex items-center justify-center">
-                    <span className="text-teal-600 text-lg">💡</span>
+                <div className="w-8 h-8 bg-teal-50 dark:bg-teal-900/20 rounded-xl flex items-center justify-center">
+                    <span className="text-teal-600 dark:text-teal-400 text-lg">💡</span>
                 </div>
                 <div>
-                    <h4 className="text-gray-900 font-bold text-sm">AI Fare Insights</h4>
-                    <span className="text-gray-500 text-xs capitalize">
+                    <h4 className="text-gray-900 dark:text-white font-bold text-sm">AI Fare Insights</h4>
+                    <span className="text-gray-500 dark:text-gray-400 text-xs capitalize">
                         {source === 'ai' ? 'Powered by GROQ AI' : 'Algorithmic estimate'}
                     </span>
                 </div>
@@ -51,31 +51,31 @@ const AIFareCard = ({ prediction, loading }) => {
             <div className="grid grid-cols-3 gap-3 mb-4">
                 <motion.div
                     whileHover={{ scale: 1.03 }}
-                    className="bg-gray-50 rounded-xl p-2 sm:p-3 flex flex-col items-center justify-center text-center border border-gray-100"
+                    className="bg-gray-50 dark:bg-gray-950 rounded-xl p-2 sm:p-3 flex flex-col items-center justify-center text-center border border-gray-100 dark:border-gray-800"
                 >
-                    <p className="text-gray-500 text-xs mb-1">Min</p>
-                    <p className="text-gray-900 font-bold text-base sm:text-lg">₹{minFare}</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-xs mb-1">Min</p>
+                    <p className="text-gray-900 dark:text-white font-bold text-base sm:text-lg">₹{minFare}</p>
                 </motion.div>
 
                 <motion.div
                     whileHover={{ scale: 1.03 }}
-                    className="bg-teal-50 rounded-xl p-2 sm:p-3 flex flex-col items-center justify-center text-center border border-teal-200 ring-1 ring-teal-100/50"
+                    className="bg-teal-50 dark:bg-teal-900/20 rounded-xl p-2 sm:p-3 flex flex-col items-center justify-center text-center border border-teal-200 dark:border-teal-800 ring-1 ring-teal-100/50"
                 >
-                    <p className="text-teal-700 text-[10px] sm:text-xs mb-1 font-bold truncate w-full">Recommended</p>
+                    <p className="text-teal-700 dark:text-teal-400 text-[10px] sm:text-xs mb-1 font-bold truncate w-full">Recommended</p>
                     <p className="text-teal-900 font-black text-lg sm:text-xl">₹{suggestedFare}</p>
                 </motion.div>
 
                 <motion.div
                     whileHover={{ scale: 1.03 }}
-                    className="bg-gray-50 rounded-xl p-2 sm:p-3 flex flex-col items-center justify-center text-center border border-gray-100"
+                    className="bg-gray-50 dark:bg-gray-950 rounded-xl p-2 sm:p-3 flex flex-col items-center justify-center text-center border border-gray-100 dark:border-gray-800"
                 >
-                    <p className="text-gray-500 text-xs mb-1">Max</p>
-                    <p className="text-gray-900 font-bold text-base sm:text-lg">₹{maxFare}</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-xs mb-1">Max</p>
+                    <p className="text-gray-900 dark:text-white font-bold text-base sm:text-lg">₹{maxFare}</p>
                 </motion.div>
             </div>
 
             {/* Fare Range Bar */}
-            <div className="relative h-2 bg-gray-100 rounded-full mb-3 overflow-hidden">
+            <div className="relative h-2 bg-gray-100 dark:bg-gray-800 rounded-full mb-3 overflow-hidden">
                 <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: '100%' }}
@@ -86,7 +86,7 @@ const AIFareCard = ({ prediction, loading }) => {
 
             {/* Reasoning */}
             {reasoning && (
-                <p className="text-gray-600 text-xs leading-relaxed flex items-start gap-1.5">
+                <p className="text-gray-600 dark:text-gray-400 text-xs leading-relaxed flex items-start gap-1.5">
                     {reasoning}
                 </p>
             )}

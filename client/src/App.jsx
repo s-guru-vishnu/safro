@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
 import LoadingSpinner from './components/LoadingSpinner';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -22,7 +23,9 @@ import RiderHistory from './pages/rider/History';
 import RiderProfile from './pages/rider/Profile';
 import RiderWallet from './pages/rider/Wallet';
 import RiderSOS from './pages/rider/SOS';
+import RiderScheduled from './pages/rider/ScheduledRides';
 import PaymentScreen from './pages/rider/PaymentScreen';
+import SplitFareDetail from './pages/rider/SplitFareDetail';
 
 import DriverDashboard from './pages/driver/Dashboard';
 import DriverRequests from './pages/driver/Requests';
@@ -78,7 +81,10 @@ function AppContent() {
         <Route path="/rider/profile" element={<ProtectedRoute allowedRoles={['rider']}><RiderProfile /></ProtectedRoute>} />
         <Route path="/rider/wallet" element={<ProtectedRoute allowedRoles={['rider']}><RiderWallet /></ProtectedRoute>} />
         <Route path="/rider/sos" element={<ProtectedRoute allowedRoles={['rider']}><RiderSOS /></ProtectedRoute>} />
+        <Route path="/rider/scheduled" element={<ProtectedRoute allowedRoles={['rider']}><RiderScheduled /></ProtectedRoute>} />
         <Route path="/rider/payment/:rideId" element={<ProtectedRoute allowedRoles={['rider']}><PaymentScreen /></ProtectedRoute>} />
+        <Route path="/rider/split-fare/:rideId" element={<ProtectedRoute allowedRoles={['rider']}><SplitFareDetail /></ProtectedRoute>} />
+        <Route path="/rider/split-fare/join/:code" element={<ProtectedRoute allowedRoles={['rider']}><SplitFareDetail /></ProtectedRoute>} />
         <Route path="/driver/dashboard" element={<ProtectedRoute allowedRoles={['driver']}><DriverDashboard /></ProtectedRoute>} />
         <Route path="/driver/requests" element={<ProtectedRoute allowedRoles={['driver']}><DriverRequests /></ProtectedRoute>} />
         <Route path="/driver/navigation" element={<ProtectedRoute allowedRoles={['driver']}><DriverNavigation /></ProtectedRoute>} />
@@ -100,13 +106,15 @@ function AppContent() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <SocketProvider>
-          <AppContent />
-        </SocketProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <SocketProvider>
+            <AppContent />
+          </SocketProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

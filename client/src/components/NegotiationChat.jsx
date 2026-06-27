@@ -166,20 +166,20 @@ const NegotiationChat = ({ ride: initialRide, onRideUpdate }) => {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-[550px]"
+            className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col h-[550px]"
         >
             {/* Header */}
-            <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+            <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="text-sm font-bold text-gray-900">Live Negotiation</h3>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-white">Live Negotiation</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             {activeRide?.pickupLocation?.address} → {activeRide?.dropLocation?.address}
                         </p>
                     </div>
-                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${isConfirmed ? 'bg-green-100 text-green-700' :
-                        timer <= 60 ? 'bg-red-100 text-red-600' :
-                            'bg-gray-100 text-gray-600'
+                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${isConfirmed ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                        timer <= 60 ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' :
+                            'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                         }`}>
                         {isConfirmed ? <FiCheck size={12} /> : <FiClock size={12} />}
                         {isConfirmed ? 'Confirmed' : formatTime(timer)}
@@ -187,29 +187,29 @@ const NegotiationChat = ({ ride: initialRide, onRideUpdate }) => {
                 </div>
 
                 {activeRide?.negotiatedFare > 0 ? (
-                    <div className="flex items-center gap-2 mt-3 p-2 bg-green-50 rounded-lg border border-green-200">
-                        <FiCheck className="text-green-600" size={14} />
-                        <span className="text-xs text-green-700">Final Price:</span>
+                    <div className="flex items-center gap-2 mt-3 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <FiCheck className="text-green-600 dark:text-green-400" size={14} />
+                        <span className="text-xs text-green-700 dark:text-green-400">Final Price:</span>
                         <span className="text-sm font-bold text-green-900">₹{activeRide.negotiatedFare}</span>
                     </div>
                 ) : activeRide?.fare?.proposed > 0 && (
-                    <div className="flex items-center gap-2 mt-3 p-2 bg-white rounded-lg border border-gray-200">
-                        <FiDollarSign className="text-teal-600" size={14} />
-                        <span className="text-xs text-gray-500">Original Budget:</span>
-                        <span className="text-sm font-bold text-gray-900">₹{activeRide.fare.proposed}</span>
+                    <div className="flex items-center gap-2 mt-3 p-2 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <FiDollarSign className="text-teal-600 dark:text-teal-400" size={14} />
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Original Budget:</span>
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">₹{activeRide.fare.proposed}</span>
                     </div>
                 )}
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-gray-900">
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center h-full space-y-2 text-gray-400">
+                    <div className="flex flex-col items-center justify-center h-full space-y-2 text-gray-400 dark:text-gray-500">
                         <div className="w-6 h-6 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
                         <p className="text-xs">Loading history...</p>
                     </div>
                 ) : messages.length === 0 ? (
-                    <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                    <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500 text-sm">
                         <p>Ask a question or make an offer to start</p>
                     </div>
                 ) : (
@@ -228,11 +228,11 @@ const NegotiationChat = ({ ride: initialRide, onRideUpdate }) => {
                                 >
                                     <div className={`max-w-[85%] rounded-2xl p-3 shadow-sm ${isOwn
                                         ? 'bg-gray-900 text-white rounded-br-none'
-                                        : 'bg-gray-100 text-gray-800 rounded-bl-none'
-                                        } ${isOffer && isAccepted ? 'border-2 border-green-500 !bg-green-50 !text-green-900 ring-4 ring-green-100' : ''} ${isOffer ? 'min-w-[260px]' : ''}`}>
+                                        : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-none'
+                                        } ${isOffer && isAccepted ? 'border-2 border-green-500 !bg-green-50 dark:bg-green-900/20 !text-green-900 ring-4 ring-green-100' : ''} ${isOffer ? 'min-w-[260px]' : ''}`}>
 
                                         <div className="flex items-center justify-between gap-4 mb-1">
-                                            <span className={`text-[10px] font-bold uppercase tracking-wider ${isOwn ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            <span className={`text-[10px] font-bold uppercase tracking-wider ${isOwn ? 'text-gray-400 dark:text-gray-500' : 'text-gray-500 dark:text-gray-400'}`}>
                                                 {isOwn ? 'You' : (msg.sender?.name || msg.role)}
                                             </span>
                                             <span className="text-[10px] opacity-40">
@@ -243,8 +243,8 @@ const NegotiationChat = ({ ride: initialRide, onRideUpdate }) => {
                                         {isOffer ? (
                                             <div className="space-y-3">
                                                 <div className="flex items-center gap-2 py-1">
-                                                    <div className={`p-2 rounded-lg ${isOwn ? 'bg-gray-800' : 'bg-white shadow-sm'}`}>
-                                                        <FiDollarSign className={isOwn ? 'text-teal-400' : 'text-teal-600'} />
+                                                    <div className={`p-2 rounded-lg ${isOwn ? 'bg-gray-800' : 'bg-white dark:bg-gray-900 shadow-sm'}`}>
+                                                        <FiDollarSign className={isOwn ? 'text-teal-400' : 'text-teal-600 dark:text-teal-400'} />
                                                     </div>
                                                     <div>
                                                         <p className="text-[10px] opacity-60 font-medium">FARE OFFER</p>
@@ -266,7 +266,7 @@ const NegotiationChat = ({ ride: initialRide, onRideUpdate }) => {
                                                                 setInputMode('offer');
                                                                 setOfferAmount(msg.amount);
                                                             }}
-                                                            className="flex-1 bg-white hover:bg-gray-50 text-gray-900 text-xs font-bold py-2 rounded-lg border border-gray-200 transition-colors flex items-center justify-center gap-1"
+                                                            className="flex-1 bg-white hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-900 dark:text-white text-xs font-bold py-2 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors flex items-center justify-center gap-1"
                                                         >
                                                             <FiDollarSign size={14} /> Negotiate
                                                         </button>
@@ -301,19 +301,19 @@ const NegotiationChat = ({ ride: initialRide, onRideUpdate }) => {
 
             {/* Input Area */}
             {!isConfirmed ? (
-                <div className="p-4 border-t border-gray-100 bg-gray-50">
+                <div className="p-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950">
                     <div className="flex flex-col gap-3">
                         {/* Tab Switcher */}
-                        <div className="flex bg-gray-200 p-1 rounded-xl w-fit">
+                        <div className="flex bg-gray-200 dark:bg-gray-700 p-1 rounded-xl w-fit">
                             <button
                                 onClick={() => setInputMode('message')}
-                                className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${inputMode === 'message' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${inputMode === 'message' ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300'}`}
                             >
                                 <FiMessageCircle size={14} /> Chat
                             </button>
                             <button
                                 onClick={() => setInputMode('offer')}
-                                className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${inputMode === 'offer' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${inputMode === 'offer' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300'}`}
                             >
                                 <FiDollarSign size={14} /> Make Offer
                             </button>
@@ -326,7 +326,7 @@ const NegotiationChat = ({ ride: initialRide, onRideUpdate }) => {
                                     placeholder="Ask about distance, time, bags..."
                                     value={textMessage}
                                     onChange={(e) => setTextMessage(e.target.value)}
-                                    className="flex-1 px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none placeholder:text-gray-400"
+                                    className="flex-1 px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none placeholder:text-gray-400 dark:text-gray-500"
                                 />
                                 <button
                                     type="submit"
@@ -339,13 +339,13 @@ const NegotiationChat = ({ ride: initialRide, onRideUpdate }) => {
                             <div className="space-y-3">
                                 <form onSubmit={handleSendOffer} className="flex gap-2">
                                     <div className="flex-1 relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₹</span>
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-bold">₹</span>
                                         <input
                                             type="number"
                                             placeholder="Enter your final offer"
                                             value={offerAmount}
                                             onChange={(e) => setOfferAmount(e.target.value)}
-                                            className="w-full pl-8 pr-4 py-3 bg-white border-2 border-teal-500 rounded-xl text-sm font-bold focus:ring-2 focus:ring-teal-200 outline-none"
+                                            className="w-full pl-8 pr-4 py-3 bg-white dark:bg-gray-900 border-2 border-teal-500 rounded-xl text-sm font-bold focus:ring-2 focus:ring-teal-200 outline-none"
                                         />
                                     </div>
                                     <button
@@ -357,12 +357,12 @@ const NegotiationChat = ({ ride: initialRide, onRideUpdate }) => {
                                     <button
                                         type="button"
                                         onClick={() => setInputMode('message')}
-                                        className="bg-gray-200 text-gray-600 p-3 rounded-xl hover:bg-gray-300"
+                                        className="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 p-3 rounded-xl hover:bg-gray-300"
                                     >
                                         <FiXCircle size={20} />
                                     </button>
                                 </form>
-                                <p className="text-[10px] text-gray-400 text-center uppercase tracking-widest font-bold">
+                                <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center uppercase tracking-widest font-bold">
                                     Send an offer only when you're ready to lock the price
                                 </p>
                             </div>
@@ -370,12 +370,12 @@ const NegotiationChat = ({ ride: initialRide, onRideUpdate }) => {
                     </div>
                 </div>
             ) : (
-                <div className="p-6 bg-green-50 border-t border-green-100 flex flex-col items-center text-center">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-3">
-                        <FiCheck className="text-green-600" size={24} />
+                <div className="p-6 bg-green-50 dark:bg-green-900/20 border-t border-green-100 flex flex-col items-center text-center">
+                    <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-3">
+                        <FiCheck className="text-green-600 dark:text-green-400" size={24} />
                     </div>
                     <h4 className="text-green-900 font-bold">Booking Confirmed at ₹{activeRide?.negotiatedFare}</h4>
-                    <p className="text-green-700 text-xs mt-1">Please proceed to the pickup location. Live chat remains active.</p>
+                    <p className="text-green-700 dark:text-green-400 text-xs mt-1">Please proceed to the pickup location. Live chat remains active.</p>
 
                     {/* Chat remains available for messages even after confirmation */}
                     <div className="w-full mt-4">
@@ -385,7 +385,7 @@ const NegotiationChat = ({ ride: initialRide, onRideUpdate }) => {
                                 placeholder="Message for coordination..."
                                 value={textMessage}
                                 onChange={(e) => setTextMessage(e.target.value)}
-                                className="flex-1 px-4 py-2 bg-white border border-green-200 rounded-lg text-sm focus:ring-1 focus:ring-green-400 outline-none"
+                                className="flex-1 px-4 py-2 bg-white dark:bg-gray-900 border border-green-200 dark:border-green-800 rounded-lg text-sm focus:ring-1 focus:ring-green-400 outline-none"
                             />
                             <button type="submit" className="bg-green-600 text-white p-2 rounded-lg">
                                 <FiSend size={16} />

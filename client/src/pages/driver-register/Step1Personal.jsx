@@ -40,10 +40,10 @@ const Step1Personal = ({ formData, updateField, nextStep }) => {
                     formData.district?.trim() && formData.taluk?.trim() && formData.profilePhoto;
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8">
             <div className="mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Personal Details</h2>
-                <p className="text-sm text-gray-500 mt-1">Tell us about yourself to get started</p>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Personal Details</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Tell us about yourself to get started</p>
             </div>
 
             {/* Profile Photo */}
@@ -54,35 +54,35 @@ const Step1Personal = ({ formData, updateField, nextStep }) => {
                             <img src={formData.profilePhoto} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-teal-100 shadow-md" />
                             <button
                                 onClick={() => updateField('profilePhoto', '')}
-                                className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm"
+                                className="absolute -top-1 -right-1 w-6 h-6 bg-red-50 dark:bg-red-900/20 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm"
                             >
                                 <FiX size={12} />
                             </button>
                         </div>
                     ) : (
-                        <label className="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-teal-400 hover:bg-teal-50 transition-all group">
-                            <FiCamera size={20} className="text-gray-400 group-hover:text-teal-500" />
-                            <span className="text-[10px] text-gray-400 mt-1 group-hover:text-teal-500">Upload</span>
+                        <label className="w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center cursor-pointer hover:border-teal-400 hover:bg-teal-50 dark:bg-teal-900/20 transition-all group">
+                            <FiCamera size={20} className="text-gray-400 dark:text-gray-500 group-hover:text-teal-500" />
+                            <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 group-hover:text-teal-500">Upload</span>
                             <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
                         </label>
                     )}
                 </div>
-                <p className="text-sm font-medium text-gray-700 mt-2">Profile photo *</p>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-2">Profile photo *</p>
                 {errors.photo && <p className="text-xs text-red-500 mt-1">{errors.photo}</p>}
             </div>
 
             <div className="space-y-5">
                 {/* Full Name */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Full Name *</label>
                     <div className="relative">
-                        <FiUser className="absolute left-3.5 top-3.5 text-gray-400" size={16} />
+                        <FiUser className="absolute left-3.5 top-3.5 text-gray-400 dark:text-gray-500" size={16} />
                         <input
                             type="text"
                             value={formData.fullName}
                             onChange={(e) => updateField('fullName', e.target.value)}
                             placeholder="Enter your full name"
-                            className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white text-gray-900 placeholder-gray-400 text-sm transition-all outline-none ${errors.fullName ? 'border-red-300' : 'border-gray-200'}`}
+                            className={`w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-950 border rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm transition-all outline-none ${errors.fullName ? 'border-red-300' : 'border-gray-200 dark:border-gray-700'}`}
                         />
                     </div>
                     {errors.fullName && <p className="text-xs text-red-500 mt-1">{errors.fullName}</p>}
@@ -90,15 +90,15 @@ const Step1Personal = ({ formData, updateField, nextStep }) => {
 
                 {/* Email */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Email *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email *</label>
                     <div className="relative">
-                        <FiMail className="absolute left-3.5 top-3.5 text-gray-400" size={16} />
+                        <FiMail className="absolute left-3.5 top-3.5 text-gray-400 dark:text-gray-500" size={16} />
                         <input
                             type="email"
                             value={formData.email}
                             onChange={(e) => updateField('email', e.target.value)}
                             placeholder="name@example.com"
-                            className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white text-gray-900 placeholder-gray-400 text-sm transition-all outline-none ${errors.email ? 'border-red-300' : 'border-gray-200'}`}
+                            className={`w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-950 border rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm transition-all outline-none ${errors.email ? 'border-red-300' : 'border-gray-200 dark:border-gray-700'}`}
                         />
                     </div>
                     {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
@@ -106,15 +106,15 @@ const Step1Personal = ({ formData, updateField, nextStep }) => {
 
                 {/* Phone */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone Number *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Phone Number *</label>
                     <div className="relative">
-                        <FiPhone className="absolute left-3.5 top-3.5 text-gray-400" size={16} />
+                        <FiPhone className="absolute left-3.5 top-3.5 text-gray-400 dark:text-gray-500" size={16} />
                         <input
                             type="tel"
                             value={formData.phone}
                             onChange={(e) => updateField('phone', e.target.value)}
                             placeholder="Enter your phone number"
-                            className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white text-gray-900 placeholder-gray-400 text-sm transition-all outline-none ${errors.phone ? 'border-red-300' : 'border-gray-200'}`}
+                            className={`w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-950 border rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm transition-all outline-none ${errors.phone ? 'border-red-300' : 'border-gray-200 dark:border-gray-700'}`}
                         />
                     </div>
                     {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
@@ -152,7 +152,7 @@ const Step1Personal = ({ formData, updateField, nextStep }) => {
                 disabled={!isValid}
                 className={`mt-8 w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all ${isValid
                     ? 'bg-gray-900 text-white hover:bg-gray-800 shadow-sm hover:shadow-md active:scale-[0.98]'
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                     }`}
             >
                 Continue <FiArrowRight size={14} />

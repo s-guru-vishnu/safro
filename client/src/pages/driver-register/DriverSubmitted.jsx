@@ -32,7 +32,7 @@ const DriverSubmitted = () => {
                     title: 'Application Submitted!',
                     desc: 'Admin team will review your documents shortly.',
                     icon: <FiCheckCircle size={40} className="text-green-500" />,
-                    iconBg: 'bg-green-100',
+                    iconBg: 'bg-green-100 dark:bg-green-900/30',
                     items: [
                         { icon: FiCheckCircle, text: 'Documents received successfully', color: 'text-green-500' },
                         { icon: FiClock, text: 'Wait for Admin Review', color: 'text-amber-500' },
@@ -56,7 +56,7 @@ const DriverSubmitted = () => {
                     title: 'Meeting Scheduled',
                     desc: 'Great! An admin has scheduled a verification meeting with you.',
                     icon: <FiCalendar size={40} className="text-blue-500" />,
-                    iconBg: 'bg-blue-100',
+                    iconBg: 'bg-blue-100 dark:bg-blue-900/30',
                     items: [
                         { icon: FiCheckCircle, text: 'Documents verified', color: 'text-green-500' },
                         { icon: FiCalendar, text: 'Meeting is scheduled', color: 'text-blue-500' },
@@ -68,10 +68,10 @@ const DriverSubmitted = () => {
                     title: 'Application Rejected',
                     desc: 'Unfortunately, your application was not approved at this time.',
                     icon: <FiAlertCircle size={40} className="text-red-500" />,
-                    iconBg: 'bg-red-100',
+                    iconBg: 'bg-red-100 dark:bg-red-900/30',
                     items: [
                         { icon: FiAlertCircle, text: 'Application rejected', color: 'text-red-500' },
-                        { icon: FiInfo, text: 'Contact support for details', color: 'text-gray-500' },
+                        { icon: FiInfo, text: 'Contact support for details', color: 'text-gray-500 dark:text-gray-400' },
                     ]
                 };
             default:
@@ -79,7 +79,7 @@ const DriverSubmitted = () => {
                     title: 'Application Status',
                     desc: 'We are processing your application.',
                     icon: <FiClock size={40} className="text-teal-500" />,
-                    iconBg: 'bg-teal-100',
+                    iconBg: 'bg-teal-100 dark:bg-teal-900/30',
                     items: [
                         { icon: FiClock, text: 'Status: ' + status, color: 'text-teal-500' },
                     ]
@@ -92,7 +92,7 @@ const DriverSubmitted = () => {
     if (loading) return null;
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
             <OnboardingNavbar />
 
             <div className="max-w-lg mx-auto px-4 py-16 text-center">
@@ -104,25 +104,25 @@ const DriverSubmitted = () => {
                     {config.icon}
                 </motion.div>
 
-                <motion.h1 className="text-2xl font-bold text-gray-900 mb-2">
+                <motion.h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                     {config.title}
                 </motion.h1>
 
-                <motion.p className="text-gray-500 mb-8">
+                <motion.p className="text-gray-500 dark:text-gray-400 mb-8">
                     {config.desc}
                 </motion.p>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 text-left space-y-4 mb-8">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 text-left space-y-4 mb-8">
                     {config.items.map((item, i) => (
                         <div key={i} className="flex items-center gap-3">
                             <item.icon size={20} className={item.color} />
-                            <span className="text-sm text-gray-700">{item.text}</span>
+                            <span className="text-sm text-gray-700 dark:text-gray-300">{item.text}</span>
                         </div>
                     ))}
                 </div>
 
-                <div className="bg-teal-50 border border-teal-100 rounded-xl p-4 mb-8">
-                    <p className="text-sm text-teal-700 font-medium">
+                <div className="bg-teal-50 dark:bg-teal-900/20 border border-teal-100 rounded-xl p-4 mb-8">
+                    <p className="text-sm text-teal-700 dark:text-teal-400 font-medium">
                         "Safro ensures all drivers are verified by our admin team to maintain trust and safety."
                     </p>
                 </div>

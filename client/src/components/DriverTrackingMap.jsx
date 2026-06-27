@@ -255,22 +255,22 @@ const DriverTrackingMap = () => {
     }, [allMarkers]);
 
     return (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden mb-6">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
                 <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-teal-50 text-teal-600 rounded-lg flex items-center justify-center">
+                    <div className="w-9 h-9 bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 rounded-lg flex items-center justify-center">
                         <MapPin size={18} />
                     </div>
                     <div>
                         <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-bold text-gray-900">Live Active Map</h3>
+                            <h3 className="text-sm font-bold text-gray-900 dark:text-white">Live Active Map</h3>
                             {isConnected ? (
                                 <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
                                     <Wifi size={10} /> LIVE
                                 </span>
                             ) : (
-                                <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
+                                <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded-full">
                                     <WifiOff size={10} /> OFFLINE
                                 </span>
                             )}
@@ -281,18 +281,18 @@ const DriverTrackingMap = () => {
                                 {availableCount} Available
                             </span>
                             {onRideCount > 0 && (
-                                <span className="text-[10px] font-semibold text-blue-600 flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                                <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-full"></span>
                                     {onRideCount} On Ride
                                 </span>
                             )}
                             {offlineCount > 0 && (
-                                <span className="text-[10px] font-semibold text-gray-400 flex items-center gap-1">
+                                <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 flex items-center gap-1">
                                     <span className="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
                                     {offlineCount} Offline
                                 </span>
                             )}
-                            <span className="text-[10px] font-semibold text-blue-600 flex items-center gap-1 ml-2">
+                            <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1 ml-2">
                                 <UserIcon size={10} />
                                 {activeRiderCount} Active Riders
                             </span>
@@ -302,7 +302,7 @@ const DriverTrackingMap = () => {
                 <button
                     onClick={handleRefresh}
                     disabled={loading}
-                    className="p-2 text-gray-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all disabled:opacity-50"
+                    className="p-2 text-gray-400 dark:text-gray-500 hover:text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:bg-teal-900/20 rounded-lg transition-all disabled:opacity-50"
                     title="Refresh locations"
                 >
                     <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
@@ -312,27 +312,27 @@ const DriverTrackingMap = () => {
             {/* Map Container */}
             <div className="relative" style={{ height: '380px' }}>
                 {loading && allMarkers.length === 0 ? (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-950">
                         <div className="flex flex-col items-center gap-2">
                             <div className="w-6 h-6 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
-                            <span className="text-xs text-gray-400">Connecting to live feed...</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-500">Connecting to live feed...</span>
                         </div>
                     </div>
                 ) : (loadError || authError) ? (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-                        <div className="text-center p-6 border border-gray-100 rounded-2xl bg-white/50 backdrop-blur-sm shadow-sm m-4">
-                            <div className="text-2xl mb-2 text-gray-400 flex justify-center"><Map size={32} /></div>
-                            <p className="text-sm font-semibold text-gray-700">Map unavailable</p>
-                            <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+                        <div className="text-center p-6 border border-gray-100 dark:border-gray-800 rounded-2xl bg-white dark:bg-gray-900/50 backdrop-blur-sm shadow-sm m-4">
+                            <div className="text-2xl mb-2 text-gray-400 dark:text-gray-500 flex justify-center"><Map size={32} /></div>
+                            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Map unavailable</p>
+                            <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-2 leading-relaxed">
                                 {authError ? "Authentication failed. Check API restrictions or billing." : "Check API key and network connection."}
                             </p>
                         </div>
                     </div>
                 ) : !isLoaded ? (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-950">
                         <div className="flex flex-col items-center gap-2">
                             <div className="w-6 h-6 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
-                            <span className="text-xs text-gray-400">Loading map...</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-500">Loading map...</span>
                         </div>
                     </div>
                 ) : (
@@ -364,14 +364,14 @@ const DriverTrackingMap = () => {
                                     {activeInfo === `driver-${driver._id}` && (
                                         <InfoWindow onCloseClick={() => setActiveInfo(null)}>
                                             <div className="min-w-[180px]">
-                                                <p className="font-bold text-gray-900 text-sm">{driver.name || 'Unknown'}</p>
-                                                <p className="text-xs text-gray-500 capitalize">{driver.vehicleType} • {driver.vehicleNumber}</p>
+                                                <p className="font-bold text-gray-900 dark:text-white text-sm">{driver.name || 'Unknown'}</p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{driver.vehicleType} • {driver.vehicleNumber}</p>
                                                 <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 ${
-                                                    driver.status === 'on_ride' ? 'bg-blue-100 text-blue-700'
-                                                    : driver.status === 'offline' ? 'bg-gray-100 text-gray-500'
+                                                    driver.status === 'on_ride' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700'
+                                                    : driver.status === 'offline' ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
                                                     : 'bg-emerald-100 text-emerald-700'
                                                 }`}>{color.label}</span>
-                                                {driver.phone && <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1"><Phone size={10} /> {driver.phone}</p>}
+                                                {driver.phone && <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 flex items-center gap-1"><Phone size={10} /> {driver.phone}</p>}
                                                 {driver.lastUpdate && <p className="text-[10px] text-gray-300 mt-0.5 flex items-center gap-1"><Clock size={10} /> {new Date(driver.lastUpdate).toLocaleTimeString()}</p>}
                                             </div>
                                         </InfoWindow>
@@ -392,10 +392,10 @@ const DriverTrackingMap = () => {
                                     <InfoWindow onCloseClick={() => setActiveInfo(null)}>
                                         <div className="min-w-[160px]">
                                             <p className="font-bold text-blue-900 text-sm flex items-center gap-1"><UserIcon size={14} /> {rider.name}</p>
-                                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-widest mt-1">
+                                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-700 uppercase tracking-widest mt-1">
                                                 {rider.status?.replace('_', ' ')}
                                             </span>
-                                            {rider.phone && <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1"><Phone size={10} /> {rider.phone}</p>}
+                                            {rider.phone && <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 flex items-center gap-1"><Phone size={10} /> {rider.phone}</p>}
                                         </div>
                                     </InfoWindow>
                                 )}
@@ -414,8 +414,8 @@ const DriverTrackingMap = () => {
                                     <InfoWindow onCloseClick={() => setActiveInfo(null)}>
                                         <div className="min-w-[160px]">
                                             <p className="font-bold text-orange-700 text-sm flex items-center gap-1"><Building size={14} /> {office.name}</p>
-                                            <p className="text-xs text-gray-500 mt-1">{office.taluk} Taluk</p>
-                                            <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700">Sub-Office</span>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{office.taluk} Taluk</p>
+                                            <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 dark:bg-orange-900/30 text-orange-700">Sub-Office</span>
                                         </div>
                                     </InfoWindow>
                                 )}
@@ -427,17 +427,17 @@ const DriverTrackingMap = () => {
                 {/* Map Controls */}
                 {isLoaded && !loadError && (
                     <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
-                        <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 flex overflow-hidden">
-                            <button onClick={() => setMapType('roadmap')} className={`px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 ${mapType === 'roadmap' ? 'bg-teal-600 text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                        <div className="bg-white dark:bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 dark:border-gray-700 flex overflow-hidden">
+                            <button onClick={() => setMapType('roadmap')} className={`px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 ${mapType === 'roadmap' ? 'bg-teal-600 text-white' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
                                 <Map size={10} /> Map
                             </button>
-                            <button onClick={() => setMapType('satellite')} className={`px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 ${mapType === 'satellite' ? 'bg-teal-600 text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                            <button onClick={() => setMapType('satellite')} className={`px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 ${mapType === 'satellite' ? 'bg-teal-600 text-white' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
                                 <Layers size={10} /> Satellite
                             </button>
                         </div>
                         <button
                             onClick={() => setTrafficEnabled(prev => !prev)}
-                            className={`px-2.5 py-1.5 rounded-lg shadow-md border text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 backdrop-blur-sm ${trafficEnabled ? 'bg-teal-600 text-white border-teal-600' : 'bg-white/95 text-gray-500 border-gray-200 hover:bg-gray-50'}`}
+                            className={`px-2.5 py-1.5 rounded-lg shadow-md border text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 backdrop-blur-sm ${trafficEnabled ? 'bg-teal-600 text-white border-teal-600' : 'bg-white/95 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
                         >
                             <Activity size={10} /> {trafficEnabled ? 'Traffic On' : 'Traffic'}
                         </button>
@@ -445,19 +445,19 @@ const DriverTrackingMap = () => {
                 )}
 
                 {/* Legend */}
-                <div className="absolute bottom-3 left-3 z-10 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
+                <div className="absolute bottom-3 left-3 z-10 bg-white dark:bg-gray-900/90 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 shadow-sm">
                     <div className="flex items-center gap-3">
                         <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 border border-emerald-600"></span> Available
                         </span>
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-blue-600">
-                            <span className="w-2 h-2 rounded-full bg-blue-500 border border-blue-600"></span> On Ride
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                            <span className="w-2 h-2 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-600"></span> On Ride
                         </span>
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-gray-400">
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-gray-400 dark:text-gray-500">
                             <span className="w-2 h-2 rounded-full bg-gray-300 border border-gray-400"></span> Offline
                         </span>
                     </div>
-                    <p className="text-[10px] text-gray-500 mt-1">
+                    <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
                         {drivers.length} Driver{drivers.length !== 1 ? 's' : ''} • {riders.length} Rider{riders.length !== 1 ? 's' : ''}
                     </p>
                 </div>

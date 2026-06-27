@@ -28,9 +28,9 @@ const RatingStars = ({ rating = 0, count = 0, showCount = true, size = 14 }) => 
                 })}
             </div>
             {showCount && (
-                <span className="text-sm font-bold text-gray-900 ml-1">
+                <span className="text-sm font-bold text-gray-900 dark:text-white ml-1">
                     {normalizedRating > 0 ? normalizedRating.toFixed(1) : 'No rating'}
-                    {count > 0 && <span className="text-xs text-gray-400 font-normal ml-1">({count} rides)</span>}
+                    {count > 0 && <span className="text-xs text-gray-400 dark:text-gray-500 font-normal ml-1">({count} rides)</span>}
                 </span>
             )}
         </div>

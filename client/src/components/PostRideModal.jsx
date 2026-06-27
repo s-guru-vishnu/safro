@@ -74,7 +74,7 @@ const PostRideModal = ({ ride, isOpen, onClose, onRefreshStats }) => {
                         exit={{ scale: 0.9, opacity: 0, y: 20 }}
                         className="w-full max-w-sm relative z-10"
                     >
-                        <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100">
+                        <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800">
                             {/* Header Gradient */}
                             <div className="h-2 bg-[#148e85] w-full" />
                             
@@ -85,18 +85,18 @@ const PostRideModal = ({ ride, isOpen, onClose, onRefreshStats }) => {
                                             <FiLoader className="text-[#148e85] animate-spin" size={40} />
                                             <div className="absolute inset-0 border-4 border-[#148e85]/20 border-t-transparent rounded-full animate-spin" />
                                         </div>
-                                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Payment Pending</h2>
-                                        <p className="text-gray-500 text-sm mt-3 leading-relaxed max-w-[250px]">
+                                        <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Payment Pending</h2>
+                                        <p className="text-gray-500 dark:text-gray-400 text-sm mt-3 leading-relaxed max-w-[250px]">
                                             Great ride! Please wait while the rider completes the payment.
                                         </p>
                                         
-                                        <div className="mt-8 w-full p-4 bg-gray-50 rounded-2xl flex items-center gap-3 border border-gray-100">
-                                            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
-                                                <FiUser className="text-gray-400" />
+                                        <div className="mt-8 w-full p-4 bg-gray-50 dark:bg-gray-950 rounded-2xl flex items-center gap-3 border border-gray-100 dark:border-gray-800">
+                                            <div className="w-10 h-10 bg-white dark:bg-gray-900 rounded-full flex items-center justify-center shadow-sm">
+                                                <FiUser className="text-gray-400 dark:text-gray-500" />
                                             </div>
                                             <div className="text-left">
-                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Estimated Fare</p>
-                                                <p className="text-lg font-black text-gray-900">₹{fare}</p>
+                                                <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Estimated Fare</p>
+                                                <p className="text-lg font-black text-gray-900 dark:text-white">₹{fare}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -107,9 +107,9 @@ const PostRideModal = ({ ride, isOpen, onClose, onRefreshStats }) => {
                                         <div className="w-20 h-20 bg-[#148e85] text-white rounded-full flex items-center justify-center mb-6 shadow-lg shadow-[#148e85]/20">
                                             <Banknote size={40} />
                                         </div>
-                                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Collect Cash</h2>
-                                        <p className="text-gray-500 text-sm mt-3 leading-relaxed">
-                                            Rider has selected <span className="font-bold text-gray-900">Cash Payment</span>. Please confirm once you receive the amount.
+                                        <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Collect Cash</h2>
+                                        <p className="text-gray-500 dark:text-gray-400 text-sm mt-3 leading-relaxed">
+                                            Rider has selected <span className="font-bold text-gray-900 dark:text-white">Cash Payment</span>. Please confirm once you receive the amount.
                                         </p>
 
                                         <div className="my-4 w-full p-4 bg-[#148e85]/5 rounded-3xl border border-[#148e85]/10 text-center">
@@ -139,8 +139,8 @@ const PostRideModal = ({ ride, isOpen, onClose, onRefreshStats }) => {
                                         <div className="w-16 h-16 bg-[#148e85]/10 text-[#148e85] rounded-full flex items-center justify-center mb-4 border-2 border-[#148e85] shadow-sm">
                                             <FiCheckCircle size={32} />
                                         </div>
-                                        <h2 className="text-xl font-black text-gray-900 tracking-tight">Payment Received!</h2>
-                                        <p className="text-gray-500 text-xs mt-1 font-medium">The trip has been successfully finalized.</p>
+                                        <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Payment Received!</h2>
+                                        <p className="text-gray-500 dark:text-gray-400 text-xs mt-1 font-medium">The trip has been successfully finalized.</p>
 
                                         <AnimatedButton
                                             onClick={handleFinalize}

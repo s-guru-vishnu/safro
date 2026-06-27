@@ -36,44 +36,44 @@ const CreateDriver = () => {
 
     const InputField = ({ icon: Icon, label, ...props }) => (
         <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{label}</label>
             <div className="relative">
-                <Icon className="absolute left-3.5 top-3.5 text-gray-400" size={16} />
+                <Icon className="absolute left-3.5 top-3.5 text-gray-400 dark:text-gray-500" size={16} />
                 <input
                     {...props}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white text-gray-900 placeholder-gray-400 transition-all outline-none"
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all outline-none"
                 />
             </div>
         </div>
     );
 
     return (
-        <div className="min-h-[calc(100vh-64px)] bg-gray-50 py-8">
+        <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-950 py-8">
             <div className="max-w-2xl mx-auto px-4 sm:px-6">
-                <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6">
+                <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-white transition-colors mb-6">
                     <FiArrowLeft size={14} /> Back
                 </button>
 
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-xl border border-gray-200 shadow-sm p-8"
+                    className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-8"
                 >
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 bg-teal-50 text-teal-600 rounded-lg flex items-center justify-center">
+                        <div className="w-10 h-10 bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 rounded-lg flex items-center justify-center">
                             <FiTruck size={18} />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-gray-900">Create New Driver</h2>
-                            <p className="text-xs text-gray-500">Driver will be auto-verified and approved</p>
+                            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Create New Driver</h2>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Driver will be auto-verified and approved</p>
                         </div>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {/* Personal Info */}
                         <div>
-                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Personal Information</h4>
+                            <h4 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Personal Information</h4>
                             <div className="grid sm:grid-cols-2 gap-4">
                                 <InputField icon={FiUser} label="Full Name" type="text" name="name" placeholder="Driver name" value={form.name} required />
                                 <InputField icon={FiMail} label="Email" type="email" name="email" placeholder="driver@email.com" value={form.email} required />
@@ -84,7 +84,7 @@ const CreateDriver = () => {
 
                         {/* Vehicle Info */}
                         <div>
-                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Vehicle Details</h4>
+                            <h4 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Vehicle Details</h4>
                             <div className="grid sm:grid-cols-2 gap-4">
                                 <CustomDropdown
                                     label="Vehicle Type"
@@ -121,7 +121,7 @@ const CreateDriver = () => {
 
                         {/* Documents */}
                         <div>
-                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Documents</h4>
+                            <h4 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Documents</h4>
                             <div className="grid sm:grid-cols-3 gap-4">
                                 <InputField icon={FiShield} label="Aadhaar" type="text" name="aadhaar" placeholder="Aadhaar number" value={form.aadhaar} />
                                 <InputField icon={FiFileText} label="RC Number" type="text" name="rc" placeholder="RC number" value={form.rc} />
@@ -130,9 +130,9 @@ const CreateDriver = () => {
                         </div>
 
                         {/* Notice */}
-                        <div className="flex items-start gap-3 p-4 bg-green-50 rounded-xl border border-green-100">
-                            <FiCheckCircle className="text-green-600 mt-0.5 flex-shrink-0" size={16} />
-                            <p className="text-xs text-green-700 leading-relaxed">
+                        <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100">
+                            <FiCheckCircle className="text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" size={16} />
+                            <p className="text-xs text-green-700 dark:text-green-400 leading-relaxed">
                                 This driver will be automatically marked as <strong>verified</strong> and <strong>approved by admin</strong>. They can start accepting rides immediately.
                             </p>
                         </div>

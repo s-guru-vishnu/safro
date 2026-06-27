@@ -54,15 +54,15 @@ const AdminProfile = () => {
     const data = profile || user;
 
     return (
-        <div className="min-h-[calc(100vh-64px)] bg-gray-50 py-8">
+        <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-950 py-8">
             <div className="max-w-2xl mx-auto px-4 sm:px-6">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Admin Profile</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Profile</h1>
                     {!editing && (
                         <button
                             onClick={() => setEditing(true)}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-teal-600 bg-teal-50 rounded-xl hover:bg-teal-100 transition-colors"
+                            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20 rounded-xl hover:bg-teal-100 dark:bg-teal-900/30 transition-colors"
                         >
                             <FiEdit3 size={14} /> Edit
                         </button>
@@ -73,12 +73,12 @@ const AdminProfile = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-2xl border border-gray-200 overflow-hidden"
+                    className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
                 >
                     {/* Banner + Avatar */}
                     <div className="bg-gradient-to-br from-gray-900 to-gray-800 h-28 relative">
                         <div className="absolute -bottom-8 left-6">
-                            <div className="w-16 h-16 bg-indigo-500 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg ring-4 ring-white">
+                            <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg ring-4 ring-white">
                                 {data?.name?.charAt(0).toUpperCase()}
                             </div>
                         </div>
@@ -87,8 +87,8 @@ const AdminProfile = () => {
                     <div className="pt-12 px-6 pb-6">
                         {/* Name & Role */}
                         <div className="mb-5">
-                            <h2 className="text-lg font-bold text-gray-900">{data?.name}</h2>
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 mt-1 bg-indigo-50 text-indigo-600 text-xs font-semibold rounded-full capitalize">
+                            <h2 className="text-lg font-bold text-gray-900 dark:text-white">{data?.name}</h2>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 mt-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 text-xs font-semibold rounded-full capitalize">
                                 <FiShield size={10} /> Administrator
                             </span>
                         </div>
@@ -109,7 +109,7 @@ const AdminProfile = () => {
                                     <div className="flex gap-3 pt-2">
                                         <button
                                             onClick={handleCancel}
-                                            className="flex-1 py-3 rounded-xl text-sm font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center justify-center gap-2 transition-colors"
+                                            className="flex-1 py-3 rounded-xl text-sm font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:bg-gray-700 flex items-center justify-center gap-2 transition-colors"
                                         >
                                             <FiX size={14} /> Cancel
                                         </button>
@@ -154,27 +154,27 @@ const AdminProfile = () => {
 
 const Field = ({ icon: Icon, label, value, onChange, type = 'text' }) => (
     <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
+        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{label}</label>
         <div className="relative">
-            <Icon className="absolute left-3.5 top-3.5 text-gray-400" size={15} />
+            <Icon className="absolute left-3.5 top-3.5 text-gray-400 dark:text-gray-500" size={15} />
             <input
                 type={type}
                 value={value}
                 onChange={e => onChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition-all outline-none"
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition-all outline-none"
             />
         </div>
     </div>
 );
 
 const InfoRow = ({ icon: Icon, label, value }) => (
-    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-        <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center border border-gray-100">
-            <Icon size={15} className="text-gray-400" />
+    <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-950 rounded-xl">
+        <div className="w-9 h-9 bg-white dark:bg-gray-900 rounded-lg flex items-center justify-center border border-gray-100 dark:border-gray-800">
+            <Icon size={15} className="text-gray-400 dark:text-gray-500" />
         </div>
         <div>
-            <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium block">{label}</span>
-            <span className="text-sm text-gray-800 font-medium">{value}</span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider font-medium block">{label}</span>
+            <span className="text-sm text-gray-800 dark:text-gray-200 font-medium">{value}</span>
         </div>
     </div>
 );

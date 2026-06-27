@@ -181,6 +181,7 @@ const verifyRazorpayPayment = async (req, res, next) => {
                         status: 'completed', referenceId: razorpay_payment_id,
                         description: `Wallet Added - ${razorpay_payment_id.slice(-6)}`
                     });
+                    sendWalletTopupEmail({ name: user.name || 'User', email: user.email }, topupAmount, user.walletBalance);
                     return res.json({ status: "success", balance: user.walletBalance });
                 }
                 const ride = await Ride.findById(rideId);

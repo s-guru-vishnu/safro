@@ -13,6 +13,8 @@ const applicationApprovedTemplate = require('../templates/applicationApprovedTem
 const applicationRejectedTemplate = require('../templates/applicationRejectedTemplate');
 const meetingScheduledTemplate = require('../templates/meetingScheduledTemplate');
 const otpTemplate = require('../templates/otpTemplate');
+const rideScheduledTemplate = require('../templates/rideScheduledTemplate');
+const rideReminderTemplate = require('../templates/rideReminderTemplate');
 
 // ══════════════════════════════════════════════════════════════════
 //  EMAIL NOTIFICATIONS
@@ -120,6 +122,22 @@ const sendRideStartedWhatsApp = (user, driver) => { console.log(`[WhatsApp Mock]
 const sendRideCompletedWhatsApp = (user, fareData) => { console.log(`[WhatsApp Mock] Ride Completed for ${user?.phone}`); };
 const sendPaymentReceiptWhatsApp = (user, receiptInfo) => { console.log(`[WhatsApp Mock] Payment Receipt for ${user?.phone}`); };
 
+// ── Scheduled Ride Emails ────────────────────────────────────────
+
+/** Scheduled ride confirmation */
+const sendScheduledRideConfirmationEmail = (user, ride) => {
+    if (!user?.email) return;
+    const { subject, html } = rideScheduledTemplate(user, ride);
+    sendEmail(user.email, subject, html).catch(console.error);
+};
+
+/** Scheduled ride reminder (30 min before) */
+const sendScheduledRideReminderEmail = (user, ride) => {
+    if (!user?.email) return;
+    const { subject, html } = rideReminderTemplate(user, ride);
+    sendEmail(user.email, subject, html).catch(console.error);
+};
+
 module.exports = {
     // Email — Auth
     sendWelcomeEmail,
@@ -144,4 +162,7 @@ module.exports = {
     sendRideStartedWhatsApp,
     sendRideCompletedWhatsApp,
     sendPaymentReceiptWhatsApp,
+    // Email — Scheduled Rides
+    sendScheduledRideConfirmationEmail,
+    sendScheduledRideReminderEmail,
 };

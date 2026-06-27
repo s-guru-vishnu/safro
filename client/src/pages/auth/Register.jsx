@@ -61,33 +61,33 @@ const Register = () => {
 
     const InputField = ({ icon: Icon, label, ...props }) => (
         <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{label}</label>
             <div className="relative">
-                <Icon className="absolute left-3.5 top-3.5 text-gray-400" size={16} />
+                <Icon className="absolute left-3.5 top-3.5 text-gray-400 dark:text-gray-500" size={16} />
                 <input
                     {...props}
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900 placeholder-gray-400 text-sm transition-all outline-none"
+                    className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm transition-all outline-none"
                 />
             </div>
         </div>
     );
 
     return (
-        <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-gray-50 px-4 py-8">
+        <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 py-8">
             <motion.div
-                className="w-full max-w-lg bg-white rounded-2xl shadow-sm border border-gray-200 p-8"
+                className="w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-8"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
             >
                 <div className="text-center mb-8">
                     <img src="/Logo.png" alt="Safro" className="w-12 h-12 object-contain mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold text-gray-900 mb-1">Create your account</h2>
-                    <p className="text-sm text-gray-500">Join Safro and start negotiating your rides</p>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Create your account</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Join Safro and start negotiating your rides</p>
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm text-center mb-6">
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm text-center mb-6">
                         {error}
                     </div>
                 )}
@@ -100,9 +100,9 @@ const Register = () => {
 
                     <div className="grid sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Password</label>
                             <div className="relative">
-                                <FiLock className="absolute left-3.5 top-3.5 text-gray-400" size={16} />
+                                <FiLock className="absolute left-3.5 top-3.5 text-gray-400 dark:text-gray-500" size={16} />
                                 <input
                                     type={showPass ? 'text' : 'password'}
                                     name="password"
@@ -110,9 +110,9 @@ const Register = () => {
                                     value={form.password}
                                     onChange={handleChange}
                                     required
-                                    className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900 placeholder-gray-400 text-sm transition-all outline-none"
+                                    className="w-full pl-10 pr-12 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm transition-all outline-none"
                                 />
-                                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3.5 top-3.5 text-gray-400 hover:text-gray-600 transition-colors">
+                                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3.5 top-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                                     {showPass ? <FiEyeOff size={16} /> : <FiEye size={16} />}
                                 </button>
                             </div>
@@ -136,22 +136,22 @@ const Register = () => {
                 </form>
 
                 <div className="my-6 flex items-center">
-                    <div className="flex-1 border-t border-gray-200" />
-                    <span className="px-4 text-xs text-gray-400 font-medium">Or</span>
-                    <div className="flex-1 border-t border-gray-200" />
+                    <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+                    <span className="px-4 text-xs text-gray-400 dark:text-gray-500 font-medium">Or</span>
+                    <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
                 </div>
 
                 <a
-                    href="http://localhost:5001/api/auth/google"
-                    className="flex items-center justify-center gap-3 w-full py-3 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl transition-all hover:shadow-sm text-sm font-medium"
+                    href={`${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}/auth/google`}
+                    className="flex items-center justify-center gap-3 w-full py-3 bg-white hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-xl transition-all hover:shadow-sm text-sm font-medium"
                 >
                     <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
                     <span>Sign up with Google</span>
                 </a>
 
-                <p className="text-center text-sm text-gray-500 mt-6">
+                <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
                     Already have an account?{' '}
-                    <Link to="/login" className="text-teal-600 hover:text-teal-700 font-semibold transition-colors">
+                    <Link to="/login" className="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:text-teal-400 font-semibold transition-colors">
                         Sign in
                     </Link>
                 </p>

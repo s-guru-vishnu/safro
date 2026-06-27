@@ -116,14 +116,14 @@ const LocationInput = ({ placeholder, icon, value, onChange, onSelect, activeCol
                     value={query}
                     onChange={handleInputChange}
                     onFocus={handleFocus}
-                    className={`w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-${activeColor}-500 focus:border-transparent focus:bg-white transition-all outline-none text-gray-800`}
+                    className={`w-full pl-10 pr-10 py-3 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-${activeColor}-500 focus:border-transparent focus:bg-white transition-all outline-none text-gray-800 dark:text-gray-200`}
                 />
 
                 <div className="absolute right-3.5 flex items-center">
                     {loading ? (
                         <div className={`w-4 h-4 border-2 border-${activeColor}-500 border-t-transparent rounded-full animate-spin`} />
                     ) : query ? (
-                        <button type="button" onClick={clearInput} className="text-gray-400 hover:text-gray-600 focus:outline-none p-1">
+                        <button type="button" onClick={clearInput} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none p-1">
                             <FiX size={16} />
                         </button>
                     ) : null}
@@ -138,10 +138,10 @@ const LocationInput = ({ placeholder, icon, value, onChange, onSelect, activeCol
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -5 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden max-h-60 overflow-y-auto"
+                        className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 overflow-hidden max-h-60 overflow-y-auto"
                     >
                         {error ? (
-                            <div className="p-4 flex items-start gap-3 text-red-600 bg-red-50/50">
+                            <div className="p-4 flex items-start gap-3 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20">
                                 <FiAlertTriangle className="mt-0.5 flex-shrink-0" />
                                 <div>
                                     <p className="text-sm font-medium">{error}</p>
@@ -155,17 +155,17 @@ const LocationInput = ({ placeholder, icon, value, onChange, onSelect, activeCol
                                         <button
                                             type="button"
                                             onClick={() => handleSelect(loc)}
-                                            className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-start gap-3 transition-colors focus:bg-gray-50 focus:outline-none"
+                                            className="w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-start gap-3 transition-colors focus:bg-gray-50 focus:outline-none"
                                         >
-                                            <div className="mt-0.5 text-gray-400">
+                                            <div className="mt-0.5 text-gray-400 dark:text-gray-500">
                                                 {loc.isCurrentLocation ? <FiCompass className="text-blue-500" /> : <FiMapPin />}
                                             </div>
                                             <div className="flex-1 overflow-hidden">
-                                                <p className="text-sm font-semibold text-gray-800 truncate">
+                                                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
                                                     {loc.name}
                                                 </p>
                                                 {loc.address && loc.address !== loc.name && (
-                                                    <p className="text-xs text-gray-500 truncate mt-0.5">
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
                                                         {loc.address}
                                                     </p>
                                                 )}

@@ -31,18 +31,18 @@ const Requests = () => {
     };
 
     return (
-        <div className="min-h-[calc(100vh-64px)] bg-gray-50 py-8">
+        <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-950 py-8">
             <div className="max-w-3xl mx-auto px-4 sm:px-6">
                 <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Ride Requests</h1>
-                    <p className="text-sm text-gray-500 mt-1">{requests.length} pending requests</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Ride Requests</h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{requests.length} pending requests</p>
                 </div>
 
                 {requests.length === 0 ? (
-                    <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+                    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
                         <FiBell className="text-gray-300 mx-auto mb-3" size={32} />
-                        <h3 className="text-sm font-bold text-gray-600 mb-1">No Pending Requests</h3>
-                        <p className="text-xs text-gray-400">New ride requests will appear here in real-time</p>
+                        <h3 className="text-sm font-bold text-gray-600 dark:text-gray-400 mb-1">No Pending Requests</h3>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">New ride requests will appear here in real-time</p>
                     </div>
                 ) : (
                     <div className="space-y-3">
@@ -53,22 +53,22 @@ const Requests = () => {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
-                                    className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow"
+                                    className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow"
                                 >
                                     <div className="flex justify-between items-center mb-3">
-                                        <span className="bg-teal-50 text-teal-700 text-sm px-3 py-1 rounded-full font-bold">
+                                        <span className="bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400 text-sm px-3 py-1 rounded-full font-bold">
                                             ₹{req.fare || req.proposedFare || 0}
                                         </span>
-                                        <span className="text-xs text-gray-400">{req.distance} km • {req.vehicleType}</span>
+                                        <span className="text-xs text-gray-400 dark:text-gray-500">{req.distance} km • {req.vehicleType}</span>
                                     </div>
 
-                                    <div className="space-y-2 text-sm text-gray-600 mb-4">
+                                    <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
                                         <div className="flex items-center gap-2.5">
-                                            <div className="w-2.5 h-2.5 bg-teal-500 rounded-full flex-shrink-0" />
+                                            <div className="w-2.5 h-2.5 bg-teal-50 dark:bg-teal-900/20 rounded-full flex-shrink-0" />
                                             <span className="truncate">{req.pickupLocation?.address || 'Pickup Location'}</span>
                                         </div>
                                         <div className="flex items-center gap-2.5">
-                                            <div className="w-2.5 h-2.5 bg-red-500 rounded-full flex-shrink-0" />
+                                            <div className="w-2.5 h-2.5 bg-red-50 dark:bg-red-900/20 rounded-full flex-shrink-0" />
                                             <span className="truncate">{req.dropLocation?.address || 'Drop Location'}</span>
                                         </div>
                                     </div>
@@ -82,7 +82,7 @@ const Requests = () => {
                                         </button>
                                         <button
                                             onClick={() => handleReject(req.rideId)}
-                                            className="flex-1 flex items-center justify-center gap-1.5 bg-white text-gray-600 border border-gray-200 py-2.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-all"
+                                            className="flex-1 flex items-center justify-center gap-1.5 bg-white text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 py-2.5 rounded-lg text-xs font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
                                         >
                                             <FiX size={14} /> Reject
                                         </button>

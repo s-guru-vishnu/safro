@@ -40,7 +40,7 @@ const rideSchema = new mongoose.Schema({
     negotiatedFare: { type: Number, default: 0 },
     status: {
         type: String,
-        enum: ['pending', 'negotiating', 'confirmed', 'ongoing', 'completed', 'cancelled'],
+        enum: ['scheduled', 'pending', 'negotiating', 'confirmed', 'ongoing', 'completed', 'cancelled'],
         default: 'pending'
     },
     distance: { type: String },
@@ -115,6 +115,19 @@ const rideSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    scheduledTime: {
+        type: Date,
+        default: null
+    },
+    reminderSent: {
+        type: Boolean,
+        default: false
+    },
+    splitFareId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'SplitFare',
+        default: null
     }
 });
 
@@ -122,5 +135,6 @@ rideSchema.index({ pickupGeo: '2dsphere' });
 rideSchema.index({ riderId: 1, status: 1 });
 rideSchema.index({ driverId: 1, status: 1 });
 rideSchema.index({ negotiatingDriverId: 1, status: 1 });
+rideSchema.index({ status: 1, scheduledTime: 1 });
 
 module.exports = mongoose.model('Ride', rideSchema);

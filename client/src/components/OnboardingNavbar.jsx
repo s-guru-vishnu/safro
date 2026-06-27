@@ -29,12 +29,12 @@ const OnboardingNavbar = () => {
                     <div className="flex justify-between items-center h-16">
                         {/* Logo */}
                         <Link to="/" className="flex items-center gap-2.5 group">
-                            <div className="w-9 h-9 bg-teal-500 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                            <div className="w-9 h-9 bg-teal-50 dark:bg-teal-900/20 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-sm">
                                 S
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-lg font-bold text-white leading-tight">Safro</span>
-                                <span className="text-[9px] text-gray-400 font-medium tracking-wider uppercase leading-none hidden sm:block">
+                                <span className="text-[9px] text-gray-400 dark:text-gray-500 font-medium tracking-wider uppercase leading-none hidden sm:block">
                                     Driver Onboarding
                                 </span>
                             </div>
@@ -48,7 +48,7 @@ const OnboardingNavbar = () => {
                             >
                                 <FiHelpCircle size={16} />
                                 <span className="hidden sm:inline">Help</span>
-                                <FiChevronDown className={`text-gray-400 transition-transform ${helpOpen ? 'rotate-180' : ''}`} size={14} />
+                                <FiChevronDown className={`text-gray-400 dark:text-gray-500 transition-transform ${helpOpen ? 'rotate-180' : ''}`} size={14} />
                             </button>
 
                             <AnimatePresence>
@@ -57,18 +57,18 @@ const OnboardingNavbar = () => {
                                         initial={{ opacity: 0, y: 8 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 8 }}
-                                        className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg py-2 z-50"
+                                        className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg py-2 z-50"
                                     >
                                         <a
                                             href="mailto:safro.2026.safro@gmail.com"
-                                            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                         >
                                             <FiMail size={14} className="text-teal-500" />
                                             Contact Support
                                         </a>
                                         <a
                                             href="tel:+911234567890"
-                                            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                         >
                                             <FiPhone size={14} className="text-teal-500" />
                                             Call Us

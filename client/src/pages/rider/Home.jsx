@@ -26,6 +26,7 @@ const RiderHome = () => {
     const [completedRide, setCompletedRide] = useState(null);
     const [cancelLoading, setCancelLoading] = useState(false);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+    const [previewCoords, setPreviewCoords] = useState({ pickupCoords: null, dropCoords: null });
 
     // Get rider's current location for the initial map view
     useEffect(() => {
@@ -219,45 +220,45 @@ const RiderHome = () => {
     };
 
     return (
-        <div className="min-h-[calc(100vh-64px)] bg-gray-50 py-8">
+        <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-950 py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Greeting */}
                 <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Hello, {user?.name?.split(' ')[0]} 👋</h1>
-                    <p className="text-sm text-gray-500 mt-1">Where would you like to go today?</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Hello, {user?.name?.split(' ')[0]} 👋</h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Where would you like to go today?</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left: Ride Request or Status */}
                     <div className="lg:col-span-1">
                         {!activeRide || activeRide.status === 'completed' || activeRide.status === 'cancelled' ? (
-                            <RideRequest onRideCreated={handleRideCreated} />
+                            <RideRequest onRideCreated={handleRideCreated} onCoordsChange={setPreviewCoords} />
                         ) : (
                             <>
                                 <motion.div
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="bg-white rounded-xl border border-gray-200 shadow-sm p-6"
+                                    className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6"
                                 >
                                     <div className="flex items-center gap-2 mb-4">
-                                        <FiCheckCircle className="text-teal-600" />
-                                        <h3 className="text-sm font-bold text-gray-900">
+                                        <FiCheckCircle className="text-teal-600 dark:text-teal-400" />
+                                        <h3 className="text-sm font-bold text-gray-900 dark:text-white">
                                             Ride {activeRide.status?.charAt(0).toUpperCase() + activeRide.status?.slice(1).replace('_', ' ')}
                                         </h3>
                                     </div>
                                     <div className="space-y-3 text-sm">
                                         <div className="flex gap-3">
-                                            <FiMapPin className="text-teal-600 mt-0.5 flex-shrink-0" size={14} />
+                                            <FiMapPin className="text-teal-600 dark:text-teal-400 mt-0.5 flex-shrink-0" size={14} />
                                             <div>
-                                                <span className="text-xs text-gray-400 block">Pickup</span>
-                                                <span className="text-gray-700">{activeRide.pickupLocation?.address}</span>
+                                                <span className="text-xs text-gray-400 dark:text-gray-500 block">Pickup</span>
+                                                <span className="text-gray-700 dark:text-gray-300">{activeRide.pickupLocation?.address}</span>
                                             </div>
                                         </div>
                                         <div className="flex gap-3">
                                             <FiNavigation className="text-red-500 mt-0.5 flex-shrink-0" size={14} />
                                             <div>
-                                                <span className="text-xs text-gray-400 block">Drop</span>
-                                                <span className="text-gray-700">{activeRide.dropLocation?.address}</span>
+                                                <span className="text-xs text-gray-400 dark:text-gray-500 block">Drop</span>
+                                                <span className="text-gray-700 dark:text-gray-300">{activeRide.dropLocation?.address}</span>
                                             </div>
                                         </div>
                                         {activeRide.otp && activeRide.status === 'confirmed' && (
@@ -268,9 +269,9 @@ const RiderHome = () => {
                                             </div>
                                         )}
                                         {(activeRide.proposedFare > 0 || activeRide.fare?.proposed > 0) && (
-                                            <div className="flex items-center gap-2 p-3 bg-teal-50 rounded-lg">
-                                                <span className="text-xs text-teal-600">Fare:</span>
-                                                <span className="font-bold text-teal-700">₹{activeRide.fare?.final || activeRide.proposedFare || activeRide.fare?.proposed}</span>
+                                            <div className="flex items-center gap-2 p-3 bg-teal-50 dark:bg-teal-900/20 rounded-lg">
+                                                <span className="text-xs text-teal-600 dark:text-teal-400">Fare:</span>
+                                                <span className="font-bold text-teal-700 dark:text-teal-400">₹{activeRide.fare?.final || activeRide.proposedFare || activeRide.fare?.proposed}</span>
                                             </div>
                                         )}
                                     </div>
@@ -285,7 +286,7 @@ const RiderHome = () => {
                                     <button
                                         onClick={handleCancelRide}
                                         disabled={cancelLoading}
-                                        className="w-full mt-4 bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-3 rounded-xl transition-colors border border-red-200"
+                                        className="w-full mt-4 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 font-semibold py-3 rounded-xl transition-colors border border-red-200 dark:border-red-800"
                                     >
                                         {cancelLoading ? 'Cancelling...' : 'Cancel Ride'}
                                     </button>
@@ -297,20 +298,19 @@ const RiderHome = () => {
                     {/* Right: Map + Negotiation */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Map / Location Panel */}
-                        <div className="bg-white h-96 rounded-2xl border border-gray-200 relative overflow-hidden shadow-sm">
+                        <div className="bg-white dark:bg-gray-900 h-96 rounded-2xl border border-gray-200 dark:border-gray-700 relative overflow-hidden shadow-sm">
                             <MapView
-                                pickupCoordinates={activeRide?.pickupLocation?.coordinates?.coordinates ? {
-                                    lat: activeRide.pickupLocation.coordinates.coordinates[1],
-                                    lng: activeRide.pickupLocation.coordinates.coordinates[0]
-                                } : null}
-                                dropCoordinates={activeRide?.dropLocation?.coordinates?.coordinates ? {
-                                    lat: activeRide.dropLocation.coordinates.coordinates[1],
-                                    lng: activeRide.dropLocation.coordinates.coordinates[0]
-                                } : null}
-                                driverCoordinates={driverLocation ? {
-                                    lat: driverLocation.lat,
-                                    lng: driverLocation.lng
-                                } : null}
+                                pickupCoordinates={
+                                    activeRide?.pickupLocation?.coordinates?.coordinates
+                                        ? { lat: activeRide.pickupLocation.coordinates.coordinates[1], lng: activeRide.pickupLocation.coordinates.coordinates[0] }
+                                        : previewCoords.pickupCoords
+                                }
+                                dropCoordinates={
+                                    activeRide?.dropLocation?.coordinates?.coordinates
+                                        ? { lat: activeRide.dropLocation.coordinates.coordinates[1], lng: activeRide.dropLocation.coordinates.coordinates[0] }
+                                        : previewCoords.dropCoords
+                                }
+                                driverCoordinates={driverLocation ? { lat: driverLocation.lat, lng: driverLocation.lng } : null}
                                 riderCoordinates={riderLocation}
                             />
 

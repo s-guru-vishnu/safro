@@ -8,7 +8,7 @@ const LoadingSpinner = ({ size = 'md', text = '' }) => {
     return (
         <div className="flex flex-col items-center justify-center py-12 gap-3">
             <div className={`${sizes[size]} border-teal-600 border-t-transparent rounded-full animate-spin`} />
-            {text && <p className="text-sm text-gray-500">{text}</p>}
+            {text && <p className="text-sm text-gray-500 dark:text-gray-400">{text}</p>}
         </div>
     );
 };

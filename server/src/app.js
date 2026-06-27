@@ -78,8 +78,8 @@ console.log('\n═════════════════════�
 console.log('🔑 GOOGLE OAUTH CONFIG:');
 console.log('   Client ID:', process.env.GOOGLE_CLIENT_ID ? '✅ Set' : '❌ MISSING');
 console.log('   Client Secret:', process.env.GOOGLE_CLIENT_SECRET ? '✅ Set' : '❌ MISSING');
-console.log('   Callback URL:', process.env.GOOGLE_CALLBACK_URL || '❌ NOT SET (using fallback)');
-console.log('   Frontend URL:', 'http://localhost:5173' || '❌ NOT SET (using fallback)');
+console.log('   Callback URL:', process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5001/api/auth/google/callback' || '❌ NOT SET (using fallback)');
+console.log('   Frontend URL:', 'https://safro-ride.vercel.app' || 'http://localhost:5173' || '❌ NOT SET (using fallback)');
 console.log('══════════════════════════════════════════');
 console.log('📋 GOOGLE CONSOLE MUST HAVE THIS REDIRECT URI:');
 console.log('   →', process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5001/api/auth/google/callback');

@@ -5,6 +5,7 @@ const { Server } = require('socket.io');
 const app = require('./src/app');
 const connectDB = require('./src/config/db');
 const socketHandler = require('./src/socket/socketHandler');
+const { startScheduler } = require('./src/services/rideSchedulerService');
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -37,6 +38,9 @@ connectDB().then(() => {
         console.log(`🔗 API: http://localhost:${PORT}/api`);
         console.log(`🏥 Health: http://localhost:${PORT}/api/health`);
         console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}\n`);
+
+        // Start the ride scheduler after server is fully ready
+        startScheduler(io);
     });
 }).catch((error) => {
     console.error('Failed to start server:', error);

@@ -163,17 +163,17 @@ const PaymentScreen = ({ ride, onPaymentSuccess }) => {
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.9, opacity: 0, y: 20 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                className="w-full max-w-lg relative z-10"
+                className="w-full max-w-md relative z-10"
             >
-                <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100">
+                <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800">
                     {/* Top Accent Bar */}
                     <div className="h-2 bg-[#148e85] w-full" />
                     
-                    <div className="p-8">
-                        <div className="flex justify-between items-start mb-8">
+                    <div className="p-6">
+                        <div className="flex justify-between items-start mb-6">
                             <div>
-                                <h2 className="text-3xl font-black text-gray-900 tracking-tight">Settle Payment</h2>
-                                <p className="text-gray-500 text-xs mt-1 flex items-center gap-2 font-medium">
+                                <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Settle Payment</h2>
+                                <p className="text-gray-500 dark:text-gray-400 text-xs mt-1 flex items-center gap-2 font-medium">
                                     <ShieldCheck className="w-4 h-4 text-[#148e85]" />
                                     Secure & Encrypted Transaction
                                 </p>
@@ -184,20 +184,20 @@ const PaymentScreen = ({ ride, onPaymentSuccess }) => {
                         </div>
 
                         {/* Price Display Block */}
-                        <div className="bg-gray-900 rounded-3xl p-8 flex justify-between items-center relative overflow-hidden mb-8 shadow-xl shadow-gray-200">
+                        <div className="bg-gray-900 rounded-3xl p-6 flex justify-between items-center relative overflow-hidden mb-6 shadow-xl shadow-gray-200">
                             {/* Decorative elements */}
                             <div className="absolute top-0 right-0 w-32 h-32 bg-[#148e85]/10 rounded-full -mr-16 -mt-16 blur-3xl" />
-                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/10 rounded-full -ml-12 -mb-12 blur-2xl" />
+                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-full -ml-12 -mb-12 blur-2xl" />
 
                             <div className="relative">
-                                <span className="text-gray-400 text-[10px] font-black uppercase tracking-widest">Total Fare</span>
+                                <span className="text-gray-400 dark:text-gray-500 text-[10px] font-black uppercase tracking-widest">Total Fare</span>
                                 <div className="flex items-baseline gap-1 mt-1">
                                     <span className="text-[#148e85] text-xl font-bold">₹</span>
-                                    <span className="text-5xl font-black text-white">{total}</span>
+                                    <span className="text-4xl font-black text-white">{total}</span>
                                 </div>
                             </div>
                             <div className="text-right relative">
-                                <div className="text-[10px] text-gray-500 font-black mb-1 uppercase tracking-widest">Ride ID</div>
+                                <div className="text-[10px] text-gray-500 dark:text-gray-400 font-black mb-1 uppercase tracking-widest">Ride ID</div>
                                 <code className="text-xs text-[#148e85] font-mono bg-[#148e85]/10 px-3 py-1.5 rounded-xl border border-[#148e85]/20">
                                     {ride._id.slice(-8).toUpperCase()}
                                 </code>
@@ -205,7 +205,7 @@ const PaymentScreen = ({ ride, onPaymentSuccess }) => {
                         </div>
 
                         {/* Payment Methods */}
-                        <div className="space-y-3 mb-8">
+                        <div className="space-y-2 mb-6">
                             {methods.map((method) => {
                                 const Icon = method.icon;
                                 const isSelected = selectedMethod === method.id;
@@ -218,33 +218,33 @@ const PaymentScreen = ({ ride, onPaymentSuccess }) => {
                                         whileHover={{ x: 4 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => setSelectedMethod(method.id)}
-                                        className={`w-full group relative flex items-center gap-4 p-4 rounded-3xl border transition-all duration-300 ${
+                                        className={`w-full group relative flex items-center gap-4 p-3 rounded-3xl border transition-all duration-300 ${
                                             isSelected 
                                             ? 'bg-[#148e85]/5 border-[#148e85] shadow-lg shadow-[#148e85]/10' 
-                                            : 'bg-white border-gray-100 hover:border-gray-200 hover:bg-gray-50/50'
+                                            : 'bg-white border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50'
                                         }`}
                                     >
                                         <div className={`p-3.5 rounded-2xl shadow-sm shrink-0 group-hover:scale-110 transition-transform ${
                                             method.id === 'wallet' ? 'bg-[#148e85]' : 
-                                            method.id === 'razorpay' ? 'bg-blue-500' : 'bg-amber-500'
+                                            method.id === 'razorpay' ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-amber-500'
                                         }`}>
                                             <Icon className="w-6 h-6 text-white" />
                                         </div>
                                         
                                         <div className="flex-1 text-left min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <span className={`font-black tracking-tight ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>{method.name}</span>
+                                                <span className={`font-black tracking-tight ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>{method.name}</span>
                                                 {isSelected && <motion.div layoutId="check" initial={{ scale: 0 }} animate={{ scale: 1 }}><CheckCircle2 className="w-4 h-4 text-[#148e85]" /></motion.div>}
                                             </div>
-                                            <span className={`text-xs block truncate font-medium ${lowBalance ? 'text-red-500' : 'text-gray-400'}`}>
+                                            <span className={`text-xs block truncate font-medium ${lowBalance ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`}>
                                                 {method.desc}
                                             </span>
                                         </div>
 
                                         <div className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest ${
                                             isSelected 
-                                            ? (lowBalance ? 'bg-red-100 text-red-600' : 'bg-[#148e85] text-white')
-                                            : 'bg-gray-100 text-gray-400'
+                                            ? (lowBalance ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-[#148e85] text-white')
+                                            : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500'
                                         }`}>
                                             {method.badge}
                                         </div>
@@ -254,7 +254,7 @@ const PaymentScreen = ({ ride, onPaymentSuccess }) => {
                         </div>
 
                         {/* Wallet Offer Card */}
-                        <div className="bg-[#148e85]/5 border border-[#148e85]/10 rounded-3xl p-5 mb-8 flex items-center gap-4">
+                        <div className="bg-[#148e85]/5 border border-[#148e85]/10 rounded-3xl p-4 mb-6 flex items-center gap-4">
                             <div className="bg-[#148e85]/20 p-2.5 rounded-xl">
                                 <Sparkles className="w-5 h-5 text-[#148e85]" />
                             </div>
@@ -267,9 +267,9 @@ const PaymentScreen = ({ ride, onPaymentSuccess }) => {
                         <AnimatedButton
                             onClick={handlePayment}
                             disabled={loading || (selectedMethod === 'wallet' && walletBalance < total)}
-                            className={`w-full py-5 rounded-2xl font-black text-lg tracking-wide shadow-xl flex items-center justify-center gap-3 transition-all active:scale-95 ${
+                            className={`w-full py-4 rounded-2xl font-black text-lg tracking-wide shadow-xl flex items-center justify-center gap-3 transition-all active:scale-95 ${
                                 loading || (selectedMethod === 'wallet' && walletBalance < total)
-                                ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                                ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed' 
                                 : 'bg-[#148e85] hover:opacity-90 text-white shadow-[#148e85]/20'
                             }`}
                         >
@@ -283,11 +283,11 @@ const PaymentScreen = ({ ride, onPaymentSuccess }) => {
                             )}
                         </AnimatedButton>
                         
-                        <div className="flex flex-col items-center mt-8 space-y-1">
-                            <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest">
+                        <div className="flex flex-col items-center mt-4 space-y-1">
+                            <p className="text-gray-400 dark:text-gray-500 text-[10px] font-black uppercase tracking-widest">
                                 End-to-end encrypted • Licensed SafePay Partner
                             </p>
-                            <div className="w-12 h-1 bg-gray-100 rounded-full" />
+                            <div className="w-12 h-1 bg-gray-100 dark:bg-gray-800 rounded-full" />
                         </div>
                     </div>
                 </div>

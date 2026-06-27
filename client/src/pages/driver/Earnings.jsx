@@ -7,10 +7,10 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
 const statusColors = {
-    completed: 'bg-green-50 text-green-600',
-    cancelled: 'bg-red-50 text-red-600',
-    on_trip: 'bg-orange-50 text-orange-600',
-    accepted: 'bg-teal-50 text-teal-600',
+    completed: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400',
+    cancelled: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400',
+    on_trip: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600',
+    accepted: 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400',
 };
 
 const Earnings = () => {
@@ -66,24 +66,24 @@ const Earnings = () => {
 
     const statCards = [
         { icon: <FiDollarSign />, label: 'Total Earnings', value: `₹${stats?.totalEarnings || 0}`, bg: 'bg-emerald-50', color: 'text-emerald-600' },
-        { icon: <FiTruck />, label: 'Total Rides', value: stats?.totalRides || 0, bg: 'bg-teal-50', color: 'text-teal-600' },
+        { icon: <FiTruck />, label: 'Total Rides', value: stats?.totalRides || 0, bg: 'bg-teal-50 dark:bg-teal-900/20', color: 'text-teal-600 dark:text-teal-400' },
         {
             icon: <FiStar />,
             label: 'Rating',
             component: <RatingStars rating={stats?.rating || 0} count={stats?.reviewCount || 0} size={10} showCount={false} />,
             value: stats?.rating?.toFixed(1) || '—',
-            bg: 'bg-yellow-50',
-            color: 'text-yellow-600'
+            bg: 'bg-yellow-50 dark:bg-yellow-900/20',
+            color: 'text-yellow-600 dark:text-yellow-400'
         },
-        { icon: <FiDollarSign />, label: 'Avg per Ride', value: `₹${stats?.totalRides > 0 ? Math.round(stats.totalEarnings / stats.totalRides) : 0}`, bg: 'bg-blue-50', color: 'text-blue-600' },
+        { icon: <FiDollarSign />, label: 'Avg per Ride', value: `₹${stats?.totalRides > 0 ? Math.round(stats.totalEarnings / stats.totalRides) : 0}`, bg: 'bg-blue-50 dark:bg-blue-900/20', color: 'text-blue-600 dark:text-blue-400' },
     ];
 
     return (
-        <div className="min-h-[calc(100vh-64px)] bg-gray-50 py-8">
+        <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-950 py-8">
             <div className="max-w-4xl mx-auto px-4 sm:px-6">
                 <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Earnings</h1>
-                    <p className="text-sm text-gray-500 mt-1">Your earnings overview</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Earnings</h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Your earnings overview</p>
                 </div>
 
                 {/* Big earning card */}
@@ -92,9 +92,9 @@ const Earnings = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-gray-900 rounded-xl p-6 text-center mb-6"
                 >
-                    <p className="text-gray-400 text-xs mb-1">Total Earnings</p>
+                    <p className="text-gray-400 dark:text-gray-500 text-xs mb-1">Total Earnings</p>
                     <h2 className="text-3xl font-bold text-white mb-1">₹{stats?.totalEarnings || 0}</h2>
-                    <p className="text-gray-500 text-xs">{stats?.totalRides || 0} rides completed</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-xs">{stats?.totalRides || 0} rides completed</p>
                 </motion.div>
 
                 {/* Stat cards */}
@@ -105,7 +105,7 @@ const Earnings = () => {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.05 }}
-                            className="bg-white rounded-xl border border-gray-200 p-4"
+                            className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4"
                         >
                             <div className={`w-8 h-8 ${s.bg} ${s.color} rounded-lg flex items-center justify-center mb-2`}>
                                 {s.icon}
@@ -113,49 +113,49 @@ const Earnings = () => {
                             <div className="flex flex-col">
                                 {s.component ? (
                                     <div className="flex items-center gap-2">
-                                        <p className="text-lg font-bold text-gray-900">{s.value}</p>
+                                        <p className="text-lg font-bold text-gray-900 dark:text-white">{s.value}</p>
                                         {s.component}
                                     </div>
                                 ) : (
-                                    <p className="text-lg font-bold text-gray-900">{s.value}</p>
+                                    <p className="text-lg font-bold text-gray-900 dark:text-white">{s.value}</p>
                                 )}
-                                <p className="text-xs text-gray-500">{s.label}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{s.label}</p>
                             </div>
                         </motion.div>
                     ))}
                 </div>
 
                 {/* Recent Rides */}
-                <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-3">Recent Rides</h3>
+                <h3 className="text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Recent Rides</h3>
                 {rides.length === 0 ? (
-                    <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-                        <p className="text-sm text-gray-400">No rides yet</p>
+                    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-8 text-center">
+                        <p className="text-sm text-gray-400 dark:text-gray-500">No rides yet</p>
                     </div>
                 ) : (
                     <div className="space-y-3">
                         {rides.map(ride => (
-                            <div key={ride._id} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-sm transition-shadow">
+                            <div key={ride._id} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-sm transition-shadow">
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${statusColors[ride.status] || 'bg-gray-100 text-gray-500'}`}>
+                                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${statusColors[ride.status] || 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'}`}>
                                         {ride.status?.replace('_', ' ')}
                                     </span>
-                                    <span className="text-xs text-gray-400">
+                                    <span className="text-xs text-gray-400 dark:text-gray-500">
                                         {new Date(ride.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                                     </span>
                                 </div>
-                                <div className="space-y-1.5 text-xs text-gray-500 mb-3">
+                                <div className="space-y-1.5 text-xs text-gray-500 dark:text-gray-400 mb-3">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 bg-teal-500 rounded-full" />
+                                        <div className="w-2 h-2 bg-teal-50 dark:bg-teal-900/20 rounded-full" />
                                         <span className="truncate">{ride.pickupLocation?.address || 'Pickup'}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 bg-red-500 rounded-full" />
+                                        <div className="w-2 h-2 bg-red-50 dark:bg-red-900/20 rounded-full" />
                                         <span className="truncate">{ride.dropLocation?.address || 'Drop'}</span>
                                     </div>
                                 </div>
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="font-bold text-gray-900">₹{ride.negotiatedFare || ride.proposedFare || ride.fare || 0}</span>
-                                    <span className="text-xs text-gray-400">{ride.distance} km</span>
+                                    <span className="font-bold text-gray-900 dark:text-white">₹{ride.negotiatedFare || ride.proposedFare || ride.fare || 0}</span>
+                                    <span className="text-xs text-gray-400 dark:text-gray-500">{ride.distance} km</span>
                                 </div>
                             </div>
                         ))}

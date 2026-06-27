@@ -71,7 +71,7 @@ const OTPInput = ({ length = 6, onComplete }) => {
                     onClick={() => handleClick(index)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     onPaste={handlePaste}
-                    className="w-12 h-12 border-2 border-gray-300 rounded-lg text-center text-xl font-bold focus:border-blue-500 focus:outline-none transition-colors"
+                    className="w-12 h-12 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-center text-xl font-bold focus:border-blue-500 focus:outline-none transition-colors"
                 />
             ))}
         </div>

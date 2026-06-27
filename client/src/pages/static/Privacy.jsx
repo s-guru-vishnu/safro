@@ -65,13 +65,13 @@ Bengaluru, Karnataka, India`,
     ];
 
     return (
-        <div className="bg-white min-h-screen">
+        <div className="bg-white dark:bg-gray-900 min-h-screen">
             {/* Hero */}
             <section className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white py-24">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <motion.div initial="hidden" animate="visible" variants={fadeUp}>
                         <h1 className="text-4xl sm:text-5xl font-extrabold mb-6">Privacy Policy</h1>
-                        <p className="text-gray-400">Last updated: March 1, 2026</p>
+                        <p className="text-gray-400 dark:text-gray-500">Last updated: March 1, 2026</p>
                     </motion.div>
                 </div>
             </section>
@@ -80,14 +80,14 @@ Bengaluru, Karnataka, India`,
             <section className="py-16">
                 <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                        className="text-gray-500 leading-relaxed mb-10">
+                        className="text-gray-500 dark:text-gray-400 leading-relaxed mb-10">
                         At Safro, we take your privacy seriously. This Privacy Policy explains how we collect, use, share, and protect your personal information when you use our ride-sharing platform.
                     </motion.p>
                     <div className="space-y-10">
                         {sections.map((s, i) => (
                             <motion.div key={i} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-                                <h2 className="text-xl font-bold text-gray-900 mb-3">{s.title}</h2>
-                                <div className="text-sm text-gray-500 leading-relaxed whitespace-pre-line">{s.content}</div>
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{s.title}</h2>
+                                <div className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed whitespace-pre-line">{s.content}</div>
                             </motion.div>
                         ))}
                     </div>

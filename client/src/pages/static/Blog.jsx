@@ -54,27 +54,27 @@ const Blog = () => {
     ];
 
     const categoryColors = {
-        Product: 'bg-teal-50 text-teal-700',
-        Safety: 'bg-red-50 text-red-700',
-        Insights: 'bg-purple-50 text-purple-700',
-        Engineering: 'bg-blue-50 text-blue-700',
+        Product: 'bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400',
+        Safety: 'bg-red-50 dark:bg-red-900/20 text-red-700',
+        Insights: 'bg-purple-50 dark:bg-purple-900/20 text-purple-700',
+        Engineering: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700',
         Company: 'bg-amber-50 text-amber-700',
-        Stories: 'bg-green-50 text-green-700',
+        Stories: 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400',
     };
 
     return (
-        <div className="bg-white min-h-screen">
+        <div className="bg-white dark:bg-gray-900 min-h-screen">
             {/* Hero */}
             <section className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white py-24">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-                        <span className="inline-block px-4 py-1.5 bg-teal-500/10 text-teal-400 text-xs font-semibold rounded-full mb-6 tracking-wide uppercase border border-teal-500/20">
+                        <span className="inline-block px-4 py-1.5 bg-teal-50 dark:bg-teal-900/20 text-teal-400 text-xs font-semibold rounded-full mb-6 tracking-wide uppercase border border-teal-500/20">
                             Blog
                         </span>
                         <h1 className="text-4xl sm:text-5xl font-extrabold mb-6">
                             The Safro <span className="text-teal-400">Blog</span>
                         </h1>
-                        <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
+                        <p className="text-lg text-gray-400 dark:text-gray-500 max-w-2xl mx-auto leading-relaxed">
                             Insights, stories, and updates from the team building India's fairest ride platform.
                         </p>
                     </motion.div>
@@ -89,19 +89,19 @@ const Blog = () => {
                             <motion.article
                                 key={i} custom={i}
                                 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                                className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg hover:border-teal-200 transition-all group cursor-pointer"
+                                className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden hover:shadow-lg hover:border-teal-200 dark:border-teal-800 transition-all group cursor-pointer"
                             >
                                 {/* Color accent bar */}
                                 <div className="h-1 bg-gradient-to-r from-teal-500 to-teal-600 group-hover:from-teal-400 group-hover:to-teal-500 transition-all" />
                                 <div className="p-6">
                                     <div className="flex items-center gap-2 mb-3">
-                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${categoryColors[post.category] || 'bg-gray-100 text-gray-600'}`}>
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${categoryColors[post.category] || 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}>
                                             {post.category}
                                         </span>
                                     </div>
-                                    <h3 className="font-bold text-gray-900 mb-2 group-hover:text-teal-600 transition-colors leading-snug">{post.title}</h3>
-                                    <p className="text-sm text-gray-500 leading-relaxed mb-4">{post.excerpt}</p>
-                                    <div className="flex items-center justify-between text-xs text-gray-400">
+                                    <h3 className="font-bold text-gray-900 dark:text-white mb-2 group-hover:text-teal-600 dark:text-teal-400 transition-colors leading-snug">{post.title}</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-4">{post.excerpt}</p>
+                                    <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
                                         <span className="flex items-center gap-1"><FiClock size={12} /> {post.readTime}</span>
                                         <span>{post.date}</span>
                                     </div>

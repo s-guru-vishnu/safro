@@ -67,22 +67,22 @@ const Landing = () => {
     ];
 
     return (
-        <div className="bg-white">
+        <div className="bg-white dark:bg-gray-950 transition-colors duration-300">
             {/* ===== HERO ===== */}
-            <section className="relative overflow-hidden bg-white">
+            <section className="relative overflow-hidden bg-white dark:bg-gray-950">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         {/* Left */}
                         <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-                            <span className="inline-block px-4 py-1.5 bg-teal-50 text-teal-700 text-xs font-semibold rounded-full mb-6 tracking-wide uppercase">
+                            <span className="inline-block px-4 py-1.5 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 text-xs font-semibold rounded-full mb-6 tracking-wide uppercase">
                                 Negotiation-Based Rides
                             </span>
-                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
+                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-white leading-tight mb-6">
                                 Safro is a<br />
-                                <span className="text-teal-600">Negotiation-Based</span><br />
+                                <span className="text-teal-600 dark:text-teal-400">Negotiation-Based</span><br />
                                 Ride Marketplace.
                             </h1>
-                            <p className="text-lg text-gray-500 mb-8 max-w-lg leading-relaxed">
+                            <p className="text-lg text-gray-500 dark:text-gray-400 mb-8 max-w-lg leading-relaxed">
                                 Drivers and riders agree on a fair price before travel. No algorithms. No surge pricing. Just a marketplace where the price is yours to decide.
                             </p>
                             <div className="flex flex-wrap gap-4">
@@ -92,7 +92,7 @@ const Landing = () => {
                                 >
                                     {user && (user.role === 'driver' || user.role === 'admin') ? 'Go to Dashboard' : 'Start Negotiation'} <FiArrowRight />
                                 </Link>
-                                <a href="#how-it-works" className="inline-flex items-center gap-2 px-7 py-3.5 border border-gray-300 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-all">
+                                <a href="#how-it-works" className="inline-flex items-center gap-2 px-7 py-3.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
                                     How It Works
                                 </a>
                             </div>
@@ -105,7 +105,7 @@ const Landing = () => {
                             transition={{ delay: 0.3, duration: 0.6 }}
                             className="hidden lg:block"
                         >
-                            <div className="relative bg-gray-50 rounded-2xl p-8 border border-gray-100">
+                            <div className="relative bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 border border-gray-100 dark:border-gray-700">
                                 {/* Negotiation Demo */}
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3 mb-6">
@@ -121,7 +121,7 @@ const Landing = () => {
                                         </div>
                                     </div>
                                     <div className="flex justify-start">
-                                        <div className="bg-gray-200 text-gray-800 px-4 py-2.5 rounded-xl rounded-bl-sm text-sm font-medium max-w-[200px]">
+                                        <div className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2.5 rounded-xl rounded-bl-sm text-sm font-medium max-w-[200px]">
                                             How about <span className="font-bold">₹300</span>?
                                         </div>
                                     </div>
@@ -134,7 +134,7 @@ const Landing = () => {
                                         <motion.div
                                             animate={{ scale: [1, 1.02, 1] }}
                                             transition={{ repeat: Infinity, duration: 2 }}
-                                            className="bg-green-100 text-green-700 border border-green-300 px-4 py-2.5 rounded-xl rounded-bl-sm text-sm font-bold max-w-[200px]"
+                                            className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-300 dark:border-green-700 px-4 py-2.5 rounded-xl rounded-bl-sm text-sm font-bold max-w-[200px]"
                                         >
                                             ✓ Deal! ₹280 accepted
                                         </motion.div>
@@ -145,10 +145,10 @@ const Landing = () => {
                                 <motion.div
                                     animate={{ y: [0, -6, 0] }}
                                     transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
-                                    className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-md"
+                                    className="absolute -top-4 -right-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2 shadow-md dark:shadow-black/20"
                                 >
-                                    <span className="text-xs text-gray-500">Avg. savings</span>
-                                    <p className="text-lg font-bold text-teal-600">₹45/ride</p>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">Avg. savings</span>
+                                    <p className="text-lg font-bold text-teal-600 dark:text-teal-400">₹45/ride</p>
                                 </motion.div>
                             </div>
                         </motion.div>
@@ -156,15 +156,15 @@ const Landing = () => {
                 </div>
 
                 {/* Subtle bg accent */}
-                <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-teal-50/50 to-transparent -z-10" />
+                <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-teal-50/50 dark:from-teal-900/10 to-transparent -z-10" />
             </section>
 
             {/* ===== FEATURES ===== */}
-            <section className="py-20 bg-gray-50">
+            <section className="py-20 bg-gray-50 dark:bg-gray-900">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-14">
-                        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Why Safro?</h2>
-                        <p className="text-gray-500 max-w-xl mx-auto">A fairer, more transparent way to get where you're going.</p>
+                        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">Why Safro?</h2>
+                        <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto">A fairer, more transparent way to get where you're going.</p>
                     </motion.div>
 
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -176,13 +176,13 @@ const Landing = () => {
                                 whileInView="visible"
                                 viewport={{ once: true }}
                                 variants={fadeUp}
-                                className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-md hover:border-teal-200 transition-all group"
+                                className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-black/20 hover:border-teal-200 dark:hover:border-teal-700 transition-all group"
                             >
-                                <div className="w-10 h-10 bg-teal-50 text-teal-600 rounded-lg flex items-center justify-center text-lg mb-4 group-hover:bg-teal-100 transition-colors">
+                                <div className="w-10 h-10 bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 rounded-lg flex items-center justify-center text-lg mb-4 group-hover:bg-teal-100 dark:group-hover:bg-teal-900/50 transition-colors">
                                     {f.icon}
                                 </div>
-                                <h3 className="text-base font-bold text-gray-900 mb-2">{f.title}</h3>
-                                <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
+                                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">{f.title}</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{f.desc}</p>
                             </motion.div>
                         ))}
                     </div>
@@ -190,11 +190,11 @@ const Landing = () => {
             </section>
 
             {/* ===== HOW IT WORKS ===== */}
-            <section id="how-it-works" className="py-20 bg-white">
+            <section id="how-it-works" className="py-20 bg-white dark:bg-gray-950">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-14">
-                        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
-                        <p className="text-gray-500 max-w-xl mx-auto">Three simple steps to ride at your price.</p>
+                        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">How It Works</h2>
+                        <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto">Three simple steps to ride at your price.</p>
                     </motion.div>
 
                     <div className="grid md:grid-cols-3 gap-8">
@@ -211,9 +211,9 @@ const Landing = () => {
                                 <div className="w-14 h-14 bg-teal-600 text-white rounded-2xl flex items-center justify-center text-xl mx-auto mb-5 shadow-sm">
                                     {s.icon}
                                 </div>
-                                <span className="text-xs font-bold text-teal-600 tracking-wider uppercase">Step {s.num}</span>
-                                <h3 className="text-lg font-bold text-gray-900 mt-2 mb-3">{s.title}</h3>
-                                <p className="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed">{s.desc}</p>
+                                <span className="text-xs font-bold text-teal-600 dark:text-teal-400 tracking-wider uppercase">Step {s.num}</span>
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white mt-2 mb-3">{s.title}</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs mx-auto leading-relaxed">{s.desc}</p>
                             </motion.div>
                         ))}
                     </div>
@@ -221,11 +221,11 @@ const Landing = () => {
             </section>
 
             {/* ===== SAFETY ===== */}
-            <section id="safety" className="py-20 bg-gray-50">
+            <section id="safety" className="py-20 bg-gray-50 dark:bg-gray-900">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-                            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">Your Safety, Our Priority</h2>
+                            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-6">Your Safety, Our Priority</h2>
                             <div className="space-y-5">
                                 {[
                                     { title: 'Admin-Verified Drivers', desc: 'Every driver goes through manual verification. License, Aadhaar, RC, and insurance are cross-checked.' },
@@ -235,11 +235,11 @@ const Landing = () => {
                                 ].map((item, i) => (
                                     <div key={i} className="flex gap-4">
                                         <div className="mt-1">
-                                            <FiCheckCircle className="text-teal-600" size={18} />
+                                            <FiCheckCircle className="text-teal-600 dark:text-teal-400" size={18} />
                                         </div>
                                         <div>
-                                            <h3 className="text-sm font-bold text-gray-900 mb-1">{item.title}</h3>
-                                            <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
+                                            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">{item.title}</h3>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{item.desc}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -249,37 +249,37 @@ const Landing = () => {
                             initial={{ opacity: 0, x: 30 }}
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
-                            className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm"
+                            className="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-black/20"
                         >
                             <div className="space-y-4">
-                                <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-100">
-                                    <FiCheckCircle className="text-green-600" />
-                                    <span className="text-sm font-medium text-green-700">License Verified by Admin</span>
+                                <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800">
+                                    <FiCheckCircle className="text-green-600 dark:text-green-400" />
+                                    <span className="text-sm font-medium text-green-700 dark:text-green-400">License Verified by Admin</span>
                                 </div>
-                                <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-100">
-                                    <FiCheckCircle className="text-green-600" />
-                                    <span className="text-sm font-medium text-green-700">Aadhaar Verified</span>
+                                <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800">
+                                    <FiCheckCircle className="text-green-600 dark:text-green-400" />
+                                    <span className="text-sm font-medium text-green-700 dark:text-green-400">Aadhaar Verified</span>
                                 </div>
-                                <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-100">
-                                    <FiCheckCircle className="text-green-600" />
-                                    <span className="text-sm font-medium text-green-700">RC Verified</span>
+                                <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800">
+                                    <FiCheckCircle className="text-green-600 dark:text-green-400" />
+                                    <span className="text-sm font-medium text-green-700 dark:text-green-400">RC Verified</span>
                                 </div>
-                                <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-100">
-                                    <FiCheckCircle className="text-green-600" />
-                                    <span className="text-sm font-medium text-green-700">Insurance Verified</span>
+                                <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800">
+                                    <FiCheckCircle className="text-green-600 dark:text-green-400" />
+                                    <span className="text-sm font-medium text-green-700 dark:text-green-400">Insurance Verified</span>
                                 </div>
                             </div>
-                            <p className="text-xs text-gray-400 mt-4 text-center">Driver verification panel</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-4 text-center">Driver verification panel</p>
                         </motion.div>
                     </div>
                 </div>
             </section>
 
             {/* ===== FAQ ===== */}
-            <section id="faq" className="py-20 bg-white">
+            <section id="faq" className="py-20 bg-white dark:bg-gray-950">
                 <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-14">
-                        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+                        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h2>
                     </motion.div>
 
                     <div className="space-y-3">
@@ -291,14 +291,14 @@ const Landing = () => {
                                 whileInView="visible"
                                 viewport={{ once: true }}
                                 variants={fadeUp}
-                                className="border border-gray-200 rounded-xl overflow-hidden"
+                                className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
                             >
                                 <button
                                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                                    className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
+                                    className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                 >
-                                    <span className="text-sm font-semibold text-gray-900">{faq.q}</span>
-                                    <FiChevronDown className={`text-gray-400 transition-transform ${openFaq === i ? 'rotate-180' : ''}`} />
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">{faq.q}</span>
+                                    <FiChevronDown className={`text-gray-400 dark:text-gray-500 transition-transform ${openFaq === i ? 'rotate-180' : ''}`} />
                                 </button>
                                 <AnimatePresence>
                                     {openFaq === i && (
@@ -308,7 +308,7 @@ const Landing = () => {
                                             exit={{ height: 0, opacity: 0 }}
                                             className="overflow-hidden"
                                         >
-                                            <p className="px-6 pb-4 text-sm text-gray-500 leading-relaxed">{faq.a}</p>
+                                            <p className="px-6 pb-4 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{faq.a}</p>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
@@ -319,7 +319,7 @@ const Landing = () => {
             </section>
 
             {/* ===== CTA ===== */}
-            <section className="py-20 bg-gray-900">
+            <section className="py-20 bg-gray-900 dark:bg-gray-800">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
                         <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Ready to ride at your price?</h2>
@@ -330,7 +330,7 @@ const Landing = () => {
                                     <Link to="/register" className="inline-flex items-center gap-2 px-8 py-3.5 bg-teal-600 text-white text-sm font-semibold rounded-lg hover:bg-teal-700 transition-all shadow-sm">
                                         Get Started <FiArrowRight />
                                     </Link>
-                                    <Link to="/login" className="inline-flex items-center gap-2 px-8 py-3.5 border border-gray-600 text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-800 transition-all">
+                                    <Link to="/login" className="inline-flex items-center gap-2 px-8 py-3.5 border border-gray-600 text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-800 dark:hover:bg-gray-700 transition-all">
                                         Sign In
                                     </Link>
                                 </>
@@ -348,47 +348,47 @@ const Landing = () => {
             </section>
 
             {/* ===== FOOTER ===== */}
-            <footer className="bg-white border-t border-gray-200 py-12">
+            <footer className="bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800 py-12">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
                         <div>
                             <div className="flex items-center gap-2 mb-4">
                                 <img src="/Logo.png" alt="Safro" className="w-8 h-8 object-contain" />
-                                <span className="font-bold text-gray-900">Safro</span>
+                                <span className="font-bold text-gray-900 dark:text-white">Safro</span>
                             </div>
-                            <p className="text-sm text-gray-500 leading-relaxed">Where the Price is Yours to Decide.</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Where the Price is Yours to Decide.</p>
                         </div>
 
                         <div>
-                            <h4 className="text-sm font-semibold text-gray-900 mb-3">Product</h4>
-                            <ul className="space-y-2 text-sm text-gray-500">
-                                <li><Link to="/rider/home" className="hover:text-gray-900 transition-colors">Book Ride</Link></li>
-                                <li><a href="#how-it-works" className="hover:text-gray-900 transition-colors">How It Works</a></li>
-                                <li><a href="#safety" className="hover:text-gray-900 transition-colors">Safety</a></li>
+                            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Product</h4>
+                            <ul className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
+                                <li><Link to="/rider/home" className="hover:text-gray-900 dark:hover:text-white transition-colors">Book Ride</Link></li>
+                                <li><a href="#how-it-works" className="hover:text-gray-900 dark:hover:text-white transition-colors">How It Works</a></li>
+                                <li><a href="#safety" className="hover:text-gray-900 dark:hover:text-white transition-colors">Safety</a></li>
                             </ul>
                         </div>
 
                         <div>
-                            <h4 className="text-sm font-semibold text-gray-900 mb-3">Company</h4>
-                            <ul className="space-y-2 text-sm text-gray-500">
-                                <li><Link to="/about" className="hover:text-gray-900 transition-colors">About</Link></li>
-                                <li><Link to="/careers" className="hover:text-gray-900 transition-colors">Careers</Link></li>
-                                <li><Link to="/blog" className="hover:text-gray-900 transition-colors">Blog</Link></li>
+                            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Company</h4>
+                            <ul className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
+                                <li><Link to="/about" className="hover:text-gray-900 dark:hover:text-white transition-colors">About</Link></li>
+                                <li><Link to="/careers" className="hover:text-gray-900 dark:hover:text-white transition-colors">Careers</Link></li>
+                                <li><Link to="/blog" className="hover:text-gray-900 dark:hover:text-white transition-colors">Blog</Link></li>
                             </ul>
                         </div>
 
                         <div>
-                            <h4 className="text-sm font-semibold text-gray-900 mb-3">Legal</h4>
-                            <ul className="space-y-2 text-sm text-gray-500">
-                                <li><Link to="/privacy" className="hover:text-gray-900 transition-colors">Privacy</Link></li>
-                                <li><Link to="/terms" className="hover:text-gray-900 transition-colors">Terms</Link></li>
-                                <li><Link to="/faq" className="hover:text-gray-900 transition-colors">FAQ</Link></li>
+                            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Legal</h4>
+                            <ul className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
+                                <li><Link to="/privacy" className="hover:text-gray-900 dark:hover:text-white transition-colors">Privacy</Link></li>
+                                <li><Link to="/terms" className="hover:text-gray-900 dark:hover:text-white transition-colors">Terms</Link></li>
+                                <li><Link to="/faq" className="hover:text-gray-900 dark:hover:text-white transition-colors">FAQ</Link></li>
                             </ul>
                         </div>
                     </div>
 
-                    <div className="border-t border-gray-100 mt-10 pt-6 text-center">
-                        <p className="text-xs text-gray-400">&copy; {new Date().getFullYear()} Safro. All rights reserved.</p>
+                    <div className="border-t border-gray-100 dark:border-gray-800 mt-10 pt-6 text-center">
+                        <p className="text-xs text-gray-400 dark:text-gray-500">&copy; {new Date().getFullYear()} Safro. All rights reserved.</p>
                     </div>
                 </div>
             </footer>

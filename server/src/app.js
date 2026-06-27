@@ -15,6 +15,8 @@ const negotiationRoutes = require('./routes/negotiationRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const mapRoutes = require('./routes/mapRoutes');
+const locationRoutes = require('./routes/locationRoutes');
+const splitFareRoutes = require('./routes/splitFareRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -94,6 +96,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/map', mapRoutes);
+app.use('/api/locations', locationRoutes);
+app.use('/api/split-fare', splitFareRoutes);
 app.use('/api/test/email', require('./routes/testEmailRoute'));
 app.use('/api/test/email', require('./routes/testEmailRoute'));
 

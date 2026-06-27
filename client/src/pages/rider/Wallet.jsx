@@ -131,12 +131,12 @@ const Wallet = () => {
     if (loading) return <LoadingSpinner fullPage />;
 
     return (
-        <div className="min-h-[calc(100vh-64px)] bg-gray-50 py-10 px-4">
+        <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-950 py-10 px-4">
             <div className="max-w-4xl mx-auto">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">My Wallet</h1>
-                        <p className="text-gray-500 mt-1">Manage your Safro credits and payments</p>
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Wallet</h1>
+                        <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your Safro credits and payments</p>
                     </div>
                     <AnimatedButton
                         onClick={() => setShowAddMoney(true)}
@@ -147,44 +147,44 @@ const Wallet = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                    <GlassCard className="md:col-span-2 bg-white border border-gray-200 overflow-hidden relative p-8 min-h-[200px] flex flex-col justify-between shadow-sm">
+                    <GlassCard className="md:col-span-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 overflow-hidden relative p-8 min-h-[200px] flex flex-col justify-between shadow-sm">
                         <div className="relative z-10">
-                            <p className="text-gray-500 text-sm font-medium uppercase tracking-wider mb-2">Available Balance</p>
-                            <h2 className="text-5xl font-black text-gray-900">₹{(user?.walletBalance || 0).toLocaleString()}</h2>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase tracking-wider mb-2">Available Balance</p>
+                            <h2 className="text-5xl font-black text-gray-900 dark:text-white">₹{(user?.walletBalance || 0).toLocaleString()}</h2>
                         </div>
                         <div className="relative z-10 flex gap-6 mt-6">
-                            <div className="flex items-center gap-2 text-gray-800 text-sm font-bold">
-                                <CheckCircle2 className="w-4 h-4 text-teal-600" /> Secure Payments
+                            <div className="flex items-center gap-2 text-gray-800 dark:text-gray-200 text-sm font-bold">
+                                <CheckCircle2 className="w-4 h-4 text-teal-600 dark:text-teal-400" /> Secure Payments
                             </div>
-                            <div className="flex items-center gap-2 text-gray-800 text-sm font-bold">
+                            <div className="flex items-center gap-2 text-gray-800 dark:text-gray-200 text-sm font-bold">
                                 <RotateCcw className="w-4 h-4 text-amber-600" /> Instant Refunds
                             </div>
                         </div>
                         {/* Decorative elements */}
-                        <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-teal-50 rounded-full blur-3xl opacity-50" />
-                        <div className="absolute -left-10 -top-10 w-32 h-32 bg-indigo-50 rounded-full blur-2xl opacity-50" />
+                        <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-teal-50 dark:bg-teal-900/20 rounded-full blur-3xl opacity-50" />
+                        <div className="absolute -left-10 -top-10 w-32 h-32 bg-indigo-50 dark:bg-indigo-900/20 rounded-full blur-2xl opacity-50" />
                     </GlassCard>
 
                     <div className="space-y-4">
-                        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                        <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 bg-red-50 rounded-xl">
-                                    <ArrowDownLeft className="w-6 h-6 text-red-600" />
+                                <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl">
+                                    <ArrowDownLeft className="w-6 h-6 text-red-600 dark:text-red-400" />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-xs text-gray-500">Total Spent</p>
-                                    <p className="text-xl font-bold text-gray-900">₹{stats.spent.toLocaleString()}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Total Spent</p>
+                                    <p className="text-xl font-bold text-gray-900 dark:text-white">₹{stats.spent.toLocaleString()}</p>
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                        <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 bg-green-50 rounded-xl">
-                                    <ArrowUpRight className="w-6 h-6 text-green-600" />
+                                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                                    <ArrowUpRight className="w-6 h-6 text-green-600 dark:text-green-400" />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-xs text-gray-500">Total Added</p>
-                                    <p className="text-xl font-bold text-gray-900">₹{stats.added.toLocaleString()}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Total Added</p>
+                                    <p className="text-xl font-bold text-gray-900 dark:text-white">₹{stats.added.toLocaleString()}</p>
                                 </div>
                             </div>
                         </div>
@@ -193,38 +193,38 @@ const Wallet = () => {
 
                 <div className="space-y-4 mb-10">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                            <History className="w-5 h-5 text-gray-400" /> Recent Transactions
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <History className="w-5 h-5 text-gray-400 dark:text-gray-500" /> Recent Transactions
                         </h3>
                         {transactions.length > 5 && (
                             <button 
                                 onClick={() => setShowAllTransactions(!showAllTransactions)}
-                                className="text-sm font-bold text-teal-600 hover:text-teal-700 transition-colors"
+                                className="text-sm font-bold text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:text-teal-400 transition-colors"
                             >
                                 {showAllTransactions ? 'Show Less' : 'View All'}
                             </button>
                         )}
                     </div>
-                    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden min-h-[164px]">
+                    <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden min-h-[164px]">
                         {transactions.length === 0 ? (
                             <div className="p-12 text-center h-full flex flex-col justify-center">
-                                <p className="text-gray-500 font-medium text-sm">No transactions yet</p>
-                                <p className="text-xs text-gray-400 mt-1">Your payments will appear here</p>
+                                <p className="text-gray-500 dark:text-gray-400 font-medium text-sm">No transactions yet</p>
+                                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Your payments will appear here</p>
                             </div>
                         ) : (
-                            <div className="divide-y divide-gray-100">
+                            <div className="divide-y divide-gray-100 dark:divide-gray-800">
                                 {(showAllTransactions ? transactions : transactions.slice(0, 5)).map((t) => (
-                                    <div key={t._id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                                    <div key={t._id} className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                                         <div className="flex items-center gap-3">
-                                            <div className={`p-2 rounded-lg ${t.type === 'credit' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                                            <div className={`p-2 rounded-lg ${t.type === 'credit' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}>
                                                 {t.type === 'credit' ? <Plus size={16} /> : <ArrowDownLeft size={16} />}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-bold text-gray-900">{t.description}</p>
-                                                <p className="text-[10px] text-gray-500">{new Date(t.createdAt).toLocaleDateString()}</p>
+                                                <p className="text-sm font-bold text-gray-900 dark:text-white">{t.description}</p>
+                                                <p className="text-[10px] text-gray-500 dark:text-gray-400">{new Date(t.createdAt).toLocaleDateString()}</p>
                                             </div>
                                         </div>
-                                        <p className={`text-sm font-black ${t.type === 'credit' ? 'text-green-600' : 'text-gray-900'}`}>
+                                        <p className={`text-sm font-black ${t.type === 'credit' ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'}`}>
                                             {t.type === 'credit' ? '+' : '-'}₹{Math.abs(t.amount)}
                                         </p>
                                     </div>
@@ -238,22 +238,22 @@ const Wallet = () => {
             {/* Add Money Modal */}
             {showAddMoney && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-md p-8 bg-white rounded-3xl border border-gray-100 shadow-2xl">
+                    <div className="w-full max-w-md p-8 bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-2xl">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900">Add Money</h2>
-                            <button onClick={() => setShowAddMoney(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Add Money</h2>
+                            <button onClick={() => setShowAddMoney(false)} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                                 <Plus className="w-6 h-6 rotate-45" />
                             </button>
                         </div>
-                        <p className="text-gray-600 text-sm mb-6">Enter the amount you wish to add to your Safro wallet.</p>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">Enter the amount you wish to add to your Safro wallet.</p>
                         <div className="relative mb-8">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-teal-600">₹</span>
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-teal-600 dark:text-teal-400">₹</span>
                             <input
                                 type="number"
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
                                 placeholder="0.00"
-                                className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-5 pl-10 pr-6 text-3xl font-bold text-gray-900 outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/5 transition-all font-mono"
+                                className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-2xl py-5 pl-10 pr-6 text-3xl font-bold text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/5 transition-all font-mono"
                                 autoFocus
                             />
                         </div>
@@ -262,7 +262,7 @@ const Wallet = () => {
                                 <button
                                     key={val}
                                     onClick={() => setAmount(val.toString())}
-                                    className="bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl py-2.5 text-gray-900 font-bold transition-all text-sm shadow-sm"
+                                    className="bg-gray-50 dark:bg-gray-950 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-xl py-2.5 text-gray-900 dark:text-white font-bold transition-all text-sm shadow-sm"
                                 >
                                     +₹{val}
                                 </button>
@@ -277,7 +277,7 @@ const Wallet = () => {
                                 {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Proceed to Pay'}
                             </AnimatedButton>
                         </div>
-                        <div className="mt-6 flex items-center justify-center gap-2 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                        <div className="mt-6 flex items-center justify-center gap-2 text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest">
                             <AlertCircle size={10} /> Powered by Razorpay Secure
                         </div>
                     </div>

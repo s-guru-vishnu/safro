@@ -39,6 +39,11 @@ const paymentSchema = new mongoose.Schema({
         default: function () {
             return 'TXN_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
+    },
+    splitFareId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'SplitFare',
+        default: null
     }
 }, {
     timestamps: true

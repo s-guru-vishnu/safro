@@ -52,8 +52,6 @@ const DriverRegister = () => {
         insuranceExpiry: '',
         insuranceDocument: '',
         rcNumber: '',
-        insuranceDocument: '',
-        rcNumber: '',
         rcDocument: '',
         district: '',
         taluk: '',
@@ -113,7 +111,7 @@ const DriverRegister = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
 
             {/* Progress Bar */}
             <div className="max-w-xl mx-auto px-4 pt-8 pb-4">
@@ -138,16 +136,16 @@ const DriverRegister = () => {
                                 )}
                                 {/* Icon circle */}
                                 <motion.div
-                                    className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 z-10 transition-all duration-300 ${isComplete ? 'bg-teal-500 text-white shadow-md' :
+                                    className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 z-10 transition-all duration-300 ${isComplete ? 'bg-teal-50 dark:bg-teal-900/20 text-white shadow-md' :
                                         isCurrent ? 'bg-gray-900 text-white shadow-lg ring-4 ring-teal-100' :
-                                            'bg-gray-200 text-gray-400'
+                                            'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500'
                                         }`}
                                     whileHover={{ scale: 1.1 }}
                                 >
                                     {isComplete ? <FiCheckCircle size={16} /> : <Icon size={16} />}
                                 </motion.div>
                                 {/* Label */}
-                                <span className={`text-xs mt-2 font-medium hidden sm:block text-center ${isCurrent ? 'text-gray-900' : isComplete ? 'text-teal-600' : 'text-gray-400'
+                                <span className={`text-xs mt-2 font-medium hidden sm:block text-center ${isCurrent ? 'text-gray-900 dark:text-white' : isComplete ? 'text-teal-600 dark:text-teal-400' : 'text-gray-400 dark:text-gray-500'
                                     }`}>
                                     {step.label}
                                 </span>
@@ -157,8 +155,8 @@ const DriverRegister = () => {
                 </div>
 
                 {/* Step counter (mobile) */}
-                <p className="text-center text-sm text-gray-500 sm:hidden mt-3">
-                    Step {currentStep + 1} of {steps.length} — <span className="font-semibold text-gray-700">{steps[currentStep].label}</span>
+                <p className="text-center text-sm text-gray-500 dark:text-gray-400 sm:hidden mt-3">
+                    Step {currentStep + 1} of {steps.length} — <span className="font-semibold text-gray-700 dark:text-gray-300">{steps[currentStep].label}</span>
                 </p>
             </div>
 

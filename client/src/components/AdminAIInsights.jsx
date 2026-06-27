@@ -39,8 +39,9 @@ const AdminAIInsights = () => {
             sub: `${insights.totalCompletedRides || 0} rides`,
             icon: '',
             color: 'from-emerald-50 to-emerald-100/50',
-            border: 'border-emerald-200',
-            textColor: 'text-emerald-700'
+            darkColor: 'dark:from-emerald-900/40 dark:to-emerald-800/20',
+            border: 'border-emerald-200 dark:border-emerald-700/50',
+            textColor: 'text-emerald-700 dark:text-emerald-400'
         },
         {
             label: 'AI Flagged Rides',
@@ -48,8 +49,9 @@ const AdminAIInsights = () => {
             sub: 'Last 30 days',
             icon: '',
             color: insights.flaggedRides > 0 ? 'from-red-50 to-red-100/50' : 'from-gray-50 to-gray-100/50',
-            border: insights.flaggedRides > 0 ? 'border-red-200' : 'border-gray-200',
-            textColor: insights.flaggedRides > 0 ? 'text-red-700' : 'text-gray-700'
+            darkColor: insights.flaggedRides > 0 ? 'dark:from-red-900/40 dark:to-red-800/20' : 'dark:from-gray-800/40 dark:to-gray-700/20',
+            border: insights.flaggedRides > 0 ? 'border-red-200 dark:border-red-700/50' : 'border-gray-200 dark:border-gray-700',
+            textColor: insights.flaggedRides > 0 ? 'text-red-700 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'
         },
         {
             label: 'Lowball Offers',
@@ -57,8 +59,9 @@ const AdminAIInsights = () => {
             sub: '<50% of AI suggested',
             icon: '',
             color: 'from-amber-50 to-amber-100/50',
-            border: 'border-amber-200',
-            textColor: 'text-amber-700'
+            darkColor: 'dark:from-amber-900/40 dark:to-amber-800/20',
+            border: 'border-amber-200 dark:border-amber-700/50',
+            textColor: 'text-amber-700 dark:text-amber-400'
         },
         {
             label: 'Top Driver',
@@ -68,8 +71,9 @@ const AdminAIInsights = () => {
                 : 'No data',
             icon: '',
             color: 'from-indigo-50 to-indigo-100/50',
-            border: 'border-indigo-200',
-            textColor: 'text-indigo-700'
+            darkColor: 'dark:from-indigo-900/40 dark:to-indigo-800/20',
+            border: 'border-indigo-200 dark:border-indigo-700/50',
+            textColor: 'text-indigo-700 dark:text-indigo-400'
         }
     ];
 
@@ -77,8 +81,8 @@ const AdminAIInsights = () => {
         <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">
                 <span className="text-xl"></span>
-                <h3 className="text-gray-900 font-bold text-lg">AI Insights</h3>
-                <span className="text-[10px] font-semibold text-gray-500 bg-gray-200/50 px-2 py-0.5 rounded-full uppercase tracking-wider">30 days</span>
+                <h3 className="text-gray-900 dark:text-white font-bold text-lg">AI Insights</h3>
+                <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700/50 px-2 py-0.5 rounded-full uppercase tracking-wider">30 days</span>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {cards.map((card, idx) => (
@@ -87,14 +91,14 @@ const AdminAIInsights = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.1 }}
-                        className={`bg-gradient-to-br ${card.color} border ${card.border} rounded-2xl p-4 shadow-sm`}
+                        className={`bg-gradient-to-br ${card.color} ${card.darkColor} border ${card.border} rounded-2xl p-4 shadow-sm dark:shadow-black/10`}
                     >
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-xl">{card.icon}</span>
                         </div>
                         <p className={`${card.textColor} font-bold text-xl truncate`}>{card.value}</p>
-                        <p className="text-gray-900 font-semibold text-xs mt-1">{card.label}</p>
-                        <p className="text-gray-500 text-[10px] mt-0.5">{card.sub}</p>
+                        <p className="text-gray-900 dark:text-white font-semibold text-xs mt-1">{card.label}</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-[10px] mt-0.5">{card.sub}</p>
                     </motion.div>
                 ))}
             </div>

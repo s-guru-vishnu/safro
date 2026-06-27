@@ -360,12 +360,12 @@ const DriverDashboard = () => {
     }, [socket, activeRide?._id, activeRide?.status, user._id]);
 
     return (
-        <div className="min-h-[calc(100vh-64px)] bg-gray-50 py-8">
+        <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-950 py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Driver Dashboard</h1>
-                        <p className="text-sm text-gray-500 mt-1">Manage your rides and negotiations</p>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Driver Dashboard</h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage your rides and negotiations</p>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -379,33 +379,33 @@ const DriverDashboard = () => {
 
                 {/* Driver Stats Overview */}
                 <div className="grid grid-cols-3 gap-4 mb-6">
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex items-center gap-4">
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm flex items-center gap-4">
                         <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
                             <FiDollarSign size={20} />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-500 font-medium">Total Earnings</p>
-                            <p className="font-bold text-gray-900 text-lg">₹{stats?.totalEarnings || 0}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Total Earnings</p>
+                            <p className="font-bold text-gray-900 dark:text-white text-lg">₹{stats?.totalEarnings || 0}</p>
                         </div>
                     </motion.div>
 
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 flex items-center justify-center">
                             <FiTruck size={20} />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-500 font-medium">Completed Rides</p>
-                            <p className="font-bold text-gray-900 text-lg">{stats?.totalRides || 0}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Completed Rides</p>
+                            <p className="font-bold text-gray-900 dark:text-white text-lg">{stats?.totalRides || 0}</p>
                         </div>
                     </motion.div>
 
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-yellow-50 text-yellow-600 flex items-center justify-center">
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 flex items-center justify-center">
                             <FiStar size={20} />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-500 font-medium">Current Rating</p>
-                            <p className="font-bold text-gray-900 text-lg">{stats?.rating?.toFixed(1) || '—'}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Current Rating</p>
+                            <p className="font-bold text-gray-900 dark:text-white text-lg">{stats?.rating?.toFixed(1) || '—'}</p>
                         </div>
                     </motion.div>
                 </div>
@@ -413,16 +413,16 @@ const DriverDashboard = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left: Available Rides */}
                     <div className="lg:col-span-1 space-y-3">
-                        <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider flex items-center gap-2">
-                            <FiNavigation className="text-teal-600" size={14} /> Available Rides
+                        <h2 className="text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                            <FiNavigation className="text-teal-600 dark:text-teal-400" size={14} /> Available Rides
                             {(searchLocation || driverLocation) && (
-                                <span className="text-xs font-normal text-gray-400">
+                                <span className="text-xs font-normal text-gray-400 dark:text-gray-500">
                                     {searchLocation ? `(near ${searchLocation.name})` : '(within 10km)'}
                                 </span>
                             )}
                         </h2>
 
-                        <div className="bg-white p-3 rounded-xl border border-gray-200">
+                        <div className="bg-white dark:bg-gray-900 p-3 rounded-xl border border-gray-200 dark:border-gray-700">
                             <LocationAutocomplete
                                 placeholder="Search rides in another area..."
                                 value={searchLocation?.name || ''}
@@ -433,9 +433,9 @@ const DriverDashboard = () => {
                         </div>
 
                         {availableRides.length === 0 ? (
-                            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+                            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-8 text-center">
                                 <FiNavigation className="text-gray-300 mx-auto mb-2" size={28} />
-                                <p className="text-sm text-gray-400">No rides available right now</p>
+                                <p className="text-sm text-gray-400 dark:text-gray-500">No rides available right now</p>
                             </div>
                         ) : (
                             <AnimatePresence>
@@ -445,19 +445,19 @@ const DriverDashboard = () => {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, x: -20 }}
-                                        className={`bg-white rounded-xl border p-4 hover:shadow-md transition-all cursor-pointer ${activeRide?._id === ride._id ? 'border-teal-400 shadow-md ring-2 ring-teal-100' : 'border-gray-200 hover:border-teal-200'}`}
+                                        className={`bg-white dark:bg-gray-900 rounded-xl border p-4 hover:shadow-md transition-all cursor-pointer ${activeRide?._id === ride._id ? 'border-teal-400 shadow-md ring-2 ring-teal-100' : 'border-gray-200 dark:border-gray-700 hover:border-teal-200 dark:border-teal-800'}`}
                                         onClick={() => handleNegotiate(ride)}
                                     >
                                         <div className="flex justify-between items-start mb-3">
-                                            <span className="text-sm font-semibold text-gray-900">{ride.riderId?.name || 'Rider'}</span>
-                                            <span className="bg-teal-50 text-teal-700 text-xs px-2.5 py-1 rounded-full font-bold">
+                                            <span className="text-sm font-semibold text-gray-900 dark:text-white">{ride.riderId?.name || 'Rider'}</span>
+                                            <span className="bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400 text-xs px-2.5 py-1 rounded-full font-bold">
                                                 ₹{ride.proposedFare || ride.fare?.proposed || ride.fare || 0}
                                             </span>
                                         </div>
 
-                                        <div className="space-y-2 text-xs text-gray-500 mb-3">
+                                        <div className="space-y-2 text-xs text-gray-500 dark:text-gray-400 mb-3">
                                             <div className="flex items-center gap-2">
-                                                <FiMapPin className="text-teal-600 flex-shrink-0" size={12} />
+                                                <FiMapPin className="text-teal-600 dark:text-teal-400 flex-shrink-0" size={12} />
                                                 <span className="truncate">{ride.pickupLocation?.address || 'Pickup'}</span>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -470,7 +470,7 @@ const DriverDashboard = () => {
                                             onClick={(e) => { e.stopPropagation(); handleNegotiate(ride); }}
                                             disabled={isNegotiating && activeRide?._id !== ride._id}
                                             className={`w-full py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${isNegotiating && activeRide?._id !== ride._id
-                                                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                                ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                                                 : 'bg-gray-900 text-white hover:bg-gray-800'
                                                 }`}
                                         >
@@ -487,10 +487,10 @@ const DriverDashboard = () => {
                         {activeRide ? (
                             <div className="space-y-4">
                                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                                    <div className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col justify-between">
+                                    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 flex flex-col justify-between">
                                         <div>
                                             <div className="flex justify-between items-center mb-3">
-                                                <h3 className="text-sm font-bold text-gray-900">
+                                                <h3 className="text-sm font-bold text-gray-900 dark:text-white">
                                                     {activeRide.status === 'confirmed' ? 'Current Ride' : activeRide.status === 'ongoing' ? 'Ride in Progress' : 'Negotiating'}
                                                 </h3>
                                                 {(activeRide.status === 'negotiating' || activeRide.status === 'pending') && (
@@ -504,30 +504,30 @@ const DriverDashboard = () => {
                                             </div>
                                             <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                                                 <div>
-                                                    <span className="text-xs text-gray-400">Pickup</span>
-                                                    <p className="font-medium text-gray-800 mt-0.5">{activeRide.pickupLocation?.address}</p>
+                                                    <span className="text-xs text-gray-400 dark:text-gray-500">Pickup</span>
+                                                    <p className="font-medium text-gray-800 dark:text-gray-200 mt-0.5">{activeRide.pickupLocation?.address}</p>
                                                 </div>
                                                 <div>
-                                                    <span className="text-xs text-gray-400">Drop</span>
-                                                    <p className="font-medium text-gray-800 mt-0.5">{activeRide.dropLocation?.address}</p>
+                                                    <span className="text-xs text-gray-400 dark:text-gray-500">Drop</span>
+                                                    <p className="font-medium text-gray-800 dark:text-gray-200 mt-0.5">{activeRide.dropLocation?.address}</p>
                                                 </div>
                                                 <div className="col-span-2">
-                                                    <span className="text-xs text-gray-400">Status</span>
-                                                    <p className="font-bold text-teal-600 mt-0.5 uppercase text-xs">{activeRide.status?.replace('_', ' ')}</p>
+                                                    <span className="text-xs text-gray-400 dark:text-gray-500">Status</span>
+                                                    <p className="font-bold text-teal-600 dark:text-teal-400 mt-0.5 uppercase text-xs">{activeRide.status?.replace('_', ' ')}</p>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div className="space-y-3">
                                             {activeRide.status === 'confirmed' && (
-                                                <div className="pt-4 border-t border-gray-100 mt-2">
-                                                    <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Start Ride</p>
+                                                <div className="pt-4 border-t border-gray-100 dark:border-gray-800 mt-2">
+                                                    <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">Start Ride</p>
                                                     <div className="flex gap-2">
                                                         <input
                                                             type="text"
                                                             placeholder="OTP"
                                                             maxLength={4}
-                                                            className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                                                            className="flex-1 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
                                                             id="ride-otp-input"
                                                         />
                                                         <button
@@ -544,7 +544,7 @@ const DriverDashboard = () => {
                                             )}
 
                                             {activeRide.status === 'ongoing' && (
-                                                <div className="pt-4 border-t border-gray-100 mt-2">
+                                                <div className="pt-4 border-t border-gray-100 dark:border-gray-800 mt-2">
                                                     <button
                                                         onClick={handleCompleteRide}
                                                         className="w-full bg-teal-600 text-white py-3 rounded-lg text-sm font-bold hover:bg-teal-700 transition-all shadow-md shadow-teal-100 flex items-center justify-center gap-2"
@@ -555,15 +555,15 @@ const DriverDashboard = () => {
                                             )}
 
                                             {activeRide.status === 'completed' && (
-                                                <div className="pt-4 border-t border-gray-100 mt-2 bg-green-50 p-4 rounded-xl border border-green-100">
+                                                <div className="pt-4 border-t border-gray-100 dark:border-gray-800 mt-2 bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-100">
                                                     <p className="text-xs font-bold text-green-800 mb-1 uppercase tracking-wider text-center">Trip Completed</p>
-                                                    <p className="text-[10px] text-green-600 text-center">Waiting for finalization in popup...</p>
+                                                    <p className="text-[10px] text-green-600 dark:text-green-400 text-center">Waiting for finalization in popup...</p>
                                                 </div>
                                             )}
 
                                             {/* Start Negotiation button (only shown if chat isn't auto-opened somehow) */}
                                             {(activeRide.status === 'requested' || activeRide.status === 'negotiating' || activeRide.status === 'pending') && !showChat && (
-                                                <div className="pt-4 border-t border-gray-100 mt-2">
+                                                <div className="pt-4 border-t border-gray-100 dark:border-gray-800 mt-2">
                                                     <button
                                                         onClick={handleStartNegotiation}
                                                         className="w-full bg-gray-900 text-white py-3 rounded-lg text-sm font-bold hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
@@ -576,7 +576,7 @@ const DriverDashboard = () => {
                                     </div>
 
                                     {/* Location Panel — visible for all active ride states */}
-                                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm h-64 xl:h-auto min-h-[250px] relative">
+                                    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm h-64 xl:h-auto min-h-[250px] relative">
                                         <MapView
                                             pickupCoordinates={activeRide.pickupLocation?.coordinates?.coordinates ? {
                                                 lat: activeRide.pickupLocation.coordinates.coordinates[1],
@@ -612,20 +612,20 @@ const DriverDashboard = () => {
                                 )}
                             </div>
                         ) : (
-                            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm h-[80vh] min-h-[500px] relative flex flex-col">
+                            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm h-[80vh] min-h-[500px] relative flex flex-col">
                                 {driverLocation ? (
                                     <MapView driverCoordinates={driverLocation} />
                                 ) : (
-                                    <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-6 bg-gray-50 h-full">
+                                    <div className="flex-1 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-6 bg-gray-50 dark:bg-gray-950 h-full">
                                         <FiMapPin className="mb-3 opacity-30" size={36} />
                                         <p className="text-sm font-medium">Acquiring live location...</p>
                                     </div>
                                 )}
-                                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] bg-white/90 backdrop-blur-md px-6 py-3 rounded-full shadow-xl border border-gray-200 flex items-center gap-3 w-max max-w-[90%]">
-                                    <FiNavigation className="text-teal-600 animate-pulse" size={18} />
+                                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] bg-white dark:bg-gray-900/90 backdrop-blur-md px-6 py-3 rounded-full shadow-xl border border-gray-200 dark:border-gray-700 flex items-center gap-3 w-max max-w-[90%]">
+                                    <FiNavigation className="text-teal-600 dark:text-teal-400 animate-pulse" size={18} />
                                     <div>
-                                        <p className="text-sm font-bold text-gray-800">You are online</p>
-                                        <p className="text-xs text-gray-500">Pick a ride from the available rides list</p>
+                                        <p className="text-sm font-bold text-gray-800 dark:text-gray-200">You are online</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Pick a ride from the available rides list</p>
                                     </div>
                                 </div>
                             </div>

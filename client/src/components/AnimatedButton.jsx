@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 const AnimatedButton = ({ children, onClick, variant = 'primary', className = '', type = 'button', disabled = false }) => {
     const variants = {
         primary: 'bg-gray-900 text-white hover:bg-gray-800 shadow-sm',
-        secondary: 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50',
+        secondary: 'bg-white text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800',
         teal: 'bg-teal-600 text-white hover:bg-teal-700 shadow-sm',
-        danger: 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100',
-        outline: 'bg-transparent border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white',
+        danger: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/30',
+        outline: 'bg-transparent border-2 border-gray-900 text-gray-900 dark:text-white hover:bg-gray-900 hover:text-white',
     };
 
     return (

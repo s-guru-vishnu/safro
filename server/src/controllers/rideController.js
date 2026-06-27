@@ -54,6 +54,7 @@ const applyScorePenalty = async (userId, role, points) => {
 
 // ─── STATE MACHINE: valid ride status transitions ──────────────
 const VALID_TRANSITIONS = {
+    scheduled: ['pending', 'cancelled'],
     pending: ['negotiating', 'cancelled'],
     negotiating: ['pending', 'confirmed', 'cancelled'],
     confirmed: ['ongoing', 'cancelled'],
@@ -89,10 +90,10 @@ const requestRide = async (req, res, next) => {
     try {
         const { pickupLocation, dropLocation, proposedFare, distance, duration } = req.body;
 
-        // ── GUARD: One active ride per rider ──
+        // ── GUARD: One active ride per rider (exclude scheduled rides) ──
         const existingRide = await Ride.findOne({
             riderId: req.user._id,
-            status: { $nin: ['completed', 'cancelled'] }
+            status: { $nin: ['completed', 'cancelled', 'scheduled'] }
         });
         if (existingRide) {
             return res.status(400).json({ message: 'You already have an active ride.' });
@@ -710,10 +711,11 @@ const getActiveRide = async (req, res, next) => {
                 ]
             };
         } else {
-            // Rider: check for their active ride
+            // Rider: check for their active ride (exclude scheduled)
             // Include completed rides that are unpaid or unrated
             query = {
                 riderId: req.user._id,
+                status: { $ne: 'scheduled' },
                 $or: [
                     { status: { $nin: ['completed', 'cancelled'] } },
                     { 
@@ -801,6 +803,140 @@ const rateRide = async (req, res, next) => {
     }
 };
 
+// @desc    Schedule a ride for future
+// @route   POST /api/rides/schedule
+const scheduleRide = async (req, res, next) => {
+    try {
+        const { pickupLocation, dropLocation, proposedFare, distance, duration, scheduledTime } = req.body;
+
+        // Validate scheduledTime
+        if (!scheduledTime) {
+            return res.status(400).json({ message: 'Scheduled time is required' });
+        }
+
+        const scheduledDate = new Date(scheduledTime);
+        const now = new Date();
+        const minTime = new Date(now.getTime() + 30 * 60 * 1000); // 30 min from now
+        const maxTime = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
+        if (scheduledDate < minTime) {
+            return res.status(400).json({ message: 'Schedule time must be at least 30 minutes from now.' });
+        }
+        if (scheduledDate > maxTime) {
+            return res.status(400).json({ message: 'Cannot schedule more than 30 days in advance.' });
+        }
+
+        // Limit scheduled rides per user (max 3)
+        const scheduledCount = await Ride.countDocuments({ riderId: req.user._id, status: 'scheduled' });
+        if (scheduledCount >= 3) {
+            return res.status(400).json({ message: 'Maximum 3 scheduled rides allowed. Cancel one to create a new one.' });
+        }
+
+        // Score check
+        if (req.user.negotiationScore !== undefined && req.user.negotiationScore < 40) {
+            return res.status(403).json({ message: 'Your negotiation score is too low. You are temporarily blocked from booking rides.' });
+        }
+
+        const distanceKm = parseDistanceKm(distance);
+        const estimatedDuration = parseDurationMins(duration);
+        const lat = pickupLocation?.coordinates?.lat || 0;
+        const lng = pickupLocation?.coordinates?.lng || 0;
+
+        const ride = await Ride.create({
+            riderId: req.user._id,
+            pickupLocation,
+            dropLocation,
+            pickupGeo: { type: 'Point', coordinates: [lng, lat] },
+            fare: { proposed: proposedFare },
+            distance,
+            duration,
+            distanceKm,
+            estimatedDuration,
+            status: 'scheduled',
+            scheduledTime: scheduledDate,
+            taluk: identifyTaluk(pickupLocation?.address) || ''
+        });
+
+        // Non-blocking email confirmation
+        try {
+            const { sendScheduledRideConfirmationEmail } = require('../services/notificationService');
+            sendScheduledRideConfirmationEmail(
+                { name: req.user.name, email: req.user.email },
+                { pickupAddress: pickupLocation?.address, dropAddress: dropLocation?.address, scheduledTime: scheduledDate, proposedFare }
+            );
+        } catch (e) { /* non-blocking */ }
+
+        // Notify via socket
+        const io = req.app.get('io');
+        if (io) {
+            io.to(req.user._id.toString()).emit('rideScheduled', ride);
+        }
+
+        res.status(201).json({ ride });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Get all scheduled rides for user
+// @route   GET /api/rides/scheduled
+const getScheduledRides = async (req, res, next) => {
+    try {
+        const rides = await Ride.find({
+            riderId: req.user._id,
+            status: 'scheduled'
+        }).sort({ scheduledTime: 1 });
+
+        res.json({ rides });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Reschedule a ride
+// @route   PUT /api/rides/:id/reschedule
+const rescheduleRide = async (req, res, next) => {
+    try {
+        const { scheduledTime } = req.body;
+        const ride = await Ride.findById(req.params.id);
+
+        if (!ride) {
+            return res.status(404).json({ message: 'Ride not found' });
+        }
+        if (ride.riderId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+        if (ride.status !== 'scheduled') {
+            return res.status(400).json({ message: 'Only scheduled rides can be rescheduled' });
+        }
+
+        const scheduledDate = new Date(scheduledTime);
+        const now = new Date();
+        const minTime = new Date(now.getTime() + 30 * 60 * 1000);
+        const maxTime = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+        if (scheduledDate < minTime) {
+            return res.status(400).json({ message: 'Schedule time must be at least 30 minutes from now.' });
+        }
+        if (scheduledDate > maxTime) {
+            return res.status(400).json({ message: 'Cannot schedule more than 30 days in advance.' });
+        }
+
+        ride.scheduledTime = scheduledDate;
+        ride.reminderSent = false;
+        await ride.save();
+
+        const io = req.app.get('io');
+        if (io) {
+            io.to(req.user._id.toString()).emit('rideRescheduled', ride);
+        }
+
+        res.json({ ride });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getFareEstimate,
     requestRide,
@@ -814,5 +950,8 @@ module.exports = {
     cancelRide,
     failNegotiation,
     getActiveRide,
-    rateRide
+    rateRide,
+    scheduleRide,
+    getScheduledRides,
+    rescheduleRide
 };

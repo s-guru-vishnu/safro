@@ -1,10 +1,10 @@
 import { FiArrowLeft, FiSend, FiUser, FiFileText, FiCreditCard, FiTruck, FiShield, FiCheckCircle } from 'react-icons/fi';
 
 const Section = ({ icon: Icon, title, children }) => (
-    <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+    <div className="p-4 bg-gray-50 dark:bg-gray-950 rounded-xl border border-gray-100 dark:border-gray-800">
         <div className="flex items-center gap-2 mb-3">
-            <Icon size={16} className="text-teal-600" />
-            <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
+            <Icon size={16} className="text-teal-600 dark:text-teal-400" />
+            <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">{title}</h3>
         </div>
         <div className="space-y-1.5">{children}</div>
     </div>
@@ -12,23 +12,23 @@ const Section = ({ icon: Icon, title, children }) => (
 
 const Row = ({ label, value }) => (
     <div className="flex justify-between text-sm">
-        <span className="text-gray-500">{label}</span>
-        <span className="font-medium text-gray-900 text-right max-w-[60%] truncate">{value || '—'}</span>
+        <span className="text-gray-500 dark:text-gray-400">{label}</span>
+        <span className="font-medium text-gray-900 dark:text-white text-right max-w-[60%] truncate">{value || '—'}</span>
     </div>
 );
 
 const Step6Review = ({ formData, prevStep, onSubmit, submitting }) => {
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8">
             <div className="mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Review Your Application</h2>
-                <p className="text-sm text-gray-500 mt-1">Please verify all your details before submitting</p>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Review Your Application</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Please verify all your details before submitting</p>
             </div>
 
             {/* Branding message */}
-            <div className="flex items-start gap-3 bg-teal-50 border border-teal-100 rounded-xl p-4 mb-6">
-                <FiCheckCircle className="text-teal-600 shrink-0 mt-0.5" size={18} />
-                <p className="text-sm text-teal-700">
+            <div className="flex items-start gap-3 bg-teal-50 dark:bg-teal-900/20 border border-teal-100 rounded-xl p-4 mb-6">
+                <FiCheckCircle className="text-teal-600 dark:text-teal-400 shrink-0 mt-0.5" size={18} />
+                <p className="text-sm text-teal-700 dark:text-teal-400">
                     Safro ensures all drivers are verified by our admin team to maintain trust and safety.
                 </p>
             </div>
@@ -55,7 +55,7 @@ const Step6Review = ({ formData, prevStep, onSubmit, submitting }) => {
                     <Row label="License Expiry" value={formData.licenseExpiry} />
                     {formData.licenseImage && (
                         <div className="pt-2">
-                            <img src={formData.licenseImage} alt="License" className="w-full h-28 object-contain bg-white rounded-lg border border-gray-200" />
+                            <img src={formData.licenseImage} alt="License" className="w-full h-28 object-contain bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700" />
                         </div>
                     )}
                 </Section>
@@ -65,7 +65,7 @@ const Step6Review = ({ formData, prevStep, onSubmit, submitting }) => {
                     <Row label="Aadhaar Number" value={formData.aadhaarNumber ? `XXXX XXXX ${formData.aadhaarNumber.slice(-4)}` : '—'} />
                     {formData.aadhaarImage && (
                         <div className="pt-2">
-                            <img src={formData.aadhaarImage} alt="Aadhaar" className="w-full h-28 object-contain bg-white rounded-lg border border-gray-200" />
+                            <img src={formData.aadhaarImage} alt="Aadhaar" className="w-full h-28 object-contain bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700" />
                         </div>
                     )}
                 </Section>
@@ -91,7 +91,7 @@ const Step6Review = ({ formData, prevStep, onSubmit, submitting }) => {
                 <button
                     onClick={prevStep}
                     disabled={submitting}
-                    className="flex-1 py-3.5 rounded-xl font-semibold text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center justify-center gap-2 transition-all"
+                    className="flex-1 py-3.5 rounded-xl font-semibold text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:bg-gray-700 flex items-center justify-center gap-2 transition-all"
                 >
                     <FiArrowLeft size={14} /> Back
                 </button>

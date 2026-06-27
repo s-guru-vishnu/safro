@@ -20,7 +20,6 @@ server_full_log.txt
 sample document
 n8n
 
-# Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea

@@ -14,7 +14,7 @@ const AISuggestionBubble = ({ suggestion, onDismiss }) => {
             >
                 <div className="relative bg-gradient-to-r from-indigo-600/90 to-purple-600/90 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-lg shadow-indigo-500/20 border border-indigo-400/30">
                     {/* Glow effect */}
-                    <div className="absolute inset-0 bg-indigo-500/10 rounded-2xl blur-md -z-10" />
+                    <div className="absolute inset-0 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl blur-md -z-10" />
 
                     {/* Content */}
                     <div className="flex items-center gap-2">

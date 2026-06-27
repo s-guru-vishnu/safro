@@ -59,7 +59,7 @@ const GoogleCallback = () => {
     }, [searchParams, navigate, updateUser]);
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950">
             <LoadingSpinner size="lg" text="Authenticating with Google..." />
         </div>
     );

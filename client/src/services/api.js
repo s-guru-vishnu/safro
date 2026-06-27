@@ -50,4 +50,24 @@ export const sendOtp = (phone) => api.post('/auth/send-otp', { phone });
 export const verifyOtp = (phone, otp) => api.post('/auth/verify-otp', { phone, otp });
 export const resendOtp = (phone) => api.post('/auth/resend-otp', { phone });
 
+// Favorite Locations API methods
+export const getFavorites = () => api.get('/locations');
+export const addFavorite = (data) => api.post('/locations', data);
+export const updateFavorite = (id, data) => api.put(`/locations/${id}`, data);
+export const deleteFavorite = (id) => api.delete(`/locations/${id}`);
+
+// Scheduled Rides API methods
+export const scheduleRide = (data) => api.post('/rides/schedule', data);
+export const getScheduledRides = () => api.get('/rides/scheduled');
+export const rescheduleRide = (id, data) => api.put(`/rides/${id}/reschedule`, data);
+
+// Split Fare API methods
+export const createSplitFare = (data) => api.post('/split-fare/create', data);
+export const inviteSplitFare = (data) => api.post('/split-fare/invite', data);
+export const respondSplitFare = (data) => api.post('/split-fare/respond', data);
+export const getSplitFare = (rideId) => api.get(`/split-fare/${rideId}`);
+export const paySplitFare = (data) => api.post('/split-fare/pay', data);
+export const joinSplitFare = (code) => api.post(`/split-fare/join/${code}`);
+export const getMySplits = () => api.get('/split-fare/my-splits');
+
 export default api;

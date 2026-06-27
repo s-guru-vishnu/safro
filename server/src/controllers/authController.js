@@ -85,6 +85,13 @@ const login = async (req, res, next) => {
             return res.status(403).json({ message: 'Your account has been suspended' });
         }
 
+        // If user exists but has no password, they likely signed up with Google
+        if (!user.password) {
+            return res.status(401).json({ 
+                message: 'This account was created with Google. Please use the "Sign in with Google" button or reset your password to create one.' 
+            });
+        }
+
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid email or password' });

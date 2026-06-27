@@ -60,14 +60,14 @@ const RatingModal = ({ ride, isOpen, onClose, onSubmitted }) => {
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                 className="w-full max-w-md relative z-10"
             >
-                <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100">
+                <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800">
                     <div className="h-2 bg-[#148e85] w-full" />
                     
                     {status === 'rating' ? (
                         <div className="p-8">
                             <div className="flex flex-col items-center text-center mb-8">
-                                <h2 className="text-2xl font-black text-gray-900 tracking-tight">Rate your Ride</h2>
-                                <p className="text-gray-500 text-xs mt-1 flex items-center gap-1 font-medium">
+                                <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Rate your Ride</h2>
+                                <p className="text-gray-500 dark:text-gray-400 text-xs mt-1 flex items-center gap-1 font-medium">
                                     <FiHeart className="w-3 h-3 text-red-500" />
                                     Your feedback matters most
                                 </p>
@@ -98,14 +98,14 @@ const RatingModal = ({ ride, isOpen, onClose, onSubmitted }) => {
                             </div>
 
                             <div className="space-y-3 mb-8">
-                                <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                                <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">
                                     <FiMessageSquare className="w-3 h-3" /> Add a Comment
                                 </label>
                                 <textarea
                                     value={comment}
                                     onChange={(e) => setComment(e.target.value)}
                                     placeholder="How was your experience with the driver?"
-                                    className="w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-gray-900 text-sm focus:ring-2 focus:ring-[#148e85] focus:border-transparent outline-none transition-all resize-none h-28"
+                                    className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-3xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-[#148e85] focus:border-transparent outline-none transition-all resize-none h-28"
                                 />
                             </div>
 
@@ -113,7 +113,7 @@ const RatingModal = ({ ride, isOpen, onClose, onSubmitted }) => {
                                 onClick={handleSubmit}
                                 disabled={rating === 0 || submitting}
                                 className={`w-full py-5 rounded-2xl font-black text-lg tracking-wide shadow-xl flex items-center justify-center gap-3 transition-all active:scale-95 ${
-                                    rating === 0 || submitting ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-[#148e85] hover:opacity-90 text-white shadow-[#148e85]/20'
+                                    rating === 0 || submitting ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed' : 'bg-[#148e85] hover:opacity-90 text-white shadow-[#148e85]/20'
                                 }`}
                             >
                                 {submitting ? (
@@ -136,14 +136,14 @@ const RatingModal = ({ ride, isOpen, onClose, onSubmitted }) => {
                             >
                                 <FiThumbsUp size={48} />
                             </motion.div>
-                            <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">Thank You!</h2>
-                            <p className="text-gray-500 text-sm leading-relaxed max-w-[240px] mx-auto font-medium">
+                            <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-3 tracking-tight">Thank You!</h2>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed max-w-[240px] mx-auto font-medium">
                                 Your feedback helps us maintain a high standard of service for everyone.
                             </p>
                             
                             <div className="mt-10 flex items-center justify-center gap-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-[#148e85] animate-pulse" />
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Returning you to safety...</span>
+                                <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Returning you to safety...</span>
                             </div>
                         </div>
                     )}

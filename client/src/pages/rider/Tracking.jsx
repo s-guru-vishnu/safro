@@ -156,14 +156,14 @@ const Tracking = () => {
 
     if (!ride) {
         return (
-            <div className="min-h-[calc(100vh-64px)] bg-gray-50 flex items-center justify-center">
+            <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-center bg-white rounded-2xl border border-gray-200 p-12 max-w-sm mx-auto"
+                    className="text-center bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-12 max-w-sm mx-auto"
                 >
-                    <h3 className="text-lg font-bold text-gray-900 mb-1">No Active Ride</h3>
-                    <p className="text-sm text-gray-400 mb-6">Book a ride to see live tracking here.</p>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">No Active Ride</h3>
+                    <p className="text-sm text-gray-400 dark:text-gray-500 mb-6">Book a ride to see live tracking here.</p>
                     <Link to="/rider/home" className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-all">
                         <FiArrowLeft size={14} /> Book a Ride
                     </Link>
@@ -173,17 +173,17 @@ const Tracking = () => {
     }
 
     return (
-        <div className="min-h-[calc(100vh-64px)] bg-gray-50">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+        <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-950">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-5">
-                    <h1 className="text-2xl font-bold text-gray-900">Live Tracking</h1>
+                <div className="flex items-center justify-between mb-4">
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">Live Tracking</h1>
                     <StatusBadge status={ride.status} />
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     {/* Map */}
-                    <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm relative" style={{ height: 420 }}>
+                    <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm relative" style={{ height: 380 }}>
                         <MapView
                             pickupCoordinates={ride.pickupLocation?.coordinates?.coordinates ? {
                                 lat: ride.pickupLocation.coordinates.coordinates[1],
@@ -214,18 +214,18 @@ const Tracking = () => {
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white rounded-2xl border border-gray-200 p-5"
+                            className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-5"
                         >
                             <div className="flex items-center gap-3 mb-4">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${ride.status === 'completed' ? 'bg-green-500' : ride.status === 'cancelled' ? 'bg-red-500' : 'bg-teal-500'
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${ride.status === 'completed' ? 'bg-green-50 dark:bg-green-900/20' : ride.status === 'cancelled' ? 'bg-red-50 dark:bg-red-900/20' : 'bg-teal-50 dark:bg-teal-900/20'
                                     }`}>
                                     <FiClock size={18} />
                                 </div>
                                 <div>
-                                    <h3 className="text-sm font-bold text-gray-900">
+                                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">
                                         {statusMessages[ride.status] || 'Ride in progress'}
                                     </h3>
-                                    <p className="text-xs text-gray-400 capitalize">{ride.status?.replace('_', ' ')}</p>
+                                    <p className="text-xs text-gray-400 dark:text-gray-500 capitalize">{ride.status?.replace('_', ' ')}</p>
                                 </div>
                             </div>
 
@@ -243,29 +243,29 @@ const Tracking = () => {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="bg-white rounded-2xl border border-gray-200 p-5 space-y-4"
+                            className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 space-y-4"
                         >
                             <div className="flex items-start gap-3">
-                                <div className="mt-1"><div className="w-2.5 h-2.5 rounded-full bg-teal-500 ring-4 ring-teal-100" /></div>
+                                <div className="mt-1"><div className="w-2.5 h-2.5 rounded-full bg-teal-50 dark:bg-teal-900/20 ring-4 ring-teal-100" /></div>
                                 <div>
-                                    <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Pickup</span>
-                                    <p className="text-sm text-gray-800 font-medium">{ride.pickupLocation?.address}</p>
+                                    <span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider font-medium">Pickup</span>
+                                    <p className="text-sm text-gray-800 dark:text-gray-200 font-medium">{ride.pickupLocation?.address}</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3">
-                                <div className="mt-1"><div className="w-2.5 h-2.5 rounded-full bg-red-500 ring-4 ring-red-100" /></div>
+                                <div className="mt-1"><div className="w-2.5 h-2.5 rounded-full bg-red-50 dark:bg-red-900/20 ring-4 ring-red-100" /></div>
                                 <div>
-                                    <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Drop-off</span>
-                                    <p className="text-sm text-gray-800 font-medium">{ride.dropLocation?.address}</p>
+                                    <span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider font-medium">Drop-off</span>
+                                    <p className="text-sm text-gray-800 dark:text-gray-200 font-medium">{ride.dropLocation?.address}</p>
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                            <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
                                 <div className="flex items-center gap-2">
-                                    <FiDollarSign className="text-teal-600" size={14} />
-                                    <span className="text-lg font-bold text-gray-900">₹{ride.fare?.final || ride.fare?.proposed || ride.fare || '—'}</span>
+                                    <FiDollarSign className="text-teal-600 dark:text-teal-400" size={14} />
+                                    <span className="text-lg font-bold text-gray-900 dark:text-white">₹{ride.fare?.final || ride.fare?.proposed || ride.fare || '—'}</span>
                                 </div>
-                                <span className="text-xs text-gray-400">{ride.distance || '—'} km</span>
+                                <span className="text-xs text-gray-400 dark:text-gray-500">{ride.distance || '—'} km</span>
                             </div>
                         </motion.div>
 
@@ -273,7 +273,7 @@ const Tracking = () => {
                             <button
                                 onClick={handleCancelRide}
                                 disabled={cancelLoading}
-                                className="w-full mt-4 bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-3 rounded-xl transition-colors border border-red-200"
+                                className="w-full mt-4 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 font-semibold py-3 rounded-xl transition-colors border border-red-200 dark:border-red-800"
                             >
                                 {cancelLoading ? 'Cancelling...' : 'Cancel Ride'}
                             </button>
@@ -282,7 +282,7 @@ const Tracking = () => {
                         {/* SOS */}
                         <Link
                             to="/rider/sos"
-                            className="block w-full mt-4 py-3 rounded-xl text-center text-sm font-semibold bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-colors"
+                            className="block w-full mt-4 py-3 rounded-xl text-center text-sm font-semibold bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
                         >
                             Emergency SOS
                         </Link>

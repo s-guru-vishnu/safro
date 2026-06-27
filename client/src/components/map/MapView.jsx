@@ -171,17 +171,17 @@ const MapView = ({ pickupCoordinates, dropCoordinates, driverCoordinates, riderC
     // ── Fail safe ───────────────────────────────────────────────
     if (loadError || authError) {
         return (
-            <div className="flex items-center justify-center h-full bg-gray-50 rounded-xl">
+            <div className="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-950 rounded-xl">
                 <div className="text-center p-6 max-w-sm">
-                    <div className="text-3xl mb-2 text-gray-400 flex justify-center"><MapIcon size={32} /></div>
-                    <p className="text-sm font-semibold text-gray-700">Map unavailable</p>
-                    <p className="text-xs text-gray-400 mt-2 leading-relaxed">
+                    <div className="text-3xl mb-2 text-gray-400 dark:text-gray-500 flex justify-center"><MapIcon size={32} /></div>
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Map unavailable</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 leading-relaxed">
                         {authError 
                             ? "Google Maps authentication failed. This usually means your API search/referer restrictions are too strict or billing is not enabled."
                             : "Could not load Google Maps. Please ensure your API key is valid and all required APIs (Maps, Places, Directions, Geocoding) are enabled."}
                     </p>
                     {import.meta.env.VITE_GOOGLE_MAP_KEY ? null : (
-                        <div className="mt-4 bg-red-50 text-red-600 px-3 py-2 rounded text-[10px] font-mono border border-red-100">
+                        <div className="mt-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-2 rounded text-[10px] font-mono border border-red-100">
                             Error: VITE_GOOGLE_MAP_KEY is empty
                         </div>
                     )}
@@ -192,10 +192,10 @@ const MapView = ({ pickupCoordinates, dropCoordinates, driverCoordinates, riderC
 
     if (!isLoaded) {
         return (
-            <div className="flex items-center justify-center h-full bg-gray-50 rounded-xl">
+            <div className="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-950 rounded-xl">
                 <div className="flex flex-col items-center gap-2">
                     <div className="w-6 h-6 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
-                    <span className="text-xs text-gray-400">Loading map...</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">Loading map...</span>
                 </div>
             </div>
         );
@@ -231,7 +231,7 @@ const MapView = ({ pickupCoordinates, dropCoordinates, driverCoordinates, riderC
                         {activeInfoWindow === marker.type && (
                             <InfoWindow onCloseClick={() => setActiveInfoWindow(null)}>
                                 <div className="px-1 py-0.5">
-                                    <span className="text-xs font-bold text-gray-800">{marker.label}</span>
+                                    <span className="text-xs font-bold text-gray-800 dark:text-gray-200">{marker.label}</span>
                                 </div>
                             </InfoWindow>
                         )}

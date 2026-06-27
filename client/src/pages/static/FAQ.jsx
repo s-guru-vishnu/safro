@@ -50,7 +50,7 @@ const FAQ = () => {
     });
 
     return (
-        <div className="bg-white min-h-screen">
+        <div className="bg-white dark:bg-gray-900 min-h-screen">
             {/* Hero */}
             <section className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white py-24">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -58,19 +58,19 @@ const FAQ = () => {
                         <h1 className="text-4xl sm:text-5xl font-extrabold mb-6">
                             Frequently Asked <span className="text-teal-400">Questions</span>
                         </h1>
-                        <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-8">
+                        <p className="text-lg text-gray-400 dark:text-gray-500 max-w-2xl mx-auto mb-8">
                             Everything you need to know about Safro.
                         </p>
 
                         {/* Search */}
                         <div className="max-w-md mx-auto relative">
-                            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
                             <input
                                 type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search questions..."
-                                className="w-full pl-11 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 text-sm focus:outline-none focus:border-teal-400 transition-colors"
+                                className="w-full pl-11 pr-4 py-3 bg-white dark:bg-gray-900/10 border border-white/20 rounded-xl text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:border-teal-400 transition-colors"
                             />
                         </div>
                     </motion.div>
@@ -88,7 +88,7 @@ const FAQ = () => {
                                 onClick={() => setActiveCategory(cat)}
                                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${activeCategory === cat
                                     ? 'bg-gray-900 text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:bg-gray-700'
                                     }`}
                             >
                                 {cat}
@@ -99,24 +99,24 @@ const FAQ = () => {
                     {/* Questions */}
                     <div className="space-y-3">
                         {filtered.length === 0 && (
-                            <p className="text-center text-gray-400 py-8">No questions match your search.</p>
+                            <p className="text-center text-gray-400 dark:text-gray-500 py-8">No questions match your search.</p>
                         )}
                         {filtered.map((faq, i) => (
                             <motion.div
                                 key={`${faq.category}-${i}`}
                                 custom={i}
                                 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                                className="border border-gray-200 rounded-xl overflow-hidden"
+                                className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
                             >
                                 <button
                                     onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                                    className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
+                                    className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded uppercase">{faq.category}</span>
-                                        <span className="text-sm font-semibold text-gray-900">{faq.q}</span>
+                                        <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded uppercase">{faq.category}</span>
+                                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{faq.q}</span>
                                     </div>
-                                    <FiChevronDown className={`text-gray-400 transition-transform shrink-0 ml-3 ${openIndex === i ? 'rotate-180' : ''}`} />
+                                    <FiChevronDown className={`text-gray-400 dark:text-gray-500 transition-transform shrink-0 ml-3 ${openIndex === i ? 'rotate-180' : ''}`} />
                                 </button>
                                 <AnimatePresence>
                                     {openIndex === i && (
@@ -126,7 +126,7 @@ const FAQ = () => {
                                             exit={{ height: 0, opacity: 0 }}
                                             className="overflow-hidden"
                                         >
-                                            <p className="px-6 pb-4 text-sm text-gray-500 leading-relaxed">{faq.a}</p>
+                                            <p className="px-6 pb-4 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{faq.a}</p>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
@@ -137,10 +137,10 @@ const FAQ = () => {
             </section>
 
             {/* Contact CTA */}
-            <section className="py-16 bg-gray-50">
+            <section className="py-16 bg-gray-50 dark:bg-gray-950">
                 <div className="max-w-3xl mx-auto px-4 text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-3">Still have questions?</h2>
-                    <p className="text-gray-500 mb-6">Our support team is here to help.</p>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Still have questions?</h2>
+                    <p className="text-gray-500 dark:text-gray-400 mb-6">Our support team is here to help.</p>
                     <a href="mailto:safro.2026.safro@gmail.com" className="inline-flex items-center gap-2 px-8 py-3.5 bg-gray-900 text-white font-semibold rounded-lg hover:bg-teal-600 transition-all">
                         Contact Support
                     </a>

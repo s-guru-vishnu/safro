@@ -138,7 +138,7 @@ const Navigation = () => {
         return (
             <div className="driver-nav">
                 <div className="empty-state">
-                    <div className="empty-state-icon text-gray-400 flex justify-center mb-2"><Map size={48} /></div>
+                    <div className="empty-state-icon text-gray-400 dark:text-gray-500 flex justify-center mb-2"><Map size={48} /></div>
                     <h3>No Active Ride</h3>
                     <p>Accept a ride to see navigation</p>
                 </div>
@@ -155,11 +155,11 @@ const Navigation = () => {
 
             <div className="tracking-map" style={{ height: '300px', marginBottom: '1.5rem' }}>
                 {loadError || authError ? (
-                    <div className="flex items-center justify-center h-full bg-gray-50 rounded-2xl border border-gray-100">
+                    <div className="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-950 rounded-2xl border border-gray-100 dark:border-gray-800">
                         <div className="text-center p-4">
-                            <span className="text-gray-400 flex justify-center mb-1"><Map size={24} /></span>
-                            <p className="text-xs font-semibold text-gray-700">Map unavailable</p>
-                            <p className="text-[10px] text-gray-400 mt-1">
+                            <span className="text-gray-400 dark:text-gray-500 flex justify-center mb-1"><Map size={24} /></span>
+                            <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">Map unavailable</p>
+                            <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
                                 {authError ? "Auth failed (Check API restrictions/billing)" : "Check API key and network"}
                             </p>
                         </div>
@@ -176,7 +176,7 @@ const Navigation = () => {
                         {dropPos && <Marker position={dropPos} icon={DROP_ICON} />}
                     </GoogleMap>
                 ) : (
-                    <div className="flex items-center justify-center h-full bg-gray-50 rounded-2xl">
+                    <div className="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-950 rounded-2xl">
                         <div className="w-6 h-6 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
                     </div>
                 )}

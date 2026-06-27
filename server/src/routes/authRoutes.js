@@ -17,7 +17,7 @@ const {
 const { protect } = require('../middleware/authMiddleware');
 const passport = require('passport');
 
-const FRONTEND_URL = 'http://localhost:5173';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://safro-ride.vercel.app';
 
 // POST /api/auth/register
 router.post('/register', registerValidation, register);
